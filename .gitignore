@@ -1,0 +1,172 @@
+# ==========================================================================
+# Pish Hesabdari — repository exclusions
+# Authority: docs/PISH_HESABDARI_HOLY_BIBLE.md  (see §5.9, §8.7, §11.4)
+# Owner: DevOps Lead  ·  Related WBS: P0-T01, P0-T03, P0-T11, P0-T16, P0-T17
+#
+# SECURITY: this file is the first control that prevents secrets, local
+# databases, candidate documents and build artefacts from entering version
+# control. Review it before relaxing any rule; prefer an allow-list.
+#
+# NOTE: the statutory seed files under backend/data/seeds/ are DELIBERATELY
+# NOT ignored. The 1404 seed is a tracked, hash-pinned legal artefact
+# (invariant R-10); the 1405 seed is a tracked, inert placeholder.
+# ==========================================================================
+
+# --- secrets and local configuration -------------------------------------
+.env
+.env.*
+!.env.example
+*.env.local
+secrets/
+.secrets/
+*.secret
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+credentials*.json
+service-account*.json
+id_rsa
+id_ed25519
+*.keystore
+vault-token
+vault-token.*
+
+# --- Freebuff / Antigravity session state ---------------------------------
+# .freebuff/.gitignore already excludes its own contents; these are repeated
+# at the root so the intent survives a move or a partial checkout.
+/.freebuff/project-id
+/.freebuff/.gitignore
+
+# --- local agent and editor state -----------------------------------------
+.claude/
+.codex/
+.opencode/
+.continue/
+.agents/cache/
+
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.uv/
+.python-version.local
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+nosetests.xml
+.tox/
+.nox/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+build/
+dist/
+__pypackages__/
+
+# --- Node / frontend ------------------------------------------------------
+node_modules/
+.npm/
+.pnpm-store/
+# The specification mandates pnpm and `pnpm-lock.yaml` (SPEC-OPS-001 §2.4).
+# An npm lockfile would silently diverge from that contract, so it is
+# rejected rather than committed.
+package-lock.json
+npm-shrinkwrap.json
+.yarn/
+.pnp.*
+*.tsbuildinfo
+.vite/
+dist/
+build/
+coverage/
+next/
+out/
+.playwright/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# --- local services, volumes and data --------------------------------------
+# Deliberately specific paths: backend/data/seeds/ MUST remain tracked.
+/var/
+/uploads/
+/tmp/
+/postgres-data/
+/objectstore-data/
+/vault-data/
+pgdata/
+.pgdata/
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+docker-data/
+
+# --- build and release artefacts ------------------------------------------
+*.whl
+*.tar.gz
+*.egg
+sbom*.json
+*.spdx.json
+*.cdx.json
+manifest.json
+
+# --- logs and diagnostics --------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pdm-debug.log*
+
+# --- coverage / test artefacts --------------------------------------------
+coverage/
+*.cover
+.pytest_cache/
+
+# --- operating system ------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.AppleDouble
+.LSOverride
+
+# --- editors ---------------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+*.swp
+*.swo
+*~
+.\#*
+\#*\#
+
+# --- explicit allow-list: tracked legal and specification artefacts ---------
+# These paths are intentionally NOT ignored even if a broader rule above
+# could match them. Documented here so a future edit does not silently drop
+# them from the repository.
+!backend/data/seeds/
+!backend/data/seeds/*.yaml
+!docs/
+!docs/**
+!backend/uv.lock

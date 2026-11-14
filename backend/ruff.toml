@@ -1,0 +1,81 @@
+# ==========================================================================
+# Pish Hesabdari — ruff configuration (lint + format)
+# Authority: docs/PISH_HESABDARI_HOLY_BIBLE.md §11.4
+# QA:        docs/specs/TESTING.md §3  (single fast tool; no flake8/black/isort sprawl)
+# Related:   WBS P0-T01
+#
+# MONEY-SAFETY GATE
+#   The mechanical "no float in a money path" rule is NOT enforced here.
+#   Per docs/specs/TESTING.md §3.1 it is an architectural pytest test that
+#   walks the AST of backend/app/engines/** and fails on any float literal.
+#   That test is owned by WBS P1-T04 and P0-T15 and is blocking.
+#   ruff's role here is to catch the surrounding defects (unused imports,
+#   shadowed builtins, mutable defaults, bare excepts).
+# ==========================================================================
+
+target-version = "py312"
+line-length = 100
+src = ["app", "tests"]
+extend-exclude = [".venv", "alembic/versions"]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # bugbear
+    "A",      # builtin shadowing
+    "C4",     # comprehensions
+    "DTZ",    # naive datetimes
+    "T20",    # print statements
+    "SIM",    # simplify
+    "PTH",    # pathlib
+    "RUF",    # ruff-specific
+    "ASYNC",  # async correctness
+    "S",      # bandit security
+    "ANN",    # annotations
+    "ARG",    # unused arguments
+    "PL",     # pylint
+    "PERF",   # performance
+]
+ignore = [
+    "E501",    # line length is handled by the formatter
+    "ANN401",  # Any is permitted for FastAPI dependency injection
+    "PLR0913", # too many arguments — statutory engines legitimately take many
+    "PLR2004", # magic values — statutory rates are domain constants
+    "S101",    # assert — permitted in test suites only (see per-file-ignores)
+    "COM812",  # trailing-comma conflicts with the formatter
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811"]
+"alembic/**" = ["ANN", "PLR2004", "I001"]
+"__init__.py" = ["F401"]
+
+[lint.flake8-tidy-imports.banned-api]
+# `round()` uses banker's rounding and is banned on monetary values.
+#
+# ACCURACY NOTE (verified against ruff 0.17.5): TID251 flags *imports* of a
+# banned API. It does NOT detect a call to the `round()` builtin, so this
+# entry is a narrow guard against importing a `round` symbol — it is NOT a
+# substitute for the money-safety AST gate in docs/specs/TESTING.md §3.1,
+# which remains the authoritative ban and is owned by P1-T04 / P0-T15.
+"round" = { msg = "round() is banned on monetary values; use Decimal with ROUND_HALF_UP." }
+
+[lint.pydocstyle]
+convention = "pep257"
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+
+[lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+required-imports = ["from __future__ import annotations"]

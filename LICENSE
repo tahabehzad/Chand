@@ -1,0 +1,57 @@
+PROPRIETARY SOFTWARE — ALL RIGHTS RESERVED
+Copyright (c) 2026 Pish Hesabdari. All rights reserved.
+
+NOTICE AND LICENSE
+==================
+
+This software and its accompanying documentation, data, statutory rule
+sets and reference material (collectively, the "Software") are the
+confidential and proprietary property of Pish Hesabdari (the "Licensor").
+
+No licence, express or implied, is granted to any person to copy,
+modify, publish, distribute, sublicense, reverse engineer, decompile,
+disassemble or create derivative works of the Software, or to use the
+Software other than as expressly authorised in a written agreement signed
+by the Licensor.
+
+The Software may be used only by employees and contractors of the
+Licensor who have been granted access for the purpose of developing,
+testing, operating and supporting the Software, and who are bound by
+written confidentiality obligations at least as protective as this
+notice.
+
+ATTRIBUTION AND THIRD-PARTY MATERIAL
+====================================
+
+The Software embeds or depends upon third-party open-source components
+licensed under the Apache License 2.0, the MIT License and the BSD
+3-Clause License, as identified in the dependency manifests
+(backend/uv.lock and, when created, frontend/pnpm-lock.yaml).  Those
+components remain the property of their respective authors and are used
+under their own licences.  This notice grants no rights in those
+components.
+
+The HashiCorp Vault client is distributed under the Business Source
+License; its use is governed by that license and by the open-items
+register (HB-GAP-035), not by this notice.
+
+CONFIDENTIALITY OF STATUTORY AND PERSONAL DATA
+==============================================
+
+The statutory rule sets under backend/data/seeds/ embody Iranian labour
+and tax law as transcribed by the project.  They are legal working
+material: the 1404 rule set is the only activated baseline, and the 1405
+rule set is an inert placeholder that must not be activated until the
+four-eyes verification conditions are met.
+
+The Software handles Iranian identity data — National Codes, mobile
+numbers, Sheba numbers and compensation records.  Those data must never
+be copied into the repository, an image layer, a log line, an error
+message or a traceback.
+
+DECISION RECORD
+===============
+
+Licence status: PROPRIETARY (option (a) of DEC-G, decided by the
+Project Owner on 2026-11-14).  The full decision, its alternatives and
+its consequences are recorded in docs/DECISION_REQUIRED_FROM_OWNER.md.

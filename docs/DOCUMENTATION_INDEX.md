@@ -1,0 +1,199 @@
+# Documentation Index & Change Control
+
+- **Document ID:** `DOC-DOCIDX-001`
+- **Status:** Active
+- **Date:** 2026-11-14 (23 Aban 1405 SH)
+- **Related:** [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) §1 · [`docs/ADR_INDEX.md`](ADR_INDEX.md)
+
+---
+
+## 1. The documentation package
+
+### 1.1 Current — binding
+
+| Path | ID | Purpose | Authority rank |
+| :--- | :-- | :--- | :--: |
+| [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) | `DOC-EXEC-001` | The master execution plan: scope, specification baseline, WBS, gates | 4 |
+| [`docs/DECISIONS_REGISTER.md`](DECISIONS_REGISTER.md) | `REG-DEC-001` | The register of unresolved decisions and blockers | 4 |
+| [`docs/IMPLEMENTATION_READINESS.md`](IMPLEMENTATION_READINESS.md) | `DOC-READY-001` | Per-phase readiness classification | 4 |
+| [`docs/ADR_INDEX.md`](ADR_INDEX.md) | `DOC-ADRIDX-001` | The ADR register and the rejected-technology list | 4 |
+| [`docs/DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | `DOC-DOCIDX-001` | This document: the hierarchy and the supersession map | 4 |
+| [`docs/EXECUTION_DOCUMENTATION_AUDIT.md`](EXECUTION_DOCUMENTATION_AUDIT.md) | `DOC-AUDIT-001` | The self-audit of this package | 4 |
+
+### 1.2 Subordinate specifications
+
+| Path | ID | Scope |
+| :--- | :-- | :--- |
+| [`docs/specs/STATUTORY_INGESTION.md`](specs/STATUTORY_INGESTION.md) | `SPEC-STAT-001` | Source identification, acquisition, transcription, four-eyes verification, versioning, change history, activation criteria, 1404 regression |
+| [`docs/specs/AUTH.md`](specs/AUTH.md) | `SPEC-AUTH-001` | Users, organizations, membership, roles, permissions, sessions, MFA, tenant isolation, audit attribution, key management, emergency access |
+| [`docs/specs/FRONTEND_PERSIAN.md`](specs/FRONTEND_PERSIAN.md) | `SPEC-FE-001` | RTL layout, Vazirmatn, Jalali calendar, numeral and currency policy, text normalisation, PDF shaping and embedding, accessibility, responsive behaviour |
+| [`docs/specs/TESTING.md`](specs/TESTING.md) | `SPEC-QA-001` | The 13 test layers, tooling, environments, fixtures, CI stages, blocking rules, coverage, release criteria |
+| [`docs/specs/DEPLOYMENT.md`](specs/DEPLOYMENT.md) | `SPEC-OPS-001` | Topology, Windows development, containers, migrations, configuration and secrets, TLS, observability, backup, runbooks, retention, upgrade/rollback, air-gapped deployment |
+| [`docs/specs/DOCUMENT_FORENSICS.md`](specs/DOCUMENT_FORENSICS.md) | `SPEC-DOC-001` | Document taxonomy, custody, OCR, tamper detection, signatures, issuer verification, status model, consistency matrix, 4-way disambiguation, `V_score` |
+
+### 1.3 Architecture Decision Records
+
+| Path | Status |
+| :--- | :--- |
+| [`docs/adr/ADR-001-frontend-architecture-react-vite-spa.md`](adr/ADR-001-frontend-architecture-react-vite-spa.md) | Accepted |
+| [`docs/adr/ADR-002-object-storage-worm-ceph-s3-governance.md`](adr/ADR-002-object-storage-worm-ceph-s3-governance.md) | Accepted |
+| [`docs/adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md`](adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md) | Accepted |
+| [`docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md`](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | Accepted |
+| [`docs/adr/ADR-005-async-execution-strategy.md`](adr/ADR-005-async-execution-strategy.md) | **Proposed** |
+
+### 1.4 Upstream sources — outside `docs/`, unmodified by this workstream
+
+| Path | Role | Rank |
+| :--- | :--- | :--: |
+| `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` | The authoritative product & technical specification | 2 |
+| `PHASE_1_RED_TEAM_AUDIT.md` | The findings and correction register | 3 |
+| `PHASE_1_FINAL_AUDIT_BRIEF.md` | **Superseded** baseline brief | 6 |
+| `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` | **Historical** research synthesis | 5 (retained sections only) |
+| `گزارش جامع پژوهشی.docx` (PH-RES-1405-01) | Persian baseline research | 5 |
+| `Technical Investigation of Related Software Projects.docx` | Technology landscape survey | 5 |
+| `1.docx` | Independent audit of the two baseline reports | 5 |
+| `backend/data/seeds/statutory_rules_1404.yaml` | **Verified** historical rule set — do not modify | 2 |
+| `backend/data/seeds/statutory_rules_1405.yaml` | **Empty placeholder** — must remain inactive | 2 |
+| `.agents/skills/*/SKILL.md` | Agent behaviour contracts — engineering standards, not project documents | n/a |
+
+---
+
+## 2. Supersession map — `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md`
+
+This document carries a historical banner (lines 2–6) that names only *"Celery/Redis architecture, Next.js, and 1404 SH temporal assumptions"* as superseded. **That under-declares the scope.** The body still prescribes several rejected technologies in the present tense. This section is the **authoritative supersession statement**.
+
+### 2.1 Section-level disposition
+
+| Section | Content | Disposition | Superseded by |
+| :--- | :--- | :--- | :--- |
+| Header banner | The historical notice | **RETAINED but INCOMPLETE** — must be read with this table | — |
+| Deliverable 1 · §1.1 | Mission, boundaries | **RETAINED** | — |
+| Deliverable 1 · §1.2 | Audit of the baseline artefacts | **RETAINED** (historical record) | — |
+| Deliverable 1 · §1.3 | Three-way research classification | **RETAINED** (methodology) | — |
+| Deliverable 1 · §1.4 | Investigation priorities and exclusions | **RETAINED** | — |
+| Deliverable 2 · §2.1 | The 12-category document taxonomy | **RETAINED** → `SPEC-DOC-001` §2 | — |
+| Deliverable 2 · §2.2.1 | Official verification portals | **RETAINED** → `SPEC-DOC-001` §7.1 | — |
+| Deliverable 2 · §2.2.2 | The Shahkar reality check | **RETAINED** → `SPEC-DOC-001` §7.2 | — |
+| Deliverable 2 · §2.2.3 | Iranian PKI and pyHanko | **RETAINED** → `SPEC-DOC-001` §6 | — |
+| Deliverable 2 · §2.2.4 | PDF structure and metadata forensics | **RETAINED** → `SPEC-DOC-001` §5.1 | — |
+| Deliverable 2 · §2.2.5 | ELA and clone detection | **RETAINED** → `SPEC-DOC-001` §5.2 | — |
+| Deliverable 2 · §2.2.6 | Persian OCR engine comparison | **RETAINED with a correction** — the latency column is superseded by `FIND-ARCH-05` (3.5–6.0 s CPU / 1.2–1.8 s T4) | `SPEC-DOC-001` §4.2 |
+| Deliverable 2 · §2.2.7 | Cross-document consistency matrix | **RETAINED** → `SPEC-DOC-001` §9 | — |
+| Deliverable 2 · §2.3 | The verification-status model and weights | **RETAINED** → `SPEC-DOC-001` §8 | — |
+| Deliverable 2 · §2.4 | The end-to-end document workflow | **RETAINED** → `SPEC-DOC-001` §13 | — |
+| Deliverable 3 · §3.1–§3.3 | 4-way disambiguation, the 3-layer model, `V_score` | **RETAINED** → `SPEC-DOC-001` §10–§11 | — |
+| Deliverable 3 · §3.4 | The verified-profile schema | **RETAINED** | — |
+| Deliverable 4 · §4.1–§4.5 | Compa-ratio, compression analytics, MCDA, the priority framework | **REJECTED for Phase 1** — post-hire HRIS scope | ADR-004 (`FIND-PROD-01`) |
+| Deliverable 5 · §5.1–§5.6 | Lifecycle, CTC, contract structuring, overtime divisors, settlement, dispute resolution | **PARTIALLY RETAINED** — the statutory content is retained and already superseded by `REMEDIATED` Module 1/6; the *operational settlement execution* is rejected | ADR-004 (`FIND-PROD-02`); `REMEDIATED` |
+| Deliverable 6 · §6.1 | Library evaluation | **RETAINED**, but the `pgcrypto` row is rejected | ADR-003 |
+| Deliverable 6 · §6.2 | Architecture integration (line 1027 `pgcrypto`, line 1028 MinIO) | **REJECTED** | ADR-002, ADR-003 |
+| Deliverable 6 · §6.3 | Risk and scalability | **RETAINED** | — |
+| Deliverable 7 · §7.1 | The P0–P3 priority matrix | **RETAINED as task granularity only.** The `pgcrypto` prerequisite (line 1094), the `Bisection Net-to-Gross` capability (line 1100), the `Redis, Celery/ARQ` prerequisite (line 1109) and the `MinIO WORM` milestone (line 1155) are rejected | ADR-002, ADR-003, `FIND-MATH-01`, ADR-005 |
+| Deliverable 7 · §7.2 | The Month-1 / Month-2 / Quarter-2 schedule | **REJECTED as a schedule** — replaced by the approved 20-week roadmap. Retained only as a source of task granularity | `REMEDIATED` §7, ADR-004 |
+| Deliverable 8 · §8.1 | The system architecture blueprint (lines 1209 `pgcrypto`, 1210 MinIO) | **REJECTED in those respects** | ADR-002, ADR-003 |
+| Deliverable 8 · §8.2 | The database schema extensions (line 1265 `pgcrypto`, line 1242 MinIO URI) | **PARTIALLY RETAINED** — the table structures are harvested into `SPEC-DOC-001` §3.3; the encryption and storage columns are rejected | ADR-002, ADR-003 |
+| Deliverable 8 · §8.3 | The REST API endpoint directory | **PARTIALLY RETAINED** — items 7, 11 (MCDA) are rejected; the rest are superseded by `REMEDIATED` §5 | ADR-004, `REMEDIATED` §5 |
+| Deliverable 8 · §8.4 | The regulatory-intelligence framework | **RETAINED with a constraint** — the mandatory human sign-off gate and the absolute prohibition on unsupervised modification are retained and reinforced by `SPEC-STAT-001` | `SPEC-STAT-001` §7 |
+| Deliverable 8 · §8.5 | Privacy, legal and data governance (line 1434 `pgcrypto`) | **RETAINED with a correction** — the retention periods and masking rules are retained; the `pgcrypto` sentence is rejected | ADR-003 |
+
+### 2.2 Line-level rejected references in this file
+
+| Line | Content | Rejected by |
+| :--: | :--- | :--- |
+| 82, 731, 1100, 1193 | The bisection net-to-gross solver | `FIND-MATH-01` → `REMEDIATED` Module 2 |
+| 989–990 | MinIO with Object Lock, "PRIMARY SELECTION" | ADR-002 |
+| 994, 1027, 1094, 1209, 1265, 1434 | `pgcrypto` for field encryption | ADR-003 |
+| 1049, 1155 | MinIO WORM in the architecture and the milestone plan | ADR-002 |
+| 1028, 1210, 1242 | The MinIO object store in the blueprint and the schema | ADR-002 |
+| 1109 | Redis + Celery/ARQ as the P1 prerequisite | ADR-005 (proposed) |
+| §8.3 items 7, 11 | `/compensation/prioritize-reviews`, the compa-ratio and compression endpoints | ADR-004 |
+
+### 2.3 Standing recommendation
+
+A reader who opens this file without reading this table will implement AGPLv3 object storage, in-database key exposure and a 50-iteration solver. **A supersession banner should be added to the file header**, listing the items in §2.2. This workstream could not make that edit: the authorised write scope was `docs/` only. It is raised as a documentation-hygiene action for the project owner.
+
+---
+
+## 3. Supersession map — the DOCX research and audit material
+
+The three `.docx` files are **binary and were not modified**. Their status is therefore declared here.
+
+| File | Status | Retained content | Superseded content |
+| :--- | :--- | :--- | :--- |
+| `گزارش جامع پژوهشی.docx` (PH-RES-1405-01, 2026-11-13) | **Baseline research — historical** | §2 the six-tier compensation data taxonomy; §5 the Iranian labour-law reference tables and statutory formulae; §8 the preliminary SRS; §9 the relational schema and the deterministic-vs-AI separation; §10 the update-frequency matrix; §11.1 the MoSCoW prioritisation (as task granularity only); §12.1 the data gaps; §12.2 the legal uncertainties; §12.3 the three open Product Owner decisions | §5's 1404 wage tables as the **active** baseline; §11's **7-day** schedule; §9's `pgcrypto` usage; §12.2's `wd/7.33` divisor, which is superseded by the exact `22/3` rational divisor (`1.docx` Defect 3) |
+| `Technical Investigation of Related Software Projects.docx` | **Technology survey — historical, incorporated** | Deliverable 1 (the project directory and taxonomy); Deliverable 3 (the comparison matrix); Deliverable 4 (the algorithm and statutory reference); Deliverable 6 (the reusable components); Deliverable 8 (the prioritised technical roadmap) | The "500+ job families" claim, which the independent audit found inconsistent with the 60-occupation MVP (`1.docx`) |
+| `1.docx` | **Independent audit — historical, and the correction register** | Defect 1 (the 1404/1405 year mismatch) **as a finding**; Defect 2 (the SSO ceiling in the Art. 137 base); Defect 3 (the 176 vs 220 divisor); Defect 4 (Eydi taxation and the Sanavat base); Defect 5 (the Jobinja ToS violation); the 1405 ingestion procedure; the four-eyes verification requirement | Defect 2's characterisation of the Art. 137 deduction as **a tax cap**, which `FIND-LEG-02` replaced with a two-policy toggle; the inference that 5,541,850 IRR/day was a "digit transposition" (`SPEC-STAT-001` §3.6) |
+
+### 3.1 How the DOCX material is cited
+
+Cite it **by document and section**, always with a marker that it is historical:
+
+> `گزارش جامع پژوهشی.docx` §5 (historical — statutory reference material)
+
+Never cite it as a current specification and never copy a figure from it without re-deriving it against the active rule set.
+
+---
+
+## 4. Rules for using historical documents
+
+| Rule | Detail |
+| :--- | :--- |
+| 1 | A historical document is **never** a current implementation instruction |
+| 2 | A figure from a historical document is re-derived against the active rule set before use |
+| 3 | A statutory value from a historical document is **never** transcribed into a rule set without the §4 four-eyes procedure in `SPEC-STAT-001` |
+| 4 | A rejected recommendation in a historical document is **never** revived without a new ADR |
+| 5 | When a historical document contradicts a current one, the current one wins and the historical one is corrected (or, if it cannot be edited, listed in §2 with its superseding authority) |
+| 6 | Historical documents are **never deleted or overwritten**. They are retained for the audit trail |
+
+---
+
+## 5. Change-control policy
+
+### 5.1 Classification
+
+| Class | Definition | Change rule |
+| :--- | :--- | :--- |
+| **Binding** | An accepted ADR, the authoritative specification | The recorded approver only; a change needs a superseding ADR or an explicitly approved spec amendment |
+| **Controlling** | This package (`docs/`) | The named owner; cross-references updated in the same change |
+| **Reference** | Historical research, surveys, audits | Never edited; superseded content is declared in §2 and §3 |
+| **Immutable artefact** | The statutory seed files | **Never modified.** The 1404 file is hash-pinned in CI; the 1405 file is a controlled placeholder |
+
+### 5.2 Change procedure
+
+1. The author proposes the change with the affected documents identified.
+2. The owner reviews, and the approver signs where the change affects a binding document.
+3. The change is applied, and every cross-reference is updated in the same commit.
+4. `docs/DOCUMENTATION_INDEX.md` and `docs/ADR_INDEX.md` are updated within 1 working day.
+5. The change is recorded in the changelog below.
+
+### 5.3 Review cadence
+
+| Cadence | Review |
+| :--- | :--- |
+| On every phase gate | The package is reviewed against the gate evidence |
+| Quarterly | The specification is re-read against the implemented behaviour; drift is logged |
+| Annually | The package is re-issued with a new version, alongside the statutory rule-set re-verification |
+
+### 5.4 Changelog
+
+| Version | Date | Change | Author |
+| :--: | :--: | :-- | :-- |
+| 1.0 | 2026-11-14 | The documentation package established. `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` and the three `.docx` files classified with section-level dispositions. ADR-005 drafted as `PROPOSED`. | Documentation Engineering |
+
+---
+
+## 6. Known documentation gaps
+
+These are gaps in the **package**, not in the implementation. Each is a task or a decision.
+
+| # | Gap | Resolution route |
+| :--: | :--- | :--- |
+| 1 | The supersession banner on `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` could not be corrected (write scope was `docs/` only) | Owner action — apply §2.2 to the file header |
+| 2 | The three `.docx` files cannot carry a banner | Owner action — declare their status in the README or the package index |
+| 3 | `REMEDIATED` §5.1's defective worked example is still published in the source specification | `P1-T20` |
+| 4 | `REMEDIATED` §3.1 still mandates Celery + Redis | ADR-005 approval, then a spec amendment |
+| 5 | `REMEDIATED` §3 still says "JWT" without specifying the revocation model | DEC-004, then a spec amendment |
+| 6 | `REMEDIATED` §4.1 still declares `char` without a length and omits the identity entities | `P0-T12` and `P0-T05` (migrations), then a spec amendment |
+| 7 | `backend/data/seeds/statutory_rules_1405.yaml` is still empty | `P1-T02`, `P1-T03` |
+| 8 | There is no root `README.md` or `AGENTS.md` | Owner action |
+| 9 | There is no repository `.gitignore`, `.editorconfig` or licence file | `P0-T01` |

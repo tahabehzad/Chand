@@ -1,0 +1,72 @@
+# Normalise line endings and mark binary files.
+# Authority: docs/PISH_HESABDARI_HOLY_BIBLE.md §11.4 (coding conventions)
+# Related WBS: P0-T01
+#
+# Rule: LF everywhere in source; CRLF only for Windows batch files.
+# Persian (UTF-8) content is text and must never be marked binary — the
+# Holy Bible and all Persian terminology must survive checkout intact.
+
+* text=auto eol=lf
+
+# --- Windows batch ----------------------------------------------------------
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# --- Source and configuration ------------------------------------------------
+*.py      text diff=python
+*.pyi     text diff=python
+*.toml    text
+*.cfg     text
+*.ini     text
+*.yaml    text
+*.yml     text
+*.json    text
+*.jsonc   text
+*.ts      text
+*.tsx     text
+*.js      text
+*.jsx     text
+*.mjs     text
+*.css     text
+*.scss    text
+*.html    text
+*.md      text
+*.txt     text
+*.gherkin text
+*.feature text
+*.sql     text
+*.sh      text eol=lf
+*.ps1     text eol=crlf
+.ruff.toml text
+.mypy.ini   text
+.gitignore  text
+.gitattributes text
+.editorconfig text
+
+# --- Binary artefacts --------------------------------------------------------
+*.docx    binary
+*.xlsx    binary
+*.pptx    binary
+*.pdf     binary
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.webp    binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.otf     binary
+*.eot     binary
+*.zip     binary
+*.gz      binary
+*.whl     binary
+*.so      binary
+*.dll     binary
+*.exe     binary
+*.pdb     binary
+*.sqlite  binary
+*.db      binary
+*.model   binary
+*.onnx    binary

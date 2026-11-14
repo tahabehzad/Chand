@@ -1,0 +1,89 @@
+# Statutory Rules & Parameters for 1404 Solar Hijri (1404/01/01 - 1404/12/29)
+# Verified against 335th High Council of Labor Wage Circular (25 Esfand 1403),
+# Social Security Law, and 1404 National Budget Law (Band Z Tab 1).
+
+rule_year_shamsi: 1404
+effective_date: "1404-01-01"
+source_circular_reference: "335th High Council of Labor Circular (25 Esfand 1403) & 1404 Budget Law"
+is_verified_and_active: true
+
+# Base Wage Parameters (Rial)
+daily_minimum_wage_rial: 3463656
+monthly_minimum_wage_30days_rial: 103909680
+monthly_minimum_wage_31days_rial: 107373336
+
+# Statutory Allowances (Rial)
+monthly_housing_allowance_rial: 9000000
+monthly_grocery_allowance_rial: 22000000
+monthly_marriage_allowance_rial: 5000000
+child_allowance_per_child_rial: 10390968
+daily_seniority_base_rial: 94000
+monthly_seniority_base_30days_rial: 2820000
+
+# Social Security Organization (SSO) Parameters
+employee_sso_rate: 0.070
+employer_sso_rate: 0.200
+employer_unemployment_rate: 0.030
+# Daily insurable ceiling = 7 x daily minimum wage = 7 x 3,463,656 = 24,245,592 Rial
+max_daily_insurable_wage_rial: 24245592
+max_monthly_insurable_wage_30days_rial: 727367760
+
+# Overtime & Working Hours Convention
+# Standard 44-hour weekly basis = (44 x 30 / 6) = 220 paid calendar hours per month
+overtime_monthly_divisor: 220.00
+standard_weekly_hours: 44.00
+standard_monthly_attendance_hours: 176.00
+overtime_multiplier: 1.40
+night_shift_multiplier: 1.35
+
+# Progressive Salary Income Tax Brackets (1404 Budget Law, Monthly, Rial)
+# Base tax exemption = 24,000,000 Toman/month = 240,000,000 Rial/month
+monthly_tax_exemption_rial: 240000000
+annual_tax_exemption_rial: 2880000000
+
+tax_brackets:
+  - slab: 1
+    min_rial: 0
+    max_rial: 240000000
+    rate: 0.00
+    label: "معافیت پایه ماهانه (تا ۲۴ میلیون تومان)"
+  - slab: 2
+    min_rial: 240000001
+    max_rial: 300000000
+    rate: 0.10
+    label: "پله ۱۰ درصد (۲۴ تا ۳۰ میلیون تومان)"
+  - slab: 3
+    min_rial: 300000001
+    max_rial: 380000000
+    rate: 0.15
+    label: "پله ۱۵ درصد (۳۰ تا ۳۸ میلیون تومان)"
+  - slab: 4
+    min_rial: 380000001
+    max_rial: 500000000
+    rate: 0.20
+    label: "پله ۲۰ درصد (۳۸ تا ۵۰ میلیون تومان)"
+  - slab: 5
+    min_rial: 500000001
+    max_rial: 666666667
+    rate: 0.25
+    label: "پله ۲۵ درصد (۵۰ تا ۶۶.۶ میلیون تومان)"
+  - slab: 6
+    min_rial: 666666668
+    max_rial: null
+    rate: 0.30
+    label: "پله ۳۰ درصد (مازاد بر ۶۶.۶ میلیون تومان)"
+
+# Annual Bonus (Eydi) & Severance (Sanavat) Parameters
+eydi_min_days: 60
+eydi_max_days_min_wage: 90
+# 1404 Max Eydi = 3 x monthly min wage = 311,729,040 Rial
+max_annual_eydi_rial: 311729040
+# Eydi tax exemption = 1/12 of annual exemption = 240,000,000 Rial
+eydi_tax_exemption_rial: 240000000
+eydi_tax_excess_rate: 0.10
+
+# Severance Pay (Sanavat): 1 month (30 days) of base wage per year = 8.33% monthly accrual
+sanavat_monthly_accrual_rate: 0.0833333333
+
+# Article 91 Non-Cash Benefit Tax Exemption (2/12 of annual exemption = 480,000,000 Rial)
+non_cash_benefit_annual_tax_exemption_rial: 480000000
