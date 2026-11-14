@@ -8,9 +8,15 @@
 
 > **This plan does not rewrite the roadmap.** It sequences the *existing* Phase 0 tasks, separates the unblocked from the decision-gated, and states the verification evidence each one must produce.
 
+> **2026-11-14 owner-authorized remediation:** `P0-T02` logging/configuration received security regression fixes; `P0-T01` remains `IN_PROGRESS` because CI is not configured. The existing Python environment works with the required filesystem access; it was not reinstalled. Current census is 1 completed, 1 in progress, 80 not started, 4 blocked. The owner confirms no accountant, labour counsel or licensed/consented datasets; their gates remain blocked. Recommendations are prepared in `DECISION_REQUIRED_FROM_OWNER.md`, not approved. Exact checks: `BOOTSTRAP_CHANGELOG.md` §10.
+
 ---
 
 ## 1. Phase 0 definition of done
+
+**P0-T03 update:** Docker is now running. A reviewed PostgreSQL 16 dev profile and local TLS/ACL preparation exist; 117 local tests pass. Official image acquisition/build fails with HTTP 403, so P0-T03 is BLOCKED and no database/SQL gate is passed. Current WBS: 1 completed, 1 in progress, 1 ready for review, 78 not started, 5 blocked. See BOOTSTRAP_CHANGELOG §12; earlier counts/daemon statements below are historical.
+
+**Latest owner decision:** ADR-006 accepts DEC-004/004a/004b/005; their approval prerequisite is met. Earlier wave tables retain their original decision-gate descriptions, now interpreted using ADR-006 and the current WBS. P0-T06 is READY_FOR_REVIEW locally; P0-T01's CI clause and production key integration remain. No Phase 0 gate criterion is waived. Evidence: BOOTSTRAP_CHANGELOG §11.
 
 **Weeks 1–4.** Acceptance gate, verbatim from `REMEDIATED` §7:
 

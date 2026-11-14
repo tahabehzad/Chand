@@ -139,14 +139,14 @@ B reflects the actual structure of the dispute and lets the platform present the
 
 **Current evidence**
 
-- `REMEDIATED` §3.1 mandates Celery 5.4 + Redis 7.2; `.agents/skills/software-architecture/SKILL.md` mandates FastAPI `BackgroundTasks` and explicitly rejects Redis/Celery. **These two documents contradict each other and neither has an ADR.**
+- `REMEDIATED` §3.1 and `.agents/skills/software-architecture/SKILL.md` both specify FastAPI `BackgroundTasks`. The specification mentions Celery/Redis while explaining the complexity it avoids, not as a mandate. The unresolved issue is durability/retry and CPU isolation versus in-process execution. **No alternative is accepted by ADR-005; `P2-T04` remains blocked.**
 - Comparative analysis: `docs/adr/ADR-005-async-execution-strategy.md`.
 
 **Available options**
 
 | Option | Summary |
 | :--- | :--- |
-| **A** | Celery 5.4 + Redis 7.2 (as in `REMEDIATED` §3.1) |
+| **A** | Celery + Redis (historical alternative, not mandated by current `REMEDIATED` §3.1) |
 | **B** | FastAPI `BackgroundTasks` (as in the skill corpus) |
 | **C** | PostgreSQL-backed queue with `FOR UPDATE SKIP LOCKED` |
 | **D** | Hybrid A + B |
@@ -169,13 +169,15 @@ It is the only option that satisfies all nine constraints simultaneously: Window
 
 ## DEC-004 — Authentication and Authorization Model
 
+**Resolution — 2026-11-14, Project Owner:** approved session (b), identity provider (c), MFA (b) and the existing seven-role set. Accepted ADR-006 is the rank-1 record; no named CISO/CTO signature is claimed. Session timing/remember-me and key-management details outside that exact approval remain subject to their contracts.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` |
+| **Status** | `RESOLVED` — owner approval, ADR-006 |
 | **Question** | Server-side opaque sessions or stateless JWTs? Which principals require MFA? Which roles exist? |
 | **Responsible role** | Security Architect |
 | **Required approver** | CISO + CTO |
-| **Blocking tasks** | `P0-T05`, `P0-T18`, `P0-T22` |
+| **Blocking tasks** | `P0-T05`, `P0-T18`, `P0-T20` |
 
 **Current evidence**
 
@@ -208,9 +210,11 @@ Server-side opaque sessions, because a stateless JWT cannot be revoked before ex
 
 ## DEC-004a — MFA Mandatory Role Set
 
+**Resolution — 2026-11-14, Project Owner:** option (b), mandatory MFA for OWNER/ADMIN/LEGAL_REVIEWER/SUPER_ADMIN, hashed recovery codes and two-person administrative recovery. Recorded in accepted ADR-006; no named human CISO sign-off is asserted.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` (sub-decision of DEC-004) |
+| **Status** | `RESOLVED` — owner approval, ADR-006 |
 | **Question** | Which roles must complete a second factor before an interactive session is issued? |
 | **Responsible role** | Security Architect |
 | **Required approver** | CISO |
@@ -230,9 +234,11 @@ Option (c) adds friction to the high-volume `HR_MANAGER` and `ANALYST` paths for
 
 ## DEC-004b — Hash-Chain Scope for High-Frequency Access Events
 
+**Resolution — 2026-11-14, Project Owner:** option (b), chain mutations/calculations/evidentiary events; all reads in a separate append-only, independently tamper-evident access log. Signed-digest cadence/custody/anchor must be specified before implementation. ADR-006 records acceptance; it does not claim that the access-log controls exist.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` (sub-decision of DEC-004) |
+| **Status** | `RESOLVED` — owner approval, ADR-006 |
 | **Question** | Must every read event be written into the hash-chained ledger, or may high-frequency access events go to a separate, non-chained access log? |
 | **Responsible role** | Security Architect + Database Engineer |
 | **Required approver** | CISO |
@@ -252,9 +258,11 @@ Chaining every read makes the write cost proportional to traffic and creates a w
 
 ## DEC-005 — Database Schema Corrections
 
+**Resolution — 2026-11-14, Project Owner:** option A. Accepted ADR-006 formally supersedes ADR-003 directive 3's table target only, retaining the original ADR text. CHAR(64), candidate blind index, deferred employees and `actor_id → users` are approved. No migration or named human DBA/security signature is implied.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` |
+| **Status** | `RESOLVED` — owner approval, ADR-006 |
 | **Question** | Confirm the ERD corrections: `CHAR` lengths, `EMPLOYEES` vs `CANDIDATES`, `AUDIT_LOGS.actor_id` foreign key |
 | **Responsible role** | Database Engineer |
 | **Required approver** | CTO + Database Administrator + Security Architect |
@@ -459,7 +467,7 @@ The platform already computes under two tax postures and shows the full breakdow
 | **Question** | What precisely constitutes acceptance for Module 3, given that the underlying OCR accuracy claim is unverified? |
 | **Responsible role** | Document Forensics Engineer + QA Lead |
 | **Required approver** | Product Manager + CTO |
-| **Blocking tasks** | `P2-T05`, `P2-T16`, `P2-T17`, `P2-T22` |
+| **Blocking tasks** | `P2-T05`, `P2-T16`, `P2-T17`, `P2-T18` |
 
 **Current evidence**
 
@@ -557,16 +565,18 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 
 ## Summary
 
+**Operational update (not a new architecture decision, 2026-11-15):** The previous P0-T03 HTTP 403 did not recur: official image pull/build and actual TLS/SCRAM/settings/pgAudit/privacy assertions PASS. Local database is healthy; P0-T03 is READY_FOR_REVIEW because P0-T01 CI remains incomplete. Historical root cause is unproven; no mirror, registry/proxy change or TLS relaxation was used. See BOOTSTRAP_CHANGELOG §15; §12 retains the prior failure. The 17-entry decision census below is unchanged.
+
 | ID | Title | Status | Blocking phase | Approver |
 | :-- | :--- | :--- | :-- | :-- |
 | DEC-001 | 1405 statutory baseline verification | OPEN — BLOCKING | Phase 1 | CTO + Legal Counsel |
 | DEC-002 | Corrected worked example and golden corpus | OPEN — BLOCKING | Phase 1 | CTO + Tax Accountant |
 | DEC-002a | Taxable-base definition | OPEN — BLOCKING | Phase 1 | Legal + Tax Accountant |
 | DEC-003 | Async execution strategy | OPEN — BLOCKING | Phase 2 | CTO |
-| DEC-004 | Authentication and authorization model | OPEN — BLOCKING | Phase 0 | CISO + CTO |
-| DEC-004a | MFA mandatory role set | OPEN — BLOCKING | Phase 0 | CISO |
-| DEC-004b | Hash-chain scope for access events | OPEN — BLOCKING | Phase 0 | CISO |
-| DEC-005 | Database schema corrections | OPEN — BLOCKING | Phase 0 | CTO + DBA + Security |
+| DEC-004 | Authentication and authorization model | RESOLVED | Phase 0 | Project Owner, ADR-006 |
+| DEC-004a | MFA mandatory role set | RESOLVED | Phase 0 | Project Owner, ADR-006 |
+| DEC-004b | Hash-chain scope for access events | RESOLVED | Phase 0 | Project Owner, ADR-006 |
+| DEC-005 | Database schema corrections | RESOLVED | Phase 0 | Project Owner, ADR-006 |
 | DEC-006 | Persian RTL / Jalali / PDF choices | OPEN — NON-BLOCKING | Phase 3 | CTO |
 | DEC-007 | Market data ingestion and licensing | OPEN — BLOCKING | Phase 1 | Legal + Product |
 | DEC-008 | Data-flywheel policy | OPEN — NON-BLOCKING | Phase 1 | Legal + Product |
@@ -577,7 +587,7 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 | DEC-011b | Human adjudication of flagged documents | OPEN — NON-BLOCKING | Phase 2 | Product + CISO |
 | DEC-011c | Art. 86 720-day insured-days threshold | OPEN — BLOCKING | Phase 2 | Legal Counsel |
 
-**17 open decisions · 13 blocking · 4 non-blocking · 0 resolved**
+**17 entries: 13 open (9 blocking, 4 non-blocking), 4 resolved by owner approval in ADR-006.** ADR-005 remains separately `PROPOSED`; no queue was approved.
 
 ---
 

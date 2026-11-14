@@ -5,19 +5,21 @@
 | Field | Value |
 | :--- | :--- |
 | **Document ID** | `DOC-HOLY-001` |
-| **Version** | `1.0.0` |
+| **Version** | `1.0.6` |
 | **Status** | **Active — the primary context document for the project** |
 | **Compiled** | 2026-11-14 (23 Aban 1405 SH) |
 | **Compiled by** | Chief Software Architect / Principal Product Analyst / Technical Documentation Engineer / Project Knowledge Auditor |
 | **Operational date of the corpus** | 2026-11-13 – 2026-11-14 (22–23 Aban 1405 SH) |
 | **Governing specification** | `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` (`2.0.0-PROD-SPEC`) |
-| **Binding decisions** | `docs/adr/ADR-001`, `ADR-002`, `ADR-003`, `ADR-004` (**Accepted**) |
+| **Binding decisions** | ADR-001…004 (**Accepted**), plus ADR-006 (**Accepted**, owner-approved Phase 0 choices; formally corrects ADR-003 directive 3's table target only) |
 | **Non-binding decision** | `docs/adr/ADR-005` (**PROPOSED** — not binding) |
-| **Implementation state** | **0 % implemented.** 86 of 86 WBS tasks are `NOT_STARTED` (82) or `BLOCKED` (4). No application source code exists in the repository. |
+| **Implementation state** | **Bootstrap, isolated encryption and verified local PostgreSQL runtime.** 1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 78 `NOT_STARTED`, 4 `BLOCKED`; 86 total. P0-T03 official pull/build and real hardening verifier PASS (2026-11-15); CI dependency remains. No migration, financial engine or integrated tenant-security foundation exists. |
 | **Active statutory baseline** | **1404 SH** (`1404.1`, `VERIFIED`). 1405 SH is transcribed but **not activated**. |
 | **Overall readiness** | **NOT implementation-ready.** 2 of 5 phases `BLOCKED`, 3 `READY_WITH_CONDITIONS`. |
 
-> **How to read this document.** Every factual claim carries an evidence label and a source reference. Where the project does not know something, this document says so. It never fills a gap with an estimate. Read §0 first (authority and labels), then jump to the domain you need.
+> **Current-state correction (2026-11-14, owner-authorized remediation).** `VERIFIED`: Git exists with bootstrap commit `2fc2b6f`; `backend/app/`, tests, `pyproject.toml`, `uv.lock`, repository hygiene files and `LICENSE` exist. See §11.1–§11.3 and `docs/BOOTSTRAP_CHANGELOG.md` §10 for current evidence. The source inventory in §0.4 and the original self-audit in Appendix E are historical snapshots of v1.0.0, not fresh claims about the current workspace. The 16 original findings are retained; their current disposition is recorded in the changelog. `MISSING`, confirmed by the owner: a Certified Tax Accountant, Iranian Labour Counsel and licensed/consented datasets. No statutory verification or architecture approval is implied by these factual corrections.
+
+> **How to read this document.** Read task-relevant sections, not the entire document by default. Start with §0.3, §13.1, §13.8 and the relevant §3 requirements; DOCUMENTATION_INDEX §0 routes to the primary sources. §0.4 and Appendix E preserve the original inventory/self-audit. Current delivery status is in PROJECT_STATUS §2 and the WBS; changelog §16 records the latest application/collector verification, §15 PostgreSQL runtime, and §13 documentation maintenance. Historical evidence is not a fresh execution result.
 
 ---
 
@@ -181,6 +183,10 @@
 
 ## 0. How to Use This Document
 
+**Current state, 2026-11-15:** PostgreSQL local hardening is verified (§15); P0-T03 is READY_FOR_REVIEW and P0-T01 CI remains incomplete. A bounded official-source acquisition CLI is implemented and independently reviewed (§16); 157 tests pass, strict types/lint/format pass. All six official acquisition probes failed (403/transport), so no fresh legal document or parameter was verified/activated. Full-scope Wednesday target is EXECUTION_PLAN §14.8, with unchanged gates/roadmap and explicit external dependencies. Earlier inventories are historical snapshots.
+
+**v1.0.2 current-state addendum:** accepted ADR-006 records the owner's approval of DEC-004/004a/004b/005 and formally corrects ADR-003 directive 3's table target while preserving its original text. Five ADRs are accepted; ADR-005 remains proposed. The isolated field-encryption primitive in `backend/app/core/security/pii_transformer.py` is independently reviewed and READY_FOR_REVIEW with local evidence, not an integrated key-management system or completed Phase 0 gate. Current verification: BOOTSTRAP_CHANGELOG §11. Original inventories and historical proposal/implementation counts elsewhere must be read with this addendum.
+
 ### 0.1 Purpose, audience and scope
 
 This document is the **single consolidated knowledge base** for Pish Hesabdari. It exists because the project corpus had grown to 39 files across five formats (Markdown, YAML, DOCX, skill contracts) with no single place where a new contributor — human or AI agent — could determine *what is true*, *what is decided*, *what is merely proposed*, and *what is missing*.
@@ -189,7 +195,7 @@ This document is the **single consolidated knowledge base** for Pish Hesabdari. 
 
 | Audience | Use |
 | :--- | :--- |
-| AI agents (Claude Code, OpenCode, Copilot) | Load this file first. §0.3 gives the precedence rules; §13.8 gives the operating constraints. |
+| AI agents (including Codex and Antigravity) | Read task-relevant sections via DOCUMENTATION_INDEX §0; §0.3 gives precedence and §13.8 the operating constraints. |
 | Developers / backend / frontend engineers | §4 (architecture), §5 (data model), §11 (engineering), §2 (domain rules). |
 | Architects | §4.13 (trade-offs), §13.2–13.5 (decision and contradiction registers), Appendix B (gaps). |
 | QA engineers | §3 (requirements), §11.6–11.7 (test strategy and CI), §11.4 (money invariants). |
@@ -227,7 +233,7 @@ The binding order, preserved from `docs/EXECUTION_PLAN.md` §1.2 and `docs/DOCUM
 
 | Rank | Class | Documents | Binding scope |
 | :--: | :--- | :--- | :--- |
-| **1** | Accepted ADRs | `docs/adr/ADR-001`…`ADR-004` | Architectural decisions explicitly decided |
+| **1** | Accepted ADRs | `docs/adr/ADR-001`…`ADR-004`, plus `ADR-006` | Architectural decisions explicitly decided; ADR-006 amends only ADR-003's indexed table target |
 | **2** | Authoritative specification | `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` | Product scope, functional modules, technology stack, domain model, API contracts, roadmap and gates |
 | **3** | Findings register | `PHASE_1_RED_TEAM_AUDIT.md` | Historical findings and the disposition of each finding |
 | **4** | Execution package | `docs/EXECUTION_PLAN.md`, `docs/specs/*`, `docs/DECISIONS_REGISTER.md`, `docs/IMPLEMENTATION_READINESS.md`, `docs/ADR_INDEX.md`, `docs/DOCUMENTATION_INDEX.md`, `docs/EXECUTION_DOCUMENTATION_AUDIT.md` | Sequencing, task decomposition, subordinate specifications, decision register |
@@ -245,7 +251,7 @@ The binding order, preserved from `docs/EXECUTION_PLAN.md` §1.2 and `docs/DOCUM
 
 ### 0.4 Source register
 
-Every file in the workspace, its role, and how thoroughly it was inspected during this audit.
+**Historical v1.0.0 source inventory.** Rows, sizes, counts and the Git limitation below describe the original audit, not the current workspace. Preserve them as evidence; do not use them as current setup instructions. PROJECT_STATUS and ENVIRONMENT_INVENTORY own delivery and dated host observations.
 
 | # | Path | Role | Rank | Size | Inspection performed |
 | --: | :--- | :--- | :--: | --: | :--- |
@@ -297,7 +303,7 @@ Every file in the workspace, its role, and how thoroughly it was inspected durin
 
 ```mermaid
 graph TD
-    A["ADR-001..ADR-004<br/>ACCEPTED — rank 1"] --> E["HOLY BIBLE<br/>consolidated view — this document"]
+    A["ADR-001..ADR-004 + ADR-006<br/>ACCEPTED — rank 1"] --> E["HOLY BIBLE<br/>consolidated view — this document"]
     B["REMEDIATED_TECHNICAL_SPECIFICATION_V2.md<br/>rank 2"] --> E
     C["PHASE_1_RED_TEAM_AUDIT.md<br/>rank 3"] --> E
     D["docs/EXECUTION_PLAN + specs/*<br/>+ DECISIONS_REGISTER + READINESS<br/>rank 4"] --> E
@@ -869,7 +875,7 @@ if MAD = 0:  fall back to Tukey fences Q25 − 1.5·IQR / Q75 + 1.5·IQR, or 0.5
 | **Permissions** | `statutory_rule:propose` / `statutory_rule:activate`, with the four-eyes segregation rule |
 | **Error cases** | `L1SourceUnreachable`; `SignatureInsufficient`; `OpenItemOutstanding`; `RegressionDeviation`; `ActivationBlocked` (A1–A8 not met) |
 | **Acceptance criteria** | A1–A8 (`SPEC-STAT-001` §7.1); `R-01`…`R-10`; the 1404 differential report attributes every changed line to a named parameter delta |
-| **Implementation status** | `PLANNED` — 0 %. **The 1405 candidate set is transcribed but not verified. See §10.2.** |
+| **Implementation status** | Acquisition preparation implemented/tested/reviewed only (BOOTSTRAP_CHANGELOG §16); six official probes failed. Database/WORM/extraction/review/activation pipeline remains unimplemented; P1-T02 stays BLOCKED. **The 1405 candidate set is transcribed but not verified. See §10.2.** |
 
 ---
 
@@ -1096,7 +1102,9 @@ flowchart TD
 
 **Implementation status vocabulary** (`docs/EXECUTION_PLAN.md` §14.2): `NOT_STARTED` · `IN_PROGRESS` · `BLOCKED` · `READY_FOR_REVIEW` · `APPROVED` · `COMPLETED`.
 
-| Status | Count of WBS tasks |
+**Historical v1.0.0 census:** counts below are retained as the original snapshot. Use PROJECT_STATUS §2 and EXECUTION_PLAN §14.3 for current task selection; this maintenance does not change task statuses.
+
+| Status | Historical count of WBS tasks |
 | :--- | --: |
 | `COMPLETED` | **0** |
 | `APPROVED` | **0** |
@@ -2668,6 +2676,10 @@ A classified-workshop job wage or fixed wage **must not fall below 5,541,850 Ria
 
 ### 11.1 Repository structure — actual
 
+`VERIFIED` current additions: `.git/` (one bootstrap commit, no remote), `README.md`, `AGENTS.md`, `.gitignore`, `.gitattributes`, `.editorconfig`, `LICENSE`; `backend/{pyproject.toml,uv.lock,ruff.toml,mypy.ini,.env.example}`; `backend/app/{main.py,core/config.py,core/logging.py}` plus package initializers; `backend/tests/unit/{test_config.py,test_logging.py}` and `backend/tests/api/test_health.py`. The six bootstrap control documents under `docs/` also exist. Source: direct inventory and `git ls-files`; verification log: `docs/BOOTSTRAP_CHANGELOG.md` §10.
+
+The tree below preserves the original v1.0.0 corpus inventory; it is not an exhaustive current listing.
+
 ```
 C:\project\New project\
 ├── 1.docx                                  independent audit (historical, rank 5)
@@ -2694,15 +2706,7 @@ C:\project\New project\
     └── specs/ AUTH, DEPLOYMENT, DOCUMENT_FORENSICS, FRONTEND_PERSIAN, STATUTORY_INGESTION, TESTING
 ```
 
-**What does not exist** (`VERIFIED` by exhaustive directory listing):
-
-- No `backend/app/`, no `backend/tests/`, no `frontend/`, no `pyproject.toml`, no `package.json`, no lockfiles.
-- No `.git` directory — **the workspace is not a Git repository**.
-- No `README.md`, no `AGENTS.md`, no `.gitignore`, no `.editorconfig`, no `LICENSE`.
-- No Alembic configuration, no migrations, no Docker files, no CI configuration.
-- No OpenAPI specification.
-- No benchmark data.
-- No `tests/` directory of any kind.
+**Still absent** (`VERIFIED` by current inventory): no frontend or frontend lockfile; no Alembic configuration or migrations; no Dockerfiles/compose services; no CI workflow; no domain API contract beyond the liveness scaffold; no licensed benchmark or certified golden/consented OCR corpus. Neither an empty directory nor a parameter seed is a financial engine.
 
 ### 11.2 Target repository structure
 
@@ -2730,12 +2734,12 @@ ops/
 
 | Workstream | Tasks | Status | Evidence |
 | :--- | --: | :--- | :--- |
-| P0 — Security and relational foundation | 20 | `NOT_STARTED` | No schema, no migrations, no auth code |
-| P1 — Deterministic engine and inverters | 22 | 20 `NOT_STARTED`, 2 `BLOCKED` | `P1-T02`, `P1-T15` blocked; `P1-T20` not started |
+| P0 — Security and relational foundation | 20 | 1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 16 `NOT_STARTED`, 0 `BLOCKED` | P0-T03 runtime verified; P0-T06 reviewed; P0-T01 awaits CI. No schema, migrations or auth code |
+| P1 — Deterministic engine and inverters | 22 | 20 `NOT_STARTED`, 2 `BLOCKED` | P1-T02 acquisition preparation implemented, official probes failed; P1-T02/P1-T15 remain blocked; no financial engine |
 | P2 — Document forensics and identity | 18 | 16 `NOT_STARTED`, 2 `BLOCKED` | `P2-T04`, `P2-T16` blocked |
 | P3 — Pre-hire simulation and React SPA | 15 | `NOT_STARTED` | No frontend directory |
 | P4 — Pilot hardening and compliance | 11 | `NOT_STARTED` | — |
-| **Total** | **86** | **82 `NOT_STARTED`, 4 `BLOCKED`** | — |
+| **Total** | **86** | **1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 78 `NOT_STARTED`, 4 `BLOCKED`** | No new completed task; P0-T03 CI dependency and P0-T06 integration/CI remain |
 
 **The four `BLOCKED` tasks and why each is genuinely blocked rather than merely un-started:**
 
@@ -3210,8 +3214,9 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 | ADR-002 | Ceph RADOS GW (or a domestic managed S3) with Object Lock **`GOVERNANCE`**, 3650-day retention — **not** MinIO `COMPLIANCE` | `ACCEPTED` | 2026-11-13 | Infrastructure Architect, Legal Counsel, Security Lead | `P0-T11`, `P2-T03`, `P4-T04`, emergency access |
 | ADR-003 | Application-Level Envelope Encryption (AES-256-GCM) + HMAC-SHA256 blind indexing — **not** `pgcrypto` | `ACCEPTED` | 2026-11-13 | Security Architect, Database Administrator, Lead Backend Engineer | `P0-T06`, `P0-T07`, `P0-T08`, `P0-T12`, `P4-T04` |
 | ADR-004 | Phase 1 is strictly pre-hire; post-hire HRIS/MCDA is deferred | `ACCEPTED` | 2026-11-13 | Lead Product Manager, CTO, Head of Engineering | `REMEDIATED` §1.2 and §2; every phase's scope |
+| ADR-006 | Owner-approved Phase 0 identity/MFA, audit scope and schema corrections; limited amendment of ADR-003 table target | `ACCEPTED` | 2026-11-14 | Project Owner, recorded in ADR-006 | DEC-004/004a/004b/005; dependent tasks still need implementation/gate evidence |
 
-**The four binding directives, restated so that no implementer can miss them:**
+**The four original ADR directives remain binding within their recorded scope; apply ADR-006's accepted corrections alongside them:**
 
 1. **ADR-001** — scaffold with `npm create vite@latest frontend -- --template react-ts`; Shadcn/UI (Radix) + Tailwind with RTL and Vazirmatn; TanStack Query v5 + Zustand; a multi-stage Dockerfile (Node 20 → Nginx 1.25 Alpine).
 2. **ADR-002** — `boto3`/`aioboto3`; Object Lock enabled at bucket creation with `{'Mode': 'GOVERNANCE', 'Days': 3650}`; standard service accounts **denied** `s3:BypassGovernanceRetention`; that key isolated in an offline vault.
@@ -3240,16 +3245,18 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 
 ### 13.3 Proposed decision register
 
+**Current disposition (v1.0.4):** DEC-004, DEC-004a, DEC-004b and DEC-005 are RESOLVED by owner approval in accepted ADR-006. The four resolved rows reflect that recorded approval; other recommendations remain proposals. DECISIONS_REGISTER owns current status. No decision is approved by this documentation maintenance.
+
 | # | Decision | Status | Approver | Blocking tasks | Recommendation |
 | --: | :--- | :--- | :--- | :--- | :--- |
 | ADR-005 | The asynchronous execution strategy | `PROPOSED` | CTO | `P2-T04`…`P2-T09`, `P4-T01` | **Option 3** — a PostgreSQL-backed job queue with `FOR UPDATE SKIP LOCKED`. It is the only option that satisfies all nine constraints simultaneously. **See §4.8 for the correction to ADR-005's stated premise** |
 | DEC-001 | The 1405 statutory baseline verification and the interim position | `OPEN — BLOCKING` | CTO + Legal Counsel | `P1-T02`, `P1-T03`, `P1-T15`, `P1-T19`, `P1-T20`, `P1-T22` | **B, with C as the interim state.** Option A (activate on secondary evidence) is not defensible; O1–O5 remain open |
 | DEC-002 | The corrected worked example and the golden corpus | `OPEN — BLOCKING` | CTO + Certified Tax Accountant | `P1-T15`, `P1-T20`, `P1-T22` | **B** — replace §5.1 with a fully-intermediate example. **Extended by this audit:** the *corrected* reference vector in `SPEC-QA-001` §6.2 must also be replaced (Appendix A) |
 | DEC-002a | The taxable-base definition — which allowances are exempt | `OPEN — BLOCKING` | Legal Counsel + Certified Tax Accountant | `P1-T05`, `P1-T13`, `P1-T20` | **B, with C as a possible Phase 2 refinement** — welfare allowances exempt under the court-precedent posture, taxable under conservative INTA |
-| DEC-004 | The authentication and authorization model | `OPEN — BLOCKING` | CISO + CTO | `P0-T05`, `P0-T18`, `P0-T20` † | **(b) + (c) + (b)** — server-side opaque sessions, first-party credentials now with an OIDC path later, MFA mandatory for privileged roles |
-| DEC-004a | The MFA mandatory role set | `OPEN — BLOCKING` | CISO | `P0-T18` | **(b)** — `OWNER`, `ADMIN`, `LEGAL_REVIEWER`, `SUPER_ADMIN` |
-| DEC-004b | The hash-chain scope for access events | `OPEN — BLOCKING` | CISO | `P0-T10` | **(b)** — chain mutations and evidentiary events; a separate access log for reads, with its own tamper evidence |
-| DEC-005 | The database schema corrections | `OPEN — BLOCKING` | CTO + DBA + Security Architect | `P0-T04`, `P0-T05`, `P0-T12`, `P0-T13` | **A** — `CHAR(64)` hashes, the blind index on `candidates`, `EMPLOYEES` deferred to Phase 2, `actor_id → users(id)` |
+| DEC-004 | The authentication and authorization model | `RESOLVED` — ADR-006 | Project Owner, ADR-006 | `P0-T05`, `P0-T18`, `P0-T20` † | **(b) + (c) + (b)** — server-side opaque sessions, first-party credentials now with an OIDC path later, MFA mandatory for privileged roles |
+| DEC-004a | The MFA mandatory role set | `RESOLVED` — ADR-006 | Project Owner, ADR-006 | `P0-T18` | **(b)** — `OWNER`, `ADMIN`, `LEGAL_REVIEWER`, `SUPER_ADMIN` |
+| DEC-004b | The hash-chain scope for access events | `RESOLVED` — ADR-006 | Project Owner, ADR-006 | `P0-T10` | **(b)** — chain mutations and evidentiary events; a separate access log for reads, with its own tamper evidence |
+| DEC-005 | The database schema corrections | `RESOLVED` — ADR-006 | Project Owner, ADR-006 | `P0-T04`, `P0-T05`, `P0-T12`, `P0-T13` | **A** — `CHAR(64)` hashes, the blind index on `candidates`, `EMPLOYEES` deferred to Phase 2, `actor_id → users(id)` |
 | DEC-006 | The Persian RTL / Jalali / PDF implementation choices | `OPEN — NON-BLOCKING` | CTO | `P3-T02`, `P3-T03`, `P3-T04`, `P3-T11` | `persiantools` (with `jdatetime` as a cross-check) · WeasyPrint preferred, headless Chromium as the alternative, ReportLab as a fallback · subset with a ZWNJ-regression test |
 | DEC-007 | The market-data ingestion and licensing | `OPEN — BLOCKING` | Legal Counsel + Product Manager | `P1-T17`, `P1-T18`, `P2-T16` | **B for Phase 1** (a curated, offline, licensed seed), C evaluated for Phase 2, E as the fallback. **A is excluded on ToS and data-quality grounds** |
 | DEC-008 | The data-flywheel policy | `OPEN — NON-BLOCKING` | Legal Counsel + Product Manager | `P1-T17`, `P1-T18` | **(c)** — opt-in per organisation, a published policy at the point of contribution, and a consent record |
@@ -3260,9 +3267,9 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 | DEC-011b | The human adjudication of flagged documents | `OPEN — NON-BLOCKING` | Product Manager + CISO | `P2-T10`, `P2-T12` | **(b) for status promotion; (c) for a permanent `REJECTED_FRAULENT`** |
 | DEC-011c | The Art. 86 720-day insured-days threshold | `OPEN — BLOCKING` | Legal Counsel | `P2-T14`, `P2-T18` | **(c)** — configurable, defaulting to 720 days, recorded in the rule set and not hard-coded |
 
-**Count: 1 proposed ADR + 17 open register entries = 18 unresolved decisions; 14 blocking, 4 non-blocking; 0 resolved.**
+**Recorded count:** 17 register entries: 13 open (9 blocking, 4 non-blocking), 4 resolved by ADR-006. ADR-005 remains separately proposed; no queue decision is approved.
 
-> **† Task-ID correction.** `docs/DECISIONS_REGISTER.md` DEC-004 lists `P0-T22` among its blocking tasks, and DEC-011 lists `P2-T22`. **Neither task exists** — Phase 0 ends at `P0-T20` and Phase 2 at `P2-T18`. The intended references are the phase-gate reviews `P0-T20` and `P2-T18`. Corrected here; the register itself should be corrected by its owner. Recorded as **HB-GAP-048**.
+> **† Historical task-ID finding (HB-GAP-048).** The initial audit found nonexistent P0-T22/P2-T22 references. Valid phase-gate IDs are P0-T20/P2-T18. Use the current register and WBS, not the initial finding as a current blocker.
 
 ### 13.4 Unresolved question register
 
@@ -3285,6 +3292,10 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 | QB-15 | What is the pricing and commercial model? | §1.7 | Not raised | A product/business task — HB-GAP-019 |
 
 ### 13.5 Contradiction register
+
+**Current disposition:** original findings below remain evidence. ADR-006 resolves the owner choices behind CONF-04 and CONF-08…10; source-specification wording and implementation/migration evidence remain separate work. Do not reopen resolved decisions or treat implementations as completed. CONF-02's attribution correction is explained below; ADR-005 remains proposed.
+
+**v1.0.1 correction to CONF-02:** the absence claim in the original row is too broad: `REMEDIATED` §3.1 does contain the words Celery and Redis, while explaining the operational complexity avoided by `BackgroundTasks`. It does not mandate them. The false-attribution premise has now been corrected in proposed ADR-005, the indexes, DEC-003 and the documentation audit; durability/isolation and ADR-005 acceptance remain unresolved. References below to a rejection by a *proposed* ADR are recommendations only, never accepted decisions.
 
 | # | Contradiction | Documents | Assessment | Required action | Owner |
 | --: | :--- | :--- | :--- | :--- | :--- |
@@ -3336,9 +3347,9 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 | 11 | A formal threat model | The security posture is asserted from controls, not from an analysis | HB-GAP-021 |
 | 12 | The export format specifications for Sepidar, Rahkaran, the SSO diskettes and the INTA portal | Module 10 cannot be built | HB-GAP-025 |
 | 13 | An org chart with named individuals | Every task is assigned to a role; no accountability | HB-GAP-041 |
-| 14 | The Git branch and commit conventions | The change-control process is not instantiable | HB-GAP-034 |
+| 14 | Full Git/team conventions remain to be finalized | Git and the bootstrap commit exist; no current “not a repository” blocker | HB-GAP-034; PROJECT_STATUS §3 |
 | 15 | A CI configuration | No gate can be enforced | HB-GAP-032 |
-| 16 | A licence file for the repository | Legal ambiguity about the code's own licence | HB-GAP-023 |
+| 16 | CLOSED for file existence: proprietary LICENSE is present | External redistribution is not granted; see LICENSE | HB-GAP-023; BOOTSTRAP_CHANGELOG §10 |
 | 17 | The DTA Art. 92 less-developed-region treatment | A statutory feature is neither implemented nor consciously excluded | HB-GAP-036, O7 |
 | 18 | The AI cost model and provider-abstraction interfaces | The economics of the OCR pipeline are unknown | HB-GAP-038 |
 | 19 | The benchmark model parameters (QB-07) | The module's output is not reproducible across implementations | HB-GAP-018 |
@@ -3348,18 +3359,18 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 
 **Read this section before you touch anything.**
 
-1. **Load this document first**, then the relevant rank-1…4 artefact. Do not start from `RESEARCH_GAP…md` or any `.docx` — they are historical and contain rejected technologies in the present tense.
+1. **Load context by task.** Read AGENTS.md and DOCUMENTATION_INDEX §0, then §0.3, §13.1, §13.8, relevant §3 requirements and required rank-1…4 sources. Use bounded reads, not the whole master document/history by default. Research Markdown/DOCX is historical; consult only for a specific evidence question after checking supersession.
 2. **Never hard-code a statutory value.** Read it from the rule set. The engine's loader must fail closed.
-3. **Never modify `backend/data/seeds/statutory_rules_1404.yaml`.** It is hash-pinned in CI. Corrections go through a new revision (`SPEC-STAT-001` §5.5).
-4. **Never activate 1405.** It is `null` and `is_verified_and_active: false` by design. Activation requires A1–A8 and a named approver.
-5. **Never treat a `PROPOSED` decision as binding.** ADR-005, DEC-001…DEC-011c are proposals. `docs/DECISIONS_REGISTER.md` §"Standing rule": no task blocked by an open entry may be marked `APPROVED` or `COMPLETED`.
+3. **Never modify `backend/data/seeds/statutory_rules_1404.yaml`.** It is an immutable legal artefact; corrections require a new revision (`SPEC-STAT-001` §5.5). CI hash enforcement is a required gate, not an implemented CI claim.
+4. **Do not activate the current 1405 candidate.** It is transcribed but unverified and inactive; unavailable values remain unknown. Activation requires A1–A8 and a named approver, not the mere presence of transcribed values.
+5. **Never treat a proposal as binding.** ADR-005 remains proposed; DEC-004/004a/004b/005 are resolved by ADR-006. Consult the current register for all other entries. No task blocked by an open entry may be marked APPROVED or COMPLETED.
 6. **Never revive a rejected technology** without a new ADR (§13.2).
 7. **Use `Decimal` exclusively.** No `float` literal under `engines/`. Round once, at the line-item boundary, and surface the residual.
 8. **Writing a specification does not advance a task.** Task status reflects work actually performed.
 9. **Unknown is a value.** Record it as `MISSING`/`UNVERIFIED` and name the owner and the action. Never fill a gap with an estimate.
 10. **Never modify an accepted ADR.** If a decision needs to change, raise a superseding ADR.
 11. **Add cross-references in the same change.** `DOCUMENTATION_INDEX.md` and `ADR_INDEX.md` are updated within 1 working day of any ADR change.
-12. **Do not commit or push** without an explicit instruction. The workspace is not currently a Git repository.
+12. **Do not commit or push** without an explicit instruction. Git and the bootstrap commit exist; preserve uncommitted work and recheck ownership before delegation.
 13. **When you produce a financial figure, show every intermediate value and the rule-set version.** A figure without intermediates cannot be reviewed and will be wrong, as Appendix A demonstrates.
 14. **When you state a legal conclusion, cite the instrument and the article.** If you cannot, mark it `UNVERIFIED`.
 
@@ -3896,8 +3907,14 @@ These are new contributions of this audit, not restatements of the earlier work:
 
 | Version | Date | Change | Author |
 | :--: | :--- | :--- | :--- |
+| 1.0.6 | 2026-11-15 | Record full-scope Wednesday execution target without roadmap/gate changes; bounded regulatory acquisition preparation and failed official probes; 157 tests pass with independent static review. No statutory activation or WBS completion. Evidence: BOOTSTRAP_CHANGELOG §16. | Codex implementation owner |
+| 1.0.5 | 2026-11-15 | Factual runtime refresh: official PostgreSQL image pull/build and actual hardening verifier PASS; local DB healthy, P0-T03 READY_FOR_REVIEW with CI dependency pending. No infrastructure code, statutory rule, architecture decision or roadmap change. Evidence: BOOTSTRAP_CHANGELOG §15. | Codex implementation owner |
+| 1.0.4 | 2026-11-14 | Owner-authorized documentation maintenance: bounded context loading, ADR-006/current decision disposition, historical inventories/census labels and current agent constraints. No product decision, roadmap, financial rule, code or WBS-status change. Evidence: BOOTSTRAP_CHANGELOG §13. | Codex documentation owner |
+| 1.0.3 | 2026-11-14 | P0-T03 dev scaffold prepared/reviewed; Docker started, canonical image/build blocked by HTTP 403. Local TLS/material/ACL/probe tests pass (117 total); no DB runtime or phase-gate claim. Evidence: BOOTSTRAP_CHANGELOG §12. | Codex implementation owner |
+| 1.0.2 | 2026-11-14 | Record owner acceptance of four Phase 0 choices in ADR-006; isolated P0-T06 field-encryption primitive is READY_FOR_REVIEW after local checks and independent review. No CI/production key integration, schema migration, financial implementation, statutory activation or roadmap change. Evidence: BOOTSTRAP_CHANGELOG §11. | Codex implementation owner |
+| 1.0.1 | 2026-11-14 | Owner-authorized factual refresh: current scaffold/Git/tooling and 86-task census; retain original inventory/self-audit as historical evidence; correct CONF-02 wording; record missing external people/data. No ADR acceptance, statutory activation, seed change or roadmap change. Verification and review: `docs/BOOTSTRAP_CHANGELOG.md` §10. | Codex remediation owner |
 | 1.0 | 2026-11-14 | **Initial issue.** The workspace was audited in full (39 files; the 3 DOCX files parsed from `word/document.xml`); all rank-1…4 documents read; both statutory seeds read and their arithmetic re-derived; the published §5.1 worked example and the `SPEC-QA-001` §6.2 reference vector **independently recalculated** from the verified 1404 rule set; **16 new findings** recorded (Appendix E.1); the 1405 baseline confirmed **not verified**; the five-phase / 20-week roadmap confirmed authoritative and preserved unaltered; the required registers consolidated into this single file. | Chief Software Architect / Documentation Engineering |
 
 ---
 
-*End of `docs/PISH_HESABDARI_HOLY_BIBLE.md` (`DOC-HOLY-001` v1.0.0). This document is derived. It must be re-derived whenever any rank-1…4 artefact changes, and re-issued at every phase gate, quarterly against the implemented behaviour, and annually alongside the statutory rule-set re-verification.*
+*End of `docs/PISH_HESABDARI_HOLY_BIBLE.md` (`DOC-HOLY-001` v1.0.6). This document is derived. It must be re-derived whenever any rank-1…4 artefact changes, and re-issued at every phase gate, quarterly against the implemented behaviour, and annually alongside the statutory rule-set re-verification.*

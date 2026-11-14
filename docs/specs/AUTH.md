@@ -12,6 +12,8 @@
 
 ## 1. Scope and Authority
 
+**Owner decision update — 2026-11-14:** accepted ADR-006 resolves DEC-004/004a/004b/005. First-party identity with a future OIDC path, opaque revocable sessions, the seven-role set, privileged MFA, separate complete append-only/tamper-evident read evidence, and the candidate/hash/actor schema corrections are now accepted. Older `[PROPOSED]` labels below remain applicable to details outside those exact choices, including session lifetimes/remember-me, emergency access procedure and unresolved key-management variants. P8's original "chain all reads" wording is superseded by ADR-006's split. The original ADR-003 text is retained; ADR-006 formally corrects its index target.
+
 ### 1.1 Confirmed decisions inherited from accepted ADRs
 
 | ID | Decision | Source |
@@ -27,14 +29,14 @@
 
 | ID | Proposal | Approver | Blocking task |
 | :-- | :--- | :--- | :--- |
-| P1 | Identity provider: **self-hosted, first-party credentials** in PostgreSQL, with Argon2id hashing — **no** external IdP in Phase 1 | CISO + CTO | `P0-T18` |
-| P2 | Session model: **opaque server-side session tokens** stored hashed in PostgreSQL, delivered in an `HttpOnly; Secure; SameSite=Lax` cookie. **Not** stateless JWT | CISO | `P0-T18` |
-| P3 | Role set: `OWNER`, `ADMIN`, `HR_MANAGER`, `LEGAL_REVIEWER`, `ANALYST`, `AUDITOR`, `SUPER_ADMIN` (platform) | CTO + Product Manager | `P0-T05` |
+| P1 | **ACCEPTED — ADR-006:** first-party credentials with Argon2id; future OIDC federation deferred | Project Owner | `P0-T18` |
+| P2 | **ACCEPTED — ADR-006:** hashed opaque server sessions with HttpOnly/Secure cookies and CSRF protection; cookie detail must conform to that contract | Project Owner | `P0-T18` |
+| P3 | **ACCEPTED — ADR-006:** OWNER, ADMIN, HR_MANAGER, LEGAL_REVIEWER, ANALYST, AUDITOR, SUPER_ADMIN | Project Owner | `P0-T05` |
 | P4 | Super-admin is an **out-of-band** role, not assignable in-product | CISO | `P0-T05` |
-| P5 | MFA (TOTP) **mandatory** for `OWNER`, `ADMIN`, `LEGAL_REVIEWER` and `SUPER_ADMIN` | CISO | `P0-T18` |
+| P5 | **ACCEPTED — ADR-006:** MFA mandatory for OWNER, ADMIN, LEGAL_REVIEWER, SUPER_ADMIN; hashed recovery codes and two-person administrative recovery | Project Owner | `P0-T18` |
 | P6 | Session lifetime: 8 h absolute, 15 min idle, 30-day "remember me" with refresh rotation; every refresh rotates the token | CISO | `P0-T18` |
 | P7 | Emergency access requires **two-person authorisation** (dual-key, mirroring the ADR-002 `GOVERNANCE` bypass pattern) | CISO + Legal Counsel | `P0-T18`, `P4-T07` |
-| P8 | All access events are written to the append-only hash-chained `AUDIT_LOGS` ledger | CISO | `P0-T10`, `P0-T18` |
+| P8 | **ACCEPTED — ADR-006:** chain mutations/calculations/evidentiary events; all reads in separate append-only, independently tamper-evident access log; signed-digest details still require specification | Project Owner | `P0-T10`, `P0-T18` |
 
 > **P2 deserves explicit attention.** `REMEDIATED` §3 names "JWT & Multi-Tenant Middleware". A stateless JWT cannot be revoked before expiry, which is unacceptable for a platform holding encrypted National IDs and salary data accessed by temporary staff and external legal counsel. A server-side opaque session gives immediate revocation, a full access log, and session-level audit attribution. The "JWT" wording in §3 should be read as "bearer-token middleware", not as a mandate for stateless JWTs. **This is a proposed change to an existing specification line and needs CTO sign-off (DEC-004).**
 
@@ -136,10 +138,10 @@ sessions
 
 `ADR-003` directive 3 requires `CREATE UNIQUE INDEX idx_emp_national_id_bindex ON employees (tenant_id, national_id_bindex)`, but the ERD defines `national_id_bindex` on `CANDIDATES`, and `EMPLOYEES` has **no columns at all**.
 
-**Resolution (proposed, `P0-T12`):** Phase 1 is pre-hire only (ADR-004). The entity that carries a National ID in Phase 1 is the **candidate**. Therefore:
+**Resolution (accepted ADR-006, implementation `P0-T12` pending):** Phase 1 is pre-hire only (ADR-004). The entity that carries a National ID in Phase 1 is the **candidate**. Therefore:
 
 - The blind-index column and index belong to `candidates`.
-- `EMPLOYEES` is **removed from the Phase 1 ERD** and reserved for Phase 2 (post-hire). `ADR-003`'s index directive is corrected to reference `candidates`. This is a clarification of ADR-003's intent, not a contradiction of it, but it is recorded here and surfaced as DEC-005 for explicit confirmation rather than silently applied.
+- `EMPLOYEES` is deferred beyond the current pre-hire scope. ADR-006 formally supersedes ADR-003 directive 3's table target; ADR-003's original text is retained unchanged. No post-hire entity or operational scope is implemented by this correction.
 
 ---
 
@@ -353,6 +355,22 @@ Platform Master KEK            (in HashiCorp Vault; or an Argon2id-derived local
 ### 8.4 Emergency access key **[CONFIRMED — D5]**
 
 The `s3:BypassGovernanceRetention` capability is held in an **offline administrative vault**, separate from the runtime Vault. Standard application service accounts never possess it. Access requires the two-person procedure in §9.
+
+### 8.5 P0-T06 field-encryption implementation contract
+
+Scope: the accepted ADR-003 primitive only, with key retrieval behind a protocol. This defines the task's measurable interface; it does not settle the conflicting hierarchy/rotation descriptions in §8.1–§8.3 or select a key-management backend.
+
+- Module: `backend/app/core/security/pii_transformer.py`; owner: Codex implementation agent. Independent security review is required before review-ready status.
+- `EncryptionContext` is immutable and requires explicit UUID `tenant_id`, UUID `record_id`, nonempty schema `field_name`, and explicit nonempty `key_id`. Names/IDs are metadata, never PII or key material. Field/key names are bounded to 128 characters and contain no control characters. The context has no revealing repr.
+- `TenantKeyRegistry.get_key(*, tenant_id, key_id) -> bytes` supplies an unwrapped **32-byte** tenant DEK. The transformer never generates, persists, caches or silently substitutes a DEK; the registry's production authorization/custody/rotation is P0-T08. No production in-memory registry is provided.
+- `PiiFieldTransformer.encrypt(value: bytes, *, context) -> bytes` uses AES-256-GCM, fresh CSPRNG 12-byte nonce and full 16-byte authentication tag. Binary layout is exactly `nonce || ciphertext || tag`, retaining ADR-003's BYTEA format. Empty and arbitrary binary values are valid.
+- `decrypt(value: bytes, *, context) -> bytes` must authenticate before returning any plaintext. UTF-8 `encrypt_text`/`decrypt_text` helpers preserve Persian/ZWNJ text exactly; monetary values are never implicitly converted or rounded.
+- Associated authenticated data is the fixed domain `pish:pii:v1` plus canonical UTF-8 JSON (sorted keys, compact separators) of tenant UUID hex, record UUID hex, schema field and key reference. The same explicit context is required for decryption; tenant/record/field/key substitution fails authentication, even if a defective test registry returns identical key bytes. Callers retain the non-secret key reference with the field's provenance; no key/version auto-detection or old-key fallback occurs.
+- Errors use fixed messages without supplied plaintext, ciphertext, key material or registry exception text. Missing/invalid keys fail closed. Malformed, tampered or wrong-context ciphertext raises `PiiDecryptionError`; authentication failure returns no partial result. Chained registry exceptions are suppressed from rendered tracebacks. No logging occurs in the transformer.
+- Acceptance: round-trip synthetic empty/binary/Persian field representations; different nonce/output on repeated input; bit-flip/tag/nonce/truncation rejection; wrong tenant/record/field/key rejection; invalid/missing-key rejection; real captured log/error output contains neither synthetic plaintext nor synthetic key material. CR-01…CR-03 apply here; CR-04 blind-index determinism belongs to P0-T07, not this primitive.
+- P0-T01's installed-toolchain portion is verified; its CI clause is still incomplete. Local primitive evidence does not complete P0-T01, P0-T08, P0-T15 or the Phase 0 gate. The task remains review-ready pending integration/CI rather than bypassing that dependency.
+
+Library contract checked against the pinned release's [official AESGCM documentation](https://cryptography.io/en/45.0.7/hazmat/primitives/aead/#cryptography.hazmat.primitives.ciphers.aead.AESGCM): never reuse a nonce with a key; the library appends the 16-byte tag and rejects invalid authentication. Random-nonce lifetime/usage limits and key rotation enforcement are integration requirements for P0-T08; local tests do not prove unlimited nonce uniqueness or memory zeroization.
 
 ---
 

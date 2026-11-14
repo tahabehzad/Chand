@@ -4,9 +4,9 @@
 - **Date**: 2026-11-14 (23 Aban 1405 SH)
 - **Deciders**: Chief Technology Officer (decision owner), DevOps Lead, Lead Backend Engineer, Security Architect
 - **Consulted**: Lead Frontend Engineer, Document Forensics Engineer, Legal Counsel (data residency implications)
-- **Supersedes**: nothing. **Related**: `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` §3.1 (which mandates Celery 5.4 + Redis 7.2 but has no ADR), `.agents/skills/software-architecture/SKILL.md` (which mandates FastAPI `BackgroundTasks` and explicitly rejects Redis/Celery)
+- **Supersedes**: nothing. **Related**: `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` §3.1 and `.agents/skills/software-architecture/SKILL.md` (both specify FastAPI `BackgroundTasks`). Celery/Redis is a historical alternative, not the current specification's mandate.
 
-> **Authority note.** This ADR is deliberately left in `PROPOSED` state. The engineering work it governs (`P2-T04`) is blocked until it is accepted. Neither `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` §3.1 (Celery + Redis) nor `.agents/skills/software-architecture/SKILL.md` (`BackgroundTasks`) may be treated as the settled decision until this ADR is accepted. The pre-existing contradiction between those two documents is the reason this ADR exists.
+> **Authority note.** This ADR remains `PROPOSED`; `P2-T04` is blocked until a decision is accepted. The current specification and skill both name `BackgroundTasks`. The real unresolved issue is satisfying durable retry/restart semantics and CPU isolation. Labels such as "Rejected" in the alternative evaluation below are recommendations within this proposal, not accepted project decisions. Correcting the premise does not approve the PostgreSQL queue or amend an accepted ADR.
 
 ---
 
@@ -19,7 +19,7 @@ Pish Hesabdari has two execution classes with materially different characteristi
 | **Fast path** (synchronous) | Statutory calculation, net-to-gross inversion, CTC projection, benchmark banding | < 20 ms | User retries |
 | **Slow path** (asynchronous) | PDF structural forensics, PaddleOCR PP-Structure extraction, ELA image analysis, pyHanko signature verification, cross-document consistency | 1.2 s – 6.0 s per page (`FIND-ARCH-05`) | Work is lost or duplicated |
 
-The slow path is CPU-bound (model inference), can exceed a gateway timeout, and must survive process restart. `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` §3.1 specifies **Celery 5.4 + Redis 7.2** and §3 adds a Celery worker pool to the architecture diagram. `.agents/skills/software-architecture/SKILL.md` specifies **FastAPI `BackgroundTasks`**, explicitly "eliminating Redis/Celery operational complexity on Windows".
+The slow path is CPU-bound (model inference), can exceed a gateway timeout, and must survive process restart. `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` §3/§3.1 and `.agents/skills/software-architecture/SKILL.md` specify **FastAPI `BackgroundTasks`**. This proposal evaluates whether a different execution mechanism is needed to meet durability and isolation constraints; it does not resolve that question without acceptance.
 
 **The deployment environment is the dominant constraint.** ADR-001 names Iranian enterprise intranets — including air-gapped and private-cloud installations — as the driving requirement for a static SPA with zero Node.js runtime. A production client may operate a single on-premise host with no managed cloud, and the development team develops on Windows. This is materially different from the implicit assumption of a managed-Kubernetes environment in the original spec.
 
@@ -54,7 +54,7 @@ The slow path is CPU-bound (model inference), can exceed a gateway timeout, and 
 
 ## Considered Options
 
-### Option 1 — Celery + Redis (as specified in `REMEDIATED` §3.1)
+### Option 1 — Celery + Redis (historical alternative)
 
 Redis as broker/result backend; Celery workers consuming `documents.verify` tasks.
 
@@ -215,4 +215,6 @@ The following are **rejected** and must not be reintroduced without a new, revie
 - **MinIO with S3 Object Lock `COMPLIANCE` mode** — rejected by ADR-002 (`FIND-ARCH-02`).
 - **Bisection-based net-to-gross inversion** — replaced by the O(1) closed-form piecewise inverter (`FIND-MATH-01`).
 - **MCDA company-wide salary-review endpoints** — removed from Phase 1 by ADR-004 (`FIND-PROD-01`).
-- **Redis as a mandatory on-site broker** — rejected by this ADR (proposed), on the grounds recorded above.
+- **Redis as a mandatory on-site broker** — proposed for rejection by this unaccepted ADR; no binding rejection is recorded here.
+
+**2026-11-14 factual correction:** removed the false attribution of a Celery/Redis mandate to `REMEDIATED` and clarified proposal-only authority. No status or implementation decision changed; see `docs/BOOTSTRAP_CHANGELOG.md` §10.

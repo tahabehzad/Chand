@@ -1,0 +1,51 @@
+name: pish-hesabdari-dev
+
+services:
+  db:
+    build:
+      context: ../postgres
+    image: pish-hesabdari-postgres:16.16-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: pish_dev
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_INITDB_ARGS: --auth-local=peer --auth-host=scram-sha-256
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    secrets:
+      - db_password
+      - db_server_cert
+      - db_server_key
+    tmpfs:
+      - /run/pish-postgres-tls:mode=0700
+      - /var/run/postgresql
+      - /tmp
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    shm_size: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "gosu postgres psql -X -U postgres -d pish_dev -tAc \"SELECT EXISTS(SELECT FROM pg_extension WHERE extname='pgaudit')\" | grep -qx t"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db-data:
+
+secrets:
+  db_password:
+    file: ../../.secrets/postgres/password
+  db_server_cert:
+    file: ../../.secrets/postgres/server.crt
+  db_server_key:
+    file: ../../.secrets/postgres/server.key

@@ -9,8 +9,8 @@
 # Managed with uv.  `uv.lock` is committed; `uv sync --frozen` is the only
 # permitted install command in CI and in the documented setup path.
 #
-# STATUS: dependency set is PROPOSED and awaits owner approval — see
-# docs/DECISION_REQUIRED_FROM_OWNER.md (DEC-A / "dependency baseline").
+# STATUS: dependency installation was approved in DEC-A (2026-11-14).
+# Remediation reuses the existing environment; no dependency change.
 # Exact versions are pinned by uv.lock, not by hand.
 # ==========================================================================
 

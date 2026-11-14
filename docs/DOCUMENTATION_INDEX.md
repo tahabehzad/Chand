@@ -7,6 +7,31 @@
 
 ---
 
+## 0. Task-focused reading
+
+Start with AGENTS.md; use this table to select the relevant source sections. This index routes readers to existing authority; it is not a second specification or a change to the product roadmap.
+
+| Task | Required context |
+| :--- | :--- |
+| Any first change | Holy Bible §0.3 (authority), §13.1 (change control), §13.8 (agent constraints); relevant §3 requirements |
+| Current status / next task | PROJECT_STATUS §2; exact WBS row, dependencies, decisions and AC in EXECUTION_PLAN §14.3 |
+| API / configuration | Applicable DEPLOYMENT and AUTH sections; relevant WBS/specification |
+| Encryption / database / tenancy | ADR-003 and ADR-006; AUTH security/schema sections; database-engineering and security-threat-model skills |
+| Financial / engine work | Relevant Holy Bible §2/§3/§10 and REMEDIATED module; STATUTORY_INGESTION; financial-data-integrity and iranian-payroll-engineering skills; unresolved decisions |
+| Persian frontend / PDF | ADR-001; FRONTEND_PERSIAN; persian-rtl-engineering; DEC-006 remains open |
+| Document verification | DOCUMENT_FORENSICS; applicable security/privacy requirements; ADR-005 remains proposed |
+| Delegation | AGENT_OPERATING_MODEL §3 (ownership/handoff), §4 (isolation) and current environment evidence |
+| Verification history | BOOTSTRAP_CHANGELOG §16: latest full suite and regulatory acquisition; §15: PostgreSQL runtime; §13: documentation maintenance |
+| Historical evidence | Specific source and section only after the supersession map in §§2–4 |
+
+**Loading discipline:** search headings/IDs first (RTK-prefixed `rg`), then read bounded sections. Load only task-relevant skill bodies and references. Read a required specification in full when its task contract requires it; a handoff summary is not a substitute. Do not routinely dump the full Holy Bible, WBS, changelog, every skill, DOCX corpus or old audit.
+
+Keep the loaded document revision/section in the task handoff; reread when the source changes or the task expands. Check only relevant host capabilities rather than repeating a complete machine inventory. Record verification and status changes as required; avoid duplicate narrative reports when the existing execution record suffices.
+
+**Current versus historical:** PROJECT_STATUS and the WBS own delivery state; DECISIONS_REGISTER and accepted ADRs own decision state; ENVIRONMENT_INVENTORY separates dated observations from current capability checks. Original Holy Bible §0.4 and Appendix E are historical snapshots. Documentation maintenance does not complete a WBS task or revalidate an application test.
+
+---
+
 ## 1. The documentation package
 
 ### 1.1 Current — binding
@@ -40,6 +65,7 @@
 | [`docs/adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md`](adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md) | Accepted |
 | [`docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md`](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | Accepted |
 | [`docs/adr/ADR-005-async-execution-strategy.md`](adr/ADR-005-async-execution-strategy.md) | **Proposed** |
+| [`docs/adr/ADR-006-phase-0-owner-approved-security-and-schema.md`](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) | **Accepted — owner-approved four Phase 0 choices; limited amendment of ADR-003 directive 3** |
 
 ### 1.4 Upstream sources — outside `docs/`, unmodified by this workstream
 
@@ -53,7 +79,7 @@
 | `Technical Investigation of Related Software Projects.docx` | Technology landscape survey | 5 |
 | `1.docx` | Independent audit of the two baseline reports | 5 |
 | `backend/data/seeds/statutory_rules_1404.yaml` | **Verified** historical rule set — do not modify | 2 |
-| `backend/data/seeds/statutory_rules_1405.yaml` | **Empty placeholder** — must remain inactive | 2 |
+| `backend/data/seeds/statutory_rules_1405.yaml` | **Transcribed, unverified candidate** — must remain inactive; unavailable values remain unknown | 2 |
 | `.agents/skills/*/SKILL.md` | Agent behaviour contracts — engineering standards, not project documents | n/a |
 
 ---
@@ -178,6 +204,10 @@ Never cite it as a current specification and never copy a figure from it without
 
 | Version | Date | Change | Author |
 | :--: | :--: | :-- | :-- |
+| 1.4 | 2026-11-14 | Owner-authorized documentation maintenance: task-focused reading in §0; current orientation and environment/agent guidance reconciled; historical evidence preserved. No code, roadmap, seed, ADR or WBS-status change. Evidence: BOOTSTRAP_CHANGELOG §13. | Codex documentation owner |
+| 1.3 | 2026-11-14 | Add P0-T03 dev contract in DEPLOYMENT §4.1.1 and infra/postgres runbook/verifier; current Docker/image blocker and WBS state recorded. Local checks only, no DB runtime acceptance. Evidence: BOOTSTRAP_CHANGELOG §12. | Codex implementation owner |
+| 1.2 | 2026-11-14 | Register accepted ADR-006; AUTH §8.5 defines P0-T06's field-encryption contract; primitive review-ready with 110 passing tests. No prior accepted ADR text rewritten. Evidence: BOOTSTRAP_CHANGELOG §11. | Codex implementation owner |
+| 1.1 | 2026-11-14 | Current scaffold/Git/status corrected; false async attribution corrected while ADR-005 remains proposed; owner review package added to existing queue. Exact changes/results in `BOOTSTRAP_CHANGELOG.md` §10. | Codex remediation owner |
 | 1.0 | 2026-11-14 | The documentation package established. `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` and the three `.docx` files classified with section-level dispositions. ADR-005 drafted as `PROPOSED`. | Documentation Engineering |
 
 ---
@@ -191,9 +221,9 @@ These are gaps in the **package**, not in the implementation. Each is a task or 
 | 1 | The supersession banner on `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` could not be corrected (write scope was `docs/` only) | Owner action — apply §2.2 to the file header |
 | 2 | The three `.docx` files cannot carry a banner | Owner action — declare their status in the README or the package index |
 | 3 | `REMEDIATED` §5.1's defective worked example is still published in the source specification | `P1-T20` |
-| 4 | `REMEDIATED` §3.1 still mandates Celery + Redis | ADR-005 approval, then a spec amendment |
-| 5 | `REMEDIATED` §3 still says "JWT" without specifying the revocation model | DEC-004, then a spec amendment |
+| 4 | `REMEDIATED` §3.1 specifies `BackgroundTasks`; durability and CPU isolation remain undecided | ADR-005 review and decision; no queue implementation before acceptance |
+| 5 | `REMEDIATED` §3 still says "JWT" without specifying the revocation model | DEC-004 is resolved by ADR-006; an approved source-specification wording amendment remains separate work |
 | 6 | `REMEDIATED` §4.1 still declares `char` without a length and omits the identity entities | `P0-T12` and `P0-T05` (migrations), then a spec amendment |
-| 7 | `backend/data/seeds/statutory_rules_1405.yaml` is still empty | `P1-T02`, `P1-T03` |
-| 8 | There is no root `README.md` or `AGENTS.md` | Owner action |
-| 9 | There is no repository `.gitignore`, `.editorconfig` or licence file | `P0-T01` |
+| 7 | 1405 is transcribed but unverified and inactive; primary evidence and activation conditions remain outstanding | `P1-T02`, `P1-T03`; no activation by this maintenance |
+| 8 | Root `README.md` and `AGENTS.md` now exist | Bootstrap; factual status corrected in Holy Bible v1.0.1 |
+| 9 | `.gitignore`, `.editorconfig`, `.gitattributes` and proprietary `LICENSE` now exist | Bootstrap; CI remains outstanding in `P0-T01` |

@@ -29,7 +29,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Final, Literal
 
-from pydantic import SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 AppEnvironment = Literal["local", "staging", "production"]
@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     s3_endpoint_url: str = ""
     s3_bucket: str = "pish-dev"
     s3_object_lock_mode: str = OBJECT_LOCK_MODE
-    s3_retention_days: int = 1
+    s3_retention_days: int = Field(default=1, gt=0)
     s3_access_key_id: SecretStr = SecretStr("")
     s3_secret_access_key: SecretStr = SecretStr("")
 
@@ -169,6 +169,8 @@ class Settings(BaseSettings):
                 raise ConfigurationError("SESSION_COOKIE_SECURE must be true in production.")
             if self.db_ssl_mode != "verify-full":
                 raise ConfigurationError("DB_SSL_MODE must be verify-full in production.")
+            if self.s3_retention_days != 3650:
+                raise ConfigurationError("S3_RETENTION_DAYS must be 3650 in production (ADR-002).")
             missing = sorted(name for name, value in self.secret_values().items() if not value)
             if missing:
                 raise ConfigurationError(

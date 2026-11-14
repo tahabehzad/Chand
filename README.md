@@ -1,125 +1,66 @@
 # Pish Hesabdari (پیش‌حسابداری)
 
-> **Pre-employment compensation intelligence and evidentiary verification for the Iranian labour market.**
-
-An enterprise platform that turns a candidate's *verified* records into a legally defensible employment offer: exact Iranian statutory wage, tax and Social Security computation; Total Cost to Employer; severance and termination-liability modelling; document forensics; four-way experience disambiguation; and market benchmarking — every figure reproducible, provenance-tagged and admissible before a labour dispute board.
-
-**It is not** an accounting package, a payroll execution system, an HRIS, or a recruitment marketplace. See [ADR-004](docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md).
-
----
+Pre-employment compensation intelligence and evidentiary verification for Iran. The product supports verified-record hiring offers, statutory simulation, employer-cost modeling and document verification within the boundary of [ADR-004](docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md).
 
 ## Start here
 
-| If you are… | Read |
+| Need | Read |
 | :--- | :--- |
-| **A new engineer or agent** | [`docs/PISH_HESABDARI_HOLY_BIBLE.md`](docs/PISH_HESABDARI_HOLY_BIBLE.md) — the master knowledge base. Then [`AGENTS.md`](AGENTS.md). |
-| **Deciding something** | [`docs/DECISION_REQUIRED_FROM_OWNER.md`](docs/DECISION_REQUIRED_FROM_OWNER.md) — what is waiting on the owner. |
-| **Picking up Phase 0 work** | [`docs/PHASE_0_BOOTSTRAP_PLAN.md`](docs/PHASE_0_BOOTSTRAP_PLAN.md) — the task sequence and the exact next task. |
-| **Checking the current state** | [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — verified status, not aspiration. |
-| **Setting up a machine** | [`docs/ENVIRONMENT_INVENTORY.md`](docs/ENVIRONMENT_INVENTORY.md) — verified tools, versions and gaps. |
+| Starting an agent task | [AGENTS.md](AGENTS.md), then [Documentation Index §0](docs/DOCUMENTATION_INDEX.md#0-task-focused-reading) |
+| Current delivery state and blockers | [PROJECT_STATUS §2](docs/PROJECT_STATUS.md#2-delivery-state); exact tasks in EXECUTION_PLAN §14.3 |
+| Product knowledge and requirements | Relevant sections of [Holy Bible](docs/PISH_HESABDARI_HOLY_BIBLE.md), then the authoritative source it cites |
+| Owner decisions | [DECISIONS_REGISTER](docs/DECISIONS_REGISTER.md) and [DECISION_REQUIRED_FROM_OWNER](docs/DECISION_REQUIRED_FROM_OWNER.md) |
+| Environment-dependent work | [ENVIRONMENT_INVENTORY](docs/ENVIRONMENT_INVENTORY.md); recheck only the capability needed |
+| Verification evidence | [BOOTSTRAP_CHANGELOG §12](docs/BOOTSTRAP_CHANGELOG.md#12-p0-t03-local-postgresql-scaffold-registry-blocker--2026-11-14); §13 records documentation maintenance |
 
-**The Holy Bible is authoritative for project knowledge.** This README is only an entry point; it deliberately does not restate it.
+Read sections relevant to the task. The full Holy Bible, complete WBS, execution history and research corpus are not a default startup packet. Required specifications and safety rules still apply.
 
----
+## Current orientation
 
-## Document authority
+FastAPI scaffolding, tests, an isolated field-encryption primitive and a local PostgreSQL scaffold exist. No completed financial engine or integrated tenant-security/database foundation is claimed. The last recorded PostgreSQL attempt was blocked by official image/build HTTP 403; see the evidence above rather than assuming a live service.
 
-Binding order — when two documents conflict, the higher wins and the lower must be corrected.
+The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The approved roadmap remains **five phases / 20 weeks**. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
 
-| Rank | Class | Where |
-| :--: | :--- | :--- |
-| 1 | Accepted ADRs | `docs/adr/ADR-001` … `ADR-004` |
-| 2 | Authoritative product & technical specification | `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` |
-| 3 | Red-team findings and dispositions | `PHASE_1_RED_TEAM_AUDIT.md` |
-| 4 | Execution package | `docs/EXECUTION_PLAN.md`, `docs/specs/*`, `docs/DECISIONS_REGISTER.md` |
-| 5 | Historical research (not superseded content only) | `RESEARCH_GAP…md`, the three `.docx` files |
-| 6 | Superseded | `PHASE_1_FINAL_AUDIT_BRIEF.md` |
-
-`ADR-005` is **PROPOSED** and binds nothing.
-
----
-
-## Current state — read before you plan anything
-
-| | |
-| :--- | :--- |
-| Implementation | **0 %.** 86 of 86 WBS tasks are `NOT_STARTED` (82) or `BLOCKED` (4). No application source code exists. |
-| Active statutory baseline | **1404 SH** (`1404.1`, `VERIFIED`). 1405 is transcribed but **not** four-eyes verified and **must not** be activated. |
-| Roadmap | Five phases over 20 weeks. **Do not rewrite it.** |
-| Phase readiness | Phase 0 `READY WITH CONDITIONS`; Phases 1 and 2 `BLOCKED`; Phases 3 and 4 `READY WITH CONDITIONS`. |
-| Open decisions | 17 register entries (14 blocking) + 1 proposed ADR. |
-
----
+Accepted ADRs are **001–004 and 006**; ADR-005 remains **Proposed**. ADR-006 amends only ADR-003's indexed table target and records the owner's four Phase 0 decisions. See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
 
 ## Repository layout
 
-Current state of the tree (target layout is `docs/specs/DEPLOYMENT.md` §2.2):
-
-```
-.
-├── AGENTS.md                     agent operating rules
-├── README.md                     this file
-├── .editorconfig  .gitattributes  .gitignore
-├── .agents/skills/*/SKILL.md     11 engineering behaviour contracts
-├── backend/
-│   ├── pyproject.toml            PEP 621 / uv project definition
-│   ├── uv.lock                   committed, exact pins
-│   ├── ruff.toml  mypy.ini       lint / strict typing
-│   ├── .env.example              environment KEYS only, no values
-│   ├── app/                      application package (scaffolded, empty)
-│   │   ├── api/v1/  core/  engines/  models/  schemas/  services/
-│   ├── tests/                    (scaffolded, empty)
-│   └── data/seeds/               statutory rule sets
-│       ├── statutory_rules_1404.yaml   VERIFIED, active, immutable
-│       └── statutory_rules_1405.yaml   placeholder, all null, INACTIVE
-├── docs/
-│   ├── PISH_HESABDARI_HOLY_BIBLE.md    ← master knowledge base
-│   ├── adr/  specs/                   accepted ADRs, subordinate specifications
-│   ├── EXECUTION_PLAN.md              the 86-task WBS
-│   ├── DECISIONS_REGISTER.md          open decisions and blockers
-│   ├── IMPLEMENTATION_READINESS.md    per-phase readiness
-│   └── …control files (see below)
-├── infra/                        (not yet created — WBS P0-T17)
-├── frontend/                     (not yet created — WBS P3-T01)
-└── <historical .docx and .md research corpus>
+```text
+.agents/skills/      11 shared engineering contracts
+backend/
+  app/              FastAPI, configuration/logging and isolated security code
+  tests/            scaffold, security and local-material tests
+  data/seeds/       immutable 1404 baseline; inactive 1405 candidate
+  pyproject.toml    dependencies/tooling; uv.lock pins exact versions
+docs/
+  adr/              decisions
+  specs/            subsystem requirements
+  PROJECT_STATUS.md current delivery summary
+  EXECUTION_PLAN.md WBS, dependencies and acceptance criteria
+infra/
+  compose/          development Compose configuration
+  postgres/         local PostgreSQL scaffold, runbook and verifiers
 ```
 
----
+Frontend scaffolding is not present. Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
 
-## Development setup (proposed — not yet executed)
+## Development and verification
 
-> The environment was **verified** but **dependencies are not installed**. `uv sync` has deliberately not been run: it installs ~166 packages and creates `backend/.venv`. See [`docs/DECISION_REQUIRED_FROM_OWNER.md`](docs/DECISION_REQUIRED_FROM_OWNER.md) (DEC-A).
+Dependency installation was approved and performed earlier; backend/.venv exists. Historical results and current access limitations are distinguished in ENVIRONMENT_INVENTORY. An inaccessible interpreter is not evidence that packages should be reinstalled.
+
+For an existing usable environment, from the repository root:
 
 ```powershell
-# one-time, from the repository root
-cd backend
-uv python install 3.12        # uv already has a managed CPython 3.12.9 present
-uv sync --frozen --all-groups # installs from the committed uv.lock
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy app
-uv run pytest -q
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff check backend/app backend/tests
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff format --check backend/app backend/tests
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m mypy --config-file backend/mypy.ini backend/app backend/tests
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m pytest -q backend/tests
 ```
 
-Local services (PostgreSQL 16 + an S3-compatible object store) are described in `docs/specs/DEPLOYMENT.md` §2.5 and §5. **The Docker daemon is not currently running.**
+These are application verification commands, not checks run by the documentation-maintenance session. For first-time setup use DEPLOYMENT §2 and the frozen lockfile workflow; do not reinstall or start services merely to inspect documentation. Local database setup and its side effects are documented in [infra/postgres/README.md](infra/postgres/README.md).
 
----
+## Contributor rules and licence
 
-## Hard rules for every contributor and every agent
+[AGENTS.md](AGENTS.md) contains the mandatory domain, monetary, security, approval and verification rules. No commit or push is authorized by this README.
 
-1. **Never activate the 1405 rule set.** The loader must fail closed. `backend/data/seeds/statutory_rules_1405.yaml` stays inert until activation conditions A1–A8 are met (`docs/specs/STATUTORY_INGESTION.md` §7).
-2. **Never modify `backend/data/seeds/statutory_rules_1404.yaml`.** It is an immutable legal artefact, hash-pinned by invariant `R-10`. Corrections create a new revision.
-3. **Never use `float` for money.** `Decimal` only, `prec=34`, `ROUND_HALF_UP`, round once at the line-item boundary, surface the residual.
-4. **Never hard-code a statutory rate.** Read it from the rule set; the engine never falls back silently.
-5. **Never modify an accepted ADR.** Raise a superseding ADR.
-6. **Never introduce a rejected technology** (`pgcrypto`, MinIO `COMPLIANCE`, bisection inversion, Next.js SSR, Redis/Celery as a mandatory broker, live job-board scraping, automated Shahkar).
-7. **Never send candidate data to an external AI provider.**
-8. **Never commit a secret.** `.env` is ignored; only `.env.example` (keys, no values) is tracked.
-
-The full set, with sources, is in [`AGENTS.md`](AGENTS.md) §"Non-negotiable invariants" and the Holy Bible §3.3–§3.4.
-
----
-
-## Licence and ownership
-
-**The repository licence is undecided and is an owner decision** (`docs/DECISION_REQUIRED_FROM_OWNER.md`, DEC-E). Until it is set, treat the code as proprietary and do not redistribute it externally.
+[LICENSE](LICENSE) is proprietary, all rights reserved. External redistribution rights are not granted by this repository.

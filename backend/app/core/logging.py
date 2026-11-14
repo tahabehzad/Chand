@@ -49,6 +49,17 @@ SECRET_KEY_NAMES: Final[frozenset[str]] = frozenset(
         "database_url",
         "kek",
         "master_kek",
+        "national_id",
+        "national_code",
+        "mobile",
+        "mobile_number",
+        "phone",
+        "phone_number",
+        "sheba",
+        "iban",
+        "salary",
+        "candidate_name",
+        "full_name",
         "passwd",
         "password",
         "pepper",
@@ -67,7 +78,9 @@ SECRET_KEY_NAMES: Final[frozenset[str]] = frozenset(
 #: A key whose *name* marks its value as secret.
 _SECRET_KEY_PATTERN: Final[re.Pattern[str]] = re.compile(
     r"(?i)(secret|token|password|passwd|pepper|kek|api[_-]?key|access[_-]?key"
-    r"|private[_-]?key|credential|database[_-]?url|vault)"
+    r"|private[_-]?key|credential|database[_-]?url|vault"
+    r"|national[_-]?(?:id|code)|mobile|phone|sheba|iban|salary|wage"
+    r"|candidate[_-]?name|full[_-]?name)"
 )
 
 #: ``scheme://user:password@host`` — the password is removed, the rest stays.
@@ -86,9 +99,8 @@ _JWT: Final[re.Pattern[str]] = re.compile(
     r"(?![A-Za-z0-9_\-])"
 )
 
-#: A keyword in the *format string* that marks the arguments it fills as
-#: credential material.  The keyword and the value are often only
-#: recognisable together — "Bearer %s" and an opaque token are a pair.
+#: A keyword in the format string that marks credential material. Mask
+#: such templates with arguments in full, including numeric placeholders.
 _CREDENTIAL_HINT: Final[re.Pattern[str]] = re.compile(
     r"(?i)\b(bearer|authorization|auth[_-]?token|access[_-]?token|refresh[_-]?token"
     r"|token|password|passwd|secret|api[_-]?key|access[_-]?key|credential)s?\b"
@@ -108,12 +120,26 @@ _IRANIAN_MOBILE: Final[re.Pattern[str]] = re.compile(
 #: A ten-digit National Code.
 _NATIONAL_CODE: Final[re.Pattern[str]] = re.compile(r"(?<![0-9])[0-9]{10}(?![0-9])")
 
+#: Match Persian/Arabic digits through a same-length ASCII view, keeping
+#: the original spelling of all text outside the redacted spans.
+_IDENTIFIER_DIGITS: Final[dict[int, int]] = str.maketrans(
+    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"
+)
+_IDENTIFIER_PATTERN: Final[re.Pattern[str]] = re.compile(
+    "|".join(
+        f"(?:{pattern.pattern})"
+        for pattern in (_SHEBA, _IRANIAN_MOBILE_LOCAL, _IRANIAN_MOBILE, _NATIONAL_CODE)
+    )
+)
+
 #: ``NAME=value`` or ``name: value`` where the name marks a secret.
 _SECRET_ASSIGNMENT: Final[re.Pattern[str]] = re.compile(
-    r"(?i)\b([A-Za-z0-9_.\-]*"
+    r"(?i)([\"']?\b[A-Za-z0-9_.\-]*"
     r"(?:secret|token|password|passwd|pepper|kek|api[_-]?key|access[_-]?key"
-    r"|private[_-]?key|credential|database[_-]?url|vault)"
-    r"[A-Za-z0-9_.\-]*)(\s*[:=]\s*)(\"[^\"]*\"|'[^']*'|[^\s,;)\]}]+)"
+    r"|private[_-]?key|credential|database[_-]?url|vault"
+    r"|national[_-]?(?:id|code)|mobile|phone|sheba|iban|salary|wage"
+    r"|candidate[_-]?name|full[_-]?name)"
+    r"[A-Za-z0-9_.\-]*[\"']?)(\s*[:=]\s*)"
 )
 
 #: The attributes ``logging.LogRecord`` defines for itself.  Anything else
@@ -162,38 +188,47 @@ def redact_text(text: str) -> str:
     redacted = _URL_CREDENTIALS.sub(rf"\1{REDACTED}\3", text)
     redacted = _BEARER.sub(f"bearer {REDACTED}", redacted)
     redacted = _JWT.sub(REDACTED, redacted)
-    redacted = _SHEBA.sub(REDACTED, redacted)
-    redacted = _IRANIAN_MOBILE_LOCAL.sub(REDACTED, redacted)
-    redacted = _IRANIAN_MOBILE.sub(REDACTED, redacted)
-    redacted = _NATIONAL_CODE.sub(REDACTED, redacted)
-    redacted = _SECRET_ASSIGNMENT.sub(rf"\1\2{REDACTED}", redacted)
-    return redacted
+    comparable = redacted.translate(_IDENTIFIER_DIGITS)
+    for match in reversed(list(_IDENTIFIER_PATTERN.finditer(comparable))):
+        redacted = redacted[: match.start()] + REDACTED + redacted[match.end() :]
+    # Rendered repr/JSON can contain arbitrarily nested containers or
+    # escaped values. A regex cannot safely delimit their contents. Mask
+    # the entire text when an assignment labels sensitive material.
+    return REDACTED if _SECRET_ASSIGNMENT.search(redacted) else redacted
 
 
-def _redact_value(value: object) -> object:
-    """Return ``value`` with any secret content removed."""
-    if isinstance(value, str):
-        return redact_text(value)
-    return value
+def _redact_value(value: object, *, _depth: int = 0, _seen: frozenset[int] = frozenset()) -> object:
+    """Copy supported containers safely; never call an unknown object's repr.
 
-
-def _redact_arg(value: object, *, redact_all: bool) -> object:
-    """Return one log argument with any secret content removed.
-
-    ``redact_all`` is set when the *format string* names a credential.  In
-    that case the argument is replaced wholesale: ``"Bearer %s"`` carries
-    no token and an opaque token carries no word "Bearer", so neither half
-    is detectable on its own.
+    Bound recursion and detect cycles so a malformed diagnostic cannot
+    break the log stream. Caller-owned payloads are never modified.
     """
-    if isinstance(value, str):
-        return REDACTED if redact_all else redact_text(value)
-    return value
+    if _depth >= 12 or id(value) in _seen:
+        return REDACTED
+    if isinstance(value, (str, int, float, bool, type(None))):
+        return redact_text(value) if isinstance(value, str) else value
+    seen = _seen | {id(value)}
+    if isinstance(value, Mapping):
+        result: dict[str, object] = {}
+        for key, item in value.items():
+            if not isinstance(key, (str, int, float, bool, type(None))):
+                # Even a mapping key can have an unsafe __str__/__repr__.
+                return REDACTED
+            name = str(key)
+            result[redact_text(name)] = (
+                REDACTED
+                if is_secret_key(name)
+                else _redact_value(item, _depth=_depth + 1, _seen=seen)
+            )
+        return result
+    if isinstance(value, (list, tuple)):
+        items = [_redact_value(item, _depth=_depth + 1, _seen=seen) for item in value]
+        return tuple(items) if isinstance(value, tuple) else items
+    return REDACTED
 
 
 def _redact_args(
     args: tuple[object, ...] | Mapping[str, object] | None,
-    *,
-    redact_all: bool = False,
 ) -> tuple[object, ...] | Mapping[str, object] | None:
     """Return the log arguments with any secret content removed.
 
@@ -211,9 +246,9 @@ def _redact_args(
             if is_secret_key(key):
                 redacted[key] = REDACTED
             else:
-                redacted[key] = _redact_arg(value, redact_all=redact_all)
+                redacted[key] = _redact_value(value)
         return redacted
-    return tuple(_redact_arg(item, redact_all=redact_all) for item in args)
+    return tuple(_redact_value(item) for item in args)
 
 
 class SecretRedactingFilter(logging.Filter):
@@ -226,23 +261,30 @@ class SecretRedactingFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.msg if isinstance(record.msg, str) else ""
-        if isinstance(record.msg, str):
-            record.msg = redact_text(record.msg)
-        if record.args:
-            record.args = _redact_args(
-                record.args,
-                redact_all=bool(_CREDENTIAL_HINT.search(message)),
-            )
+        record.msg = _redact_value(record.msg)
+        if record.args and (
+            _CREDENTIAL_HINT.search(message) or _SECRET_KEY_PATTERN.search(message)
+        ):
+            # Mask the entire credential-bearing template. Replacing a
+            # numeric argument with a string would break %d/%f formatting.
+            record.msg = REDACTED
+            record.args = ()
+        elif record.args:
+            record.args = _redact_args(record.args)
         for key in list(record.__dict__):
             if key in _STANDARD_RECORD_ATTRIBUTES or key.startswith("_"):
                 continue
             value = record.__dict__[key]
             if is_secret_key(key):
                 record.__dict__[key] = REDACTED
-            elif isinstance(value, str):
-                record.__dict__[key] = redact_text(value)
+            else:
+                record.__dict__[key] = _redact_value(value)
         if record.exc_info and not record.exc_text:
-            record.exc_text = redact_text(logging.Formatter().formatException(record.exc_info))
+            record.exc_text = logging.Formatter().formatException(record.exc_info)
+        if record.exc_text:
+            record.exc_text = redact_text(record.exc_text)
+        if record.stack_info:
+            record.stack_info = redact_text(record.stack_info)
         return True
 
 
@@ -258,23 +300,20 @@ class JsonFormatter(logging.Formatter):
             "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
-            "correlation_id": get_correlation_id(),
+            "message": redact_text(record.getMessage()),
+            "correlation_id": redact_text(get_correlation_id()),
         }
         for key, value in record.__dict__.items():
             if key in _STANDARD_RECORD_ATTRIBUTES or key.startswith("_"):
                 continue
             if key in _DROPPED_EXTRA_KEYS:
                 continue
-            if isinstance(value, (str, int, float, bool, type(None))):
-                payload[key] = value
-            else:
-                payload[key] = repr(value)
+            payload[key] = REDACTED if is_secret_key(key) else _redact_value(value)
         if record.exc_text:
-            payload["exception"] = record.exc_text
+            payload["exception"] = redact_text(record.exc_text)
         if record.stack_info:
-            payload["stack"] = record.stack_info
-        return json.dumps(payload, ensure_ascii=False, default=str)
+            payload["stack"] = redact_text(record.stack_info)
+        return json.dumps(payload, ensure_ascii=False)
 
 
 class ApplicationHandler(logging.StreamHandler[TextIO]):

@@ -36,7 +36,9 @@ A phase is classified `READY` only when **all four** of the following are satisf
 
 If any condition fails but the failure is bounded and recoverable, the phase is `READY_WITH_CONDITIONS` and the conditions are listed. If a failure is unbounded — a required external artefact that does not exist, or a decision with no owner — the phase is `BLOCKED`.
 
-**Documentation readiness is not implementation completion.** No task is `COMPLETED`; the repository contains no application source code.
+**Documentation readiness is not implementation completion.** Current WBS: 1 `COMPLETED`, 1 `IN_PROGRESS` (P0-T01 CI clause unmet), 2 `READY_FOR_REVIEW` (P0-T03 local PostgreSQL and P0-T06 isolated encryption), 78 `NOT_STARTED`, 4 `BLOCKED`. P0-T03 official pull/build and real hardening verifier PASS on 2026-11-15; CI dependency remains. Financial engines and integrated tenant-security foundation do not exist. Four owner decisions are accepted in ADR-006; other details remain open. Verification: BOOTSTRAP_CHANGELOG §15 (DB runtime), §12 (last full application suite). No accountant, labour counsel or licensed/consented datasets are available.
+
+**Execution boundary.** Descriptions below of work with documented assumptions permit planning and proposals only when a decision is open. They do not authorize choosing authentication, key hierarchy or schema variants, or writing migrations that encode an unresolved decision. Obtain the recorded approvers' decision first; `AGENTS.md` §3 governs that boundary.
 
 ---
 
@@ -58,7 +60,7 @@ If any condition fails but the failure is bounded and recoverable, the phase is 
 | Prerequisites | **Met** — ADR-001…004, `REMEDIATED` §4, and `SPEC-AUTH-001` §2 define the domain model |
 | Technical specifications | **Met** — `SPEC-AUTH-001`, `SPEC-STAT-001` §5–§7, `SPEC-OPS-001` §§2–5, `SPEC-QA-001` §§3–9 |
 | Test requirements | **Met** — `SPEC-QA-001` §8 (the 12 isolation tests), §9 (the 13 crypto tests), §8.1 (the zero-plaintext-PII gate) |
-| Decisions | **4 open** (DEC-004, DEC-004a, DEC-004b, DEC-005), all bounded and recommended |
+| Decisions | **4 resolved by Project Owner, ADR-006** (DEC-004, DEC-004a, DEC-004b, DEC-005). CI/provider, topology and unapproved detailed contracts remain; no gate has passed |
 
 **Verdict.** The phase can start on Monday. The two open decisions are recorded recommendations with complete specifications behind them; the condition is that they are ratified in Week 1 and that the assumption is visible on the three affected tasks. **The Phase 0 gate itself cannot be signed** until DEC-004 and DEC-005 are resolved, because `P0-T18` (8 days) and `P0-T12` implement them.
 
@@ -158,7 +160,7 @@ If any condition fails but the failure is bounded and recoverable, the phase is 
 
 | Phase | Weeks | Classification | Blocking decisions | Blocking external artefacts | Can start? |
 | :-- | :--: | :--- | :--: | :--: | :--- |
-| 0 | 1–4 | **READY_WITH_CONDITIONS** | DEC-004, DEC-004a, DEC-004b, DEC-005 | — | **Yes — now** |
+| 0 | 1–4 | **READY_WITH_CONDITIONS** | Four identity/audit/schema decisions resolved by ADR-006; CI, topology and detailed integration contracts remain | — | **Yes — within verified dependencies** |
 | 1 | 5–8 | **BLOCKED** | DEC-001, DEC-002, DEC-002a, DEC-007 | The certified golden-vector corpus; the L1 primary circulars | Engine work only, on 1404 |
 | 2 | 9–14 | **BLOCKED** | ADR-005, DEC-011, DEC-011a, DEC-011b, DEC-011c | The 500-slip authentic corpus | Partially (`P2-T01`, `T02`, `T03`, `T07`, `T08`) |
 | 3 | 15–18 | **READY_WITH_CONDITIONS** | DEC-006 | — | Yes, from Week 15 |

@@ -11,6 +11,7 @@ A test that inspected the record before the filter ran would prove nothing.
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Iterator
 
@@ -152,3 +153,162 @@ def test_the_filter_is_installed_on_the_handler_and_on_the_logger() -> None:
 def test_redaction_is_idempotent() -> None:
     once = redact_text(f"value {FAKE_SECRET}")
     assert redact_text(once) == once
+
+
+def test_nested_payloads_are_redacted_without_changing_the_source(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    logger = get_logger("app.tests.nested")
+    payload = {"items": [{"token": FAKE_SECRET, "salary_rial": 12345}], "count": 2}
+    logger.info("event", extra={"payload": payload})
+    out = capsys.readouterr().out
+    assert FAKE_SECRET not in out
+    assert "12345" not in out
+    assert json.loads(out)["payload"]["count"] == 2
+    assert payload["items"][0]["token"] == FAKE_SECRET  # type: ignore[index]
+
+
+@pytest.mark.parametrize("channel", ["message", "positional", "mapping", "extra"])
+def test_structured_values_are_safe_in_every_logging_channel(
+    channel: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    logger = get_logger("app.tests.channels")
+    payload = {"items": ({"password": FAKE_SECRET},)}
+    if channel == "message":
+        logger.info(payload)
+    elif channel == "positional":
+        logger.info("event %s", payload)
+    elif channel == "mapping":
+        logger.info("event %(payload)s", {"payload": payload})
+    else:
+        logger.info("event", extra={"payload": payload})
+    out = capsys.readouterr().out
+    assert FAKE_SECRET not in out
+    assert REDACTED in out
+
+
+def test_unknown_objects_are_not_rendered(capsys: pytest.CaptureFixture[str]) -> None:
+    class UnsafeRepresentation:
+        def __repr__(self) -> str:
+            raise AssertionError("untrusted representation must not be called")
+
+        def __str__(self) -> str:
+            raise AssertionError("untrusted string conversion must not be called")
+
+    configure_logging(Settings(_env_file=None))
+    logger = get_logger("app.tests.objects")
+    logger.info("event", extra={"payload": {"value": UnsafeRepresentation()}})
+    logger.info("event %s", UnsafeRepresentation())
+    out = capsys.readouterr().out
+    assert len(out.splitlines()) == 2
+    assert REDACTED in out
+
+
+def test_cycles_and_deep_payloads_do_not_break_logging(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    payload: dict[str, object] = {}
+    payload["self"] = payload
+    deep: object = {"token": FAKE_SECRET}
+    for _ in range(40):
+        deep = [deep]
+    get_logger("app.tests.cycles").info("event", extra={"payload": payload, "deep": deep})
+    out = capsys.readouterr().out
+    json.loads(out)
+    assert FAKE_SECRET not in out
+    assert REDACTED in out
+
+
+def test_credential_formatting_with_numeric_arguments_is_safe(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    get_logger("app.tests.numeric").info("password %d", 12345)
+    out = capsys.readouterr().out
+    assert "12345" not in out
+    assert REDACTED in out
+
+
+def test_preformatted_exception_and_stack_text_are_redacted(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    record = logging.LogRecord("app.tests.cached", logging.ERROR, __file__, 1, "event", (), None)
+    record.exc_text = f"cached error: password={FAKE_SECRET}"
+    record.stack_info = f"cached stack: token={FAKE_SECRET}"
+    get_logger("app.tests.cached").handle(record)
+    out = capsys.readouterr().out
+    assert FAKE_SECRET not in out
+    assert json.loads(out)["exception"] == REDACTED
+    assert json.loads(out)["stack"] == REDACTED
+
+
+def test_framework_argument_shape_is_preserved() -> None:
+    args = ("loopback", "GET", "/health/live", "1.1", 200)
+    record = logging.LogRecord(
+        "uvicorn.access", logging.INFO, __file__, 1, "%s %s %s %s %d", args, None
+    )
+    SecretRedactingFilter().filter(record)
+    assert isinstance(record.args, tuple)
+    assert record.args == args
+    assert record.getMessage().endswith("200")
+
+
+@pytest.mark.parametrize("style", ["json", "dict", "escaped", "list", "nested", "bytes"])
+def test_quoted_sensitive_keys_are_redacted_in_text_and_exceptions(
+    style: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    logger = get_logger("app.tests.quoted")
+    sentinel = "synthetic-quoted-marker"
+    if style == "json":
+        text = json.dumps({"password": sentinel})
+    elif style == "dict":
+        text = str({"password": sentinel})
+    elif style == "escaped":
+        text = json.dumps({"password": f'prefix"{sentinel}'})
+    elif style == "list":
+        text = str({"password": ["synthetic-first", sentinel]})
+    elif style == "nested":
+        text = json.dumps({"password": {"first": "synthetic-first", "second": sentinel}})
+    else:
+        text = str({"password": f"synthetic-first {sentinel}".encode()})
+    logger.info(text)
+    try:
+        raise RuntimeError(text)
+    except RuntimeError:
+        logger.exception("operation_failed")
+    out = capsys.readouterr().out
+    assert sentinel not in out
+    assert "operation_failed" in out
+
+
+def test_salary_formatting_cannot_expose_the_argument(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    configure_logging(Settings(_env_file=None))
+    get_logger("app.tests.salary").info("salary_rial=%d", 12345)
+    out = capsys.readouterr().out
+    assert "12345" not in out
+    assert REDACTED in out
+
+
+@pytest.mark.parametrize("digits", ["۰۱۲۳۴۵۶۷۸۹", "٠١٢٣٤٥٦٧٨٩"])
+def test_persian_and_arabic_identifier_digits_are_redacted_without_rewriting_other_text(
+    digits: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    translation = str.maketrans("0123456789", digits)
+    fixtures = [
+        value.translate(translation) for value in (FAKE_NATIONAL_CODE, FAKE_MOBILE, FAKE_SHEBA)
+    ]
+    configure_logging(Settings(_env_file=None))
+    logger = get_logger("app.tests.digits")
+    for fixture in fixtures:
+        logger.info("event %s", fixture)
+    logger.info("پردازش ۱۲ مورد")
+    out = capsys.readouterr().out
+    assert all(fixture not in out for fixture in fixtures)
+    assert "پردازش ۱۲ مورد" in out

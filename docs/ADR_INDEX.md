@@ -16,6 +16,7 @@
 | [ADR-003](adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md) | Adoption of Application-Level Envelope Encryption (ALEE) and blind indexing for candidate PII | **Accepted** | 2026-11-13 | Security Architect, Database Administrator, Lead Backend Engineer | `P0-T06`, `P0-T07`, `P0-T08`, `P0-T12`, `P4-T04` |
 | [ADR-004](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | De-escalation of Phase 1 scope to pure pre-hire simulation and deferral of post-hire HRIS operations | **Accepted** | 2026-11-13 | Lead Product Manager, CTO, Head of Engineering | `REMEDIATED` §1.2, §2; every phase's scope |
 | [ADR-005](adr/ADR-005-async-execution-strategy.md) | Asynchronous execution strategy for long-running document processing | **PROPOSED** | 2026-11-14 | CTO (owner), DevOps Lead, Lead Backend Engineer, Security Architect | `P2-T04` (blocked), `P2-T05`–`P2-T09`, `P4-T01` |
+| [ADR-006](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) | Owner-approved identity, privileged MFA, split audit scope and schema corrections | **Accepted** | 2026-11-14 | Project Owner (actual chat approval; no invented human role signatures) | DEC-004/004a/004b/005; supersedes ADR-003 directive 3's table name only |
 
 ---
 
@@ -37,7 +38,7 @@
 
 | # | Conflict | Documents | Resolution |
 | :--: | :--- | :--- | :--- |
-| 1 | **Async execution strategy.** `REMEDIATED` §3.1 mandates Celery 5.4 + Redis 7.2. `.agents/skills/software-architecture/SKILL.md` mandates FastAPI `BackgroundTasks` and explicitly rejects Redis/Celery. | Neither is an ADR. | **ADR-005 drafted, PROPOSED.** `P2-T04` is `BLOCKED` until the CTO records acceptance. Until then, neither statement is binding. |
+| 1 | **Async durability and isolation.** `REMEDIATED` §3.1 and the architecture skill both specify `BackgroundTasks`; neither mandates Celery/Redis. In-process work does not settle the durable separate-worker requirement. | Current specification versus reliability requirements; alternatives are proposed only. | **ADR-005 remains PROPOSED.** Its factual premise is corrected; `P2-T04` stays `BLOCKED`. No queue has been approved. |
 | 2 | **Blind-index table.** ADR-003 directive 3 indexes `employees (tenant_id, national_id_bindex)`. `REMEDIATED` §4.1 defines `national_id_bindex` on `CANDIDATES` and gives `EMPLOYEES` no columns. | ADR-003 (rank 1) vs. the specification (rank 2). | A **correction**, not a conflict of intent: the index belongs on `candidates`, because Phase 1 is pre-hire only (ADR-004). Recorded as **DEC-005**; the ADR text is unchanged pending approval. |
 | 3 | **Hash column width.** ADR-003 specifies `CHAR(64)` for the blind index. `REMEDIATED` §4.1 declares `char` without a length, which PostgreSQL treats as `CHAR(1)`. | The specification is defective. | Corrected by migration `P0-T12`; a CI migration lint rejects a lengthless `CHAR`. Recorded in **DEC-005**. |
 
@@ -49,8 +50,8 @@ These are gaps. Each is covered by a register entry and, where architectural, sh
 
 | Topic | Register | Status |
 | :--- | :--: | :--- |
-| Authentication & session model; MFA; RBAC; emergency access | DEC-004 | Open — **an ADR is recommended** once DEC-004 is decided |
-| Database schema corrections (§6.2 of the execution plan) | DEC-005 | Open — covered by migration + lint, no ADR required |
+| Authentication/session core, seven roles, privileged MFA, read/mutation audit split | DEC-004/004a/004b | **Resolved — ADR-006 Accepted**; unapproved timing/emergency/key details are not ratified |
+| Database schema corrections (§6.2 of the execution plan) | DEC-005 | **Resolved — ADR-006** formally corrects ADR-003 index target; implementation/migrations remain pending |
 | Statutory rule-set versioning and the four-eyes activation gate | DEC-001 | Open — procedure documented in `SPEC-STAT-001`; an ADR is recommended |
 | Market data ingestion and licensing | DEC-007 | Open — a product/legal decision, not architectural |
 | Deployment topology | DEC-010 | Open — an ADR is recommended for the air-gapped baseline |
@@ -78,8 +79,8 @@ A technology on this list may not reappear in any specification or implementatio
 | A flat 10 % tax rate on Eydi excess | `FIND-LEG-04` | The excess is taxed across the progressive brackets |
 | A 176-hour overtime divisor | `FIND-LEG-03`, `1.docx` Defect 3 | 176 h is for attendance proration; the statutory divisor is 220 / 227.33 h |
 | A full 100 % effective tax rate | §3 of the audit report | The defect found in the published §5.1 example |
-| Redis as a mandatory on-site broker | ADR-005 (proposed) | A fourth mandatory stateful service in air-gapped enterprise deployments |
-| Stateless JWT with no revocation path | DEC-004 (proposed) | A token that cannot be revoked is unacceptable for encrypted PII |
+| Redis as a mandatory on-site broker | **Proposed rejection only** — ADR-005 is not Accepted | Evaluation recorded; not a binding rejection by this index |
+| Stateless JWT with no revocation path | **Proposed rejection only** — DEC-004 remains open | Revocation concern remains unresolved; no session implementation authorized |
 
 ---
 

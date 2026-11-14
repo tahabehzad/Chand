@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-STATUS-001`
 - **Status:** Active — re-verified at every phase gate
-- **As at:** 2026-11-14 (23 Aban 1405 SH) — session 2
+- **As at:** 2026-11-15 — owner-authorized local PostgreSQL recovery/runtime verification; historical session records retained
 - **Verification basis:** direct inspection of the workspace and execution of the tooling, not the documentation's own claims
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` (authority) · `docs/EXECUTION_PLAN.md` (WBS) · `docs/IMPLEMENTATION_READINESS.md` (readiness) · `docs/ENVIRONMENT_INVENTORY.md` (tools)
 
@@ -12,21 +12,21 @@
 
 ## 1. One-line status
 
-**A thoroughly documented engineering specification with a verified toolchain and a running application skeleton — but no product.** The knowledge base is strong; the financial and security core is still 0 %.
+**A documented specification with a verified toolchain, FastAPI scaffold and independently reviewed field-encryption primitive.** No financial engine or integrated security/database foundation exists. Owner-approved Phase 0 choices are recorded in ADR-006; implementation readiness still depends on real integration/gate evidence.
 
 ## 2. Delivery state
 
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
-| Application source code | **A skeleton, not a product.** `backend/app/{main.py,core/config.py,core/logging.py}` exist and boot. No domain logic, no models, no schemas, no routers, no engines. | `uv run uvicorn app.main:app` → `GET /health/live` → `200 {"status":"alive"}` |
-| WBS tasks | **86 total — 1 `COMPLETED` (`P0-T02`), 1 `IN_PROGRESS` (`P0-T01`), 0 `APPROVED`, 0 `READY_FOR_REVIEW`, 82 `NOT_STARTED`, 4 `BLOCKED`** | `docs/EXECUTION_PLAN.md` §14.3, updated in session 2 |
+| Application source code | FastAPI scaffold, isolated AES-256-GCM primitive and bounded official-source acquisition CLI (`app/statutory/collect_sources.py`). No financial engine, database models or product routers | Crypto §11; collector tests/independent review §16. Collector writes UNVERIFIED local staging, not WORM/active laws |
+| WBS tasks | **86 total — 1 `COMPLETED` (`P0-T02`), 1 `IN_PROGRESS` (`P0-T01`), 0 `APPROVED`, 2 `READY_FOR_REVIEW` (`P0-T03`, `P0-T06`), 78 `NOT_STARTED`, 4 `BLOCKED`** | P0-T03 local runtime AC verified on 2026-11-15; CI dependency remains; no phase gate passed |
 | Phase gates passed | **0 of 5** | No gate evidence pack exists |
 | Engine code | **None.** The statutory seeds are *parameter files*, not an engine. | `backend/data/seeds/` |
 | Migrations | **None.** No Alembic configuration, no `alembic/versions/`. | Directory listing |
-| Tests | **34, all passing** — configuration, redaction and the liveness probe | `uv run pytest -q` → `34 passed` |
+| Tests | Latest full suite: **157 passed**, 2 warnings; strict types on 18 files; lint/format pass (§16) | §15: real PostgreSQL hardening verifier PASS. §16: 40 collector cases; six real sources failed acquisition; RLS/WORM acceptance remains unimplemented |
 | CI/CD | **None.** No workflow file, no CI provider configuration. **DEC-F is open.** | Directory listing |
 | Frontend | **None.** No `frontend/` directory. | Directory listing |
-| Containers | **None.** No `infra/`, no Dockerfile, no compose file. The Docker daemon is down. | `docker info` → failed to connect |
+| Containers | Docker engine **29.9.2**; official PostgreSQL **16.16** + pgAudit development image built; project DB **healthy** at `127.0.0.1:55432` | Official pull/build and runtime verifier PASS, 2026-11-15; BOOTSTRAP_CHANGELOG §15 |
 | OpenAPI contract | **Minimal** — the liveness endpoint only. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1 |
 | Benchmark data | **None.** No licensed corpus, no `salary_observations` rows. | DEC-007 open |
 
@@ -34,22 +34,24 @@
 
 | Item | State |
 | :--- | :--- |
-| Git repository | **Initialised in session 1** on `main`; the first commit was made in session 2. |
-| Commits | **2** — the corpus commit on `bootstrap/initial-import` and its `--no-ff` merge into `main`. |
+| Git repository | **Initialised in session 1** on `main`; the first commit was made in session 2 on `bootstrap/initial-import`, and `main` was then pointed at it. |
+| Commits | **1** — `2fc2b6f`, the bootstrap commit. `main` and `bootstrap/initial-import` both point at it. |
 | Remote | **None configured. Nothing has ever been pushed.** |
 | Files git tracks | **72** — the documentation corpus, the seeds, the 11 skill contracts, the control files, the licence and the first application source |
 | Files git ignores | **`backend/.venv`, the tool caches, `__pycache__`, and `.freebuff/*`** — everything the local toolchain produces |
-| Working tree | Clean apart from the session-2 documentation edits recorded in `docs/BOOTSTRAP_CHANGELOG.md` §9. |
-| Rollback | `git reset --hard <pre-merge sha>` restores the tree; `git reflog` lists both commits. `Remove-Item -Recurse -Force .git` restores the pre-session-1 state exactly. |
+| Working tree | Pre-existing documentation edits plus owner-authorized remediation; see `docs/BOOTSTRAP_CHANGELOG.md` §10. No commit or push performed in remediation. |
+| Rollback | Review and reverse only the remediation hunks after preserving existing uncommitted edits. There is one commit, so `2fc2b6f^` is not a valid parent revision. Never reset or remove `.git` as a routine rollback. |
 
 ## 4. Statutory baseline
 
 | Rule set | Status | Detail |
 | :--- | :--- | :--- |
 | **1404 SH** (`1404.1`) | **`VERIFIED` / `ACTIVE`** — the only usable baseline | Seed `statutory_rules_1404.yaml`, SHA-256 `CA16C4558D29A81AE3123FBAB63732F130CC4425BF67617932C41B045FABE821`. 8 of 10 `R-` invariants pass exactly; 2 defects recorded (HB-GAP-005, HB-GAP-017). |
-| **1405 SH** | **Transcribed, cross-corroborated at L2/L3, NOT four-eyes verified, INACTIVE** | Seed `statutory_rules_1405.yaml` ships every value `null` with `is_verified_and_active: false`. Activation conditions **A1–A8 are not met**. **Must not be activated.** |
+| **1405 SH** | **Transcribed, cross-corroborated at L2/L3, NOT four-eyes verified, INACTIVE** | Year-dependent parameters contain 16 null values and an empty bracket list; some constants are populated. `is_verified_and_active: false`. Activation conditions **A1–A8 are not met**. **Must not be activated.** |
 
 ## 5. Readiness
+
+**Owner delivery target (2026-11-15):** full existing scope by Wednesday 2026-11-18 (27 Aban), Asia/Tehran; cutoff hour unspecified. Regulatory information collection precedes candidate/salary entry. Execution overlay: EXECUTION_PLAN §14.8. Target is not a commitment, gate waiver or replacement of the approved roadmap. P1-T02 acquisition preparation implemented and independently reviewed; all six official discovery probes failed (403/transport), so no current-year legal parameters were verified/activated (§16).
 
 | Phase | Weeks | Classification | Gate met? | Can work start? |
 | :--: | :--: | :--- | :--: | :--- |
@@ -63,14 +65,14 @@
 
 ## 6. Reconciliation — the Holy Bible versus the actual workspace
 
-The Holy Bible was compiled by inspecting files; it could not see empty directories. Two corrections arise from this session's directory-level inspection:
+The original Holy Bible inventory predates bootstrap. Current factual corrections are reflected in v1.0.1 and the verification record in `docs/BOOTSTRAP_CHANGELOG.md` §10; the original audit remains historical evidence.
 
 | # | Holy Bible says | The workspace actually is | Impact | Action |
 | --: | :--- | :--- | :--- | :--: | :--- |
-| 1 | §11.1: *"No `backend/app/`, no `backend/tests/`"* | **Both exist**, with `backend/app/{api,api/v1,core,engines,models,schemas,services}` — all **empty**, all created 2026-11-13 16:37:20 | Low. The skeleton is consistent with `SPEC-OPS-001` §2.2 and `EXECUTION_PLAN` §7.1, but it is pre-existing scaffolding, **not implementation**. The corrected statement is: *the target package skeleton exists; it contains no source code.* | Corrected in `docs/PROJECT_STATUS.md` §2 and proposed to the owner as a documentation correction (HB-049) |
+| 1 | Original §11.1: no backend source/tests/tooling/Git | FastAPI main/config/logging modules, unit/API tests, tooling and a Git commit exist | Bootstrap is real; domain implementation remains absent | Corrected in Holy Bible v1.0.1 and `AGENTS.md`; no task status inferred from documentation |
 | 2 | §0.4: *"39 files"* | **40** | None — the 40th is the Holy Bible itself | Already noted in the Holy Bible's Appendix F changelog |
 
-**No other discrepancy was found.** Verified directly against source: the 4 ADR statuses (`Accepted`), ADR-005 (`PROPOSED`), the 20 Phase 0 tasks with their exact roles/efforts/blockers, the five-phase 20-week roadmap, the 17 open register entries, the two seed files' contents, and the eleven skill contracts.
+Additional discrepancies: task-count arithmetic; false attribution of a Celery mandate; dangling `P4-T15` dependencies; and the initial misdiagnosis of sandbox-denied Python access. See changelog §10. Current owner approval: ADR-006 is Accepted, resolving DEC-004/004a/004b/005; the 17-entry engineering register has 4 resolved and 13 open entries. ADR-001…004 originals, ADR-005 PROPOSED status and the five-phase/20-week roadmap are preserved. No accountant, labour counsel or licensed/consented datasets are available; external gates stay blocked.
 
 ## 7. Phase 0 — what can start, and what cannot
 
@@ -80,29 +82,29 @@ The Holy Bible was compiled by inspecting files; it could not see empty director
 | :--- | :--- | :--- | :--- |
 | `P0-T01` | Repository and tooling baseline | Lead Backend Eng | **Verified in session 2.** `uv sync --frozen --all-groups` ✓, `ruff check .` ✓, `mypy --strict` ✓. The one unmet clause is *CI runs both*, which needs DEC-F. |
 | `P0-T02` | FastAPI skeleton and configuration | Lead Backend Eng | **`COMPLETED` in session 2** — see §8. The application boots and `/health/live` answers 200. |
-| `P0-T03` | PostgreSQL 16 provisioning and hardening | Database Eng | No open decision. **Requires the Docker daemon.** |
-| `P0-T06` | ALEE encryption module | Security Eng | No open decision. The toolchain is now installed and verified, so this task is **unblocked and ready**. |
+| `P0-T03` | PostgreSQL 16 provisioning and hardening | Codex /root | **READY_FOR_REVIEW**: official image/build, healthy local DB and actual hardening assertions PASS; P0-T01 CI still pending (§15) |
+| `P0-T06` | ALEE encryption module | Codex implementation + independent reviewer | **READY_FOR_REVIEW**: isolated primitive tested and reviewed; CI/production key registry and integration evidence still pending |
 | `P0-T07` | HMAC-SHA256 blind-index module | Security Eng | No open decision. Depends on `P0-T06`, `P0-T08`. Both are startable. |
 | `P0-T11` | Object-storage adapter (S3 / GOVERNANCE) | Backend Eng | No open decision. Requires a local S3-compatible endpoint. |
 | `P0-T13` | Reference-data seed | Data Analyst | **Blocked in substance** by DEC-007 (no licensed benchmark source). The *cities and taxonomy* part is unblocked. |
 | `P0-T14` | RLS penetration test suite | QA Eng + Security Eng | No open decision. Requires PostgreSQL. |
-| `P0-T15` | Encryption and blind-index test suite | QA Eng | No open decision. The test harness exists and runs — 34 tests are green. |
+| `P0-T15` | Encryption and blind-index test suite | QA Eng | Only the harness exists. Crypto acceptance depends on `P0-T06`, `P0-T07`, `P0-T08`; logging/configuration tests do not satisfy those criteria. |
 | `P0-T16` | Backup and restore baseline | Database Eng + DevOps Lead | No open decision. Requires PostgreSQL. |
-| `P0-T19` | CI pipeline for the Phase 0 gates | DevOps Lead | No open decision. **Requires a first commit and a CI provider decision.** |
+| `P0-T19` | CI pipeline for the Phase 0 gates | DevOps Lead | Bootstrap commit exists. **Requires DEC-F and the real isolation/crypto suites.** |
 
-### Gated by an open decision — the work must not be written yet
+### Remaining sequencing and detailed-contract gates
 
 | Task | Gated by | What may proceed meanwhile |
 | :--- | :--- | :--- |
-| `P0-T04` | DEC-005 | The Alembic scaffolding and the lint rules that are unambiguous. **Not** the identity or rule-set tables. |
-| `P0-T05` | DEC-004 | The proposal in `SPEC-AUTH-001` §2 is written up for review. **No table is created.** |
-| `P0-T08` | DEC-004 | The Vault adapter interface and the local Argon2id KEK path can be *designed*; the key-hierarchy choice is DEC-004's. |
-| `P0-T09` | DEC-005 | The policy template and the `set_tenant_context()` helper can be written; the catalogue of tables it applies to waits on `P0-T04`/`P0-T05`. |
-| `P0-T10` | DEC-004b | The canonical-JSON encoder and the hash-chain function are decision-free. **The ledger table** waits on DEC-004b (chain scope) and `P0-T05` (actor FK). |
-| `P0-T12` | DEC-005 | Nothing — this task *is* the DEC-005 correction. |
+| `P0-T04` | P0-T03/database and detailed statutory-provenance contract | DEC-005 is resolved; no migration has been written or verified yet |
+| `P0-T05` | P0-T04 and complete identity/isolation schema review | DEC-004/005 resolved; all tenant-owned tables still require same-migration FORCE RLS |
+| `P0-T08` | Unresolved key-hierarchy/rotation details | Four-choice approval did not select a Vault/local KEK variant; P0-T06 depends only on an explicit registry protocol |
+| `P0-T09` | P0-T04/P0-T05 | Approved schema direction does not create or verify policies |
+| `P0-T10` | P0-T04/P0-T06; actor model and digest contract | DEC-004b scope resolved; signed-digest cadence/custody/anchor must be specified before implementation |
+| `P0-T12` | P0-T04 | DEC-005 resolved; ADR-006 provides formal authority for candidate index correction |
 | `P0-T17` | DEC-010 | The image and compose *structure* can be drafted; the production topology and KMS choice wait on DEC-010. |
-| `P0-T18` | DEC-004 | Nothing that chooses between opaque sessions and JWT, or sets the MFA role set. |
-| `P0-T20` | DEC-004, DEC-005 | Nothing — this is the gate review itself. |
+| `P0-T18` | P0-T05/P0-T06/P0-T08 and detailed session contract | Session/MFA choices accepted; timeouts/remember-me and unapproved recovery/emergency details are not inferred |
+| `P0-T20` | Actual RLS/crypto/backup/deployment/auth/CI evidence | Four decision gates cleared; no phase-gate approval or implementation completion follows |
 
 ## 8. Work actually performed
 
@@ -137,7 +139,7 @@ The Holy Bible was compiled by inspecting files; it could not see empty director
 | 20 | `LICENSE` | Proprietary licence (DEC-G) | Content review |
 | 21 | `backend/pyproject.toml` — the pytest harness | Configuration | `pytest -q` collects and runs |
 | 22 | `.gitignore` — npm lockfiles rejected | Configuration | `git ls-files --others --ignored` confirms the ignore |
-| 23 | The first commit, on `bootstrap/initial-import`, then merged into `main` | Version control | `git log --oneline`; the 40-file hash baseline is unchanged |
+| 23 | The first commit `2fc2b6f`, on `bootstrap/initial-import`; `main` pointed at it | Version control | `git log --oneline`; the 40-file hash baseline is unchanged |
 | 24 | `docs/EXECUTION_PLAN.md` §14.3 — the `P0-T01` and `P0-T02` status columns | Status record | The status matches the evidence in §8.2 |
 | 25 | `docs/BOOTSTRAP_CHANGELOG.md` §9 | Audit record | Every command with its actual result |
 

@@ -11,6 +11,25 @@
 
 > **Session 2 (2026-11-14).** The owner resolved **DEC-A**, **DEC-B** and **DEC-G** in the Phase 0 bootstrap session. The resolutions, their dates and their consequences are recorded in the entries below. **DEC-I (DEC-004 / DEC-004a / DEC-004b / DEC-005) was not answered and was not assumed**: no session strategy, key hierarchy, MFA role set or ERD correction was chosen, and no table was written.
 
+> **Owner-authorized remediation (2026-11-14).** The owner approved local environment investigation, dependency reinstall only if needed, logging/retention fixes, tests and documentation corrections. The existing Python environment works with the required filesystem access, so no reinstall was needed. The owner requested concrete technical proposals for review and confirmed that no accountant, labour counsel or licensed/consented datasets are currently available. This authorization does **not** resolve DEC-004/004a/004b/005, select CI/hosting, approve ADR-005, activate 1405, or authorize commits/pushes.
+
+## بستهٔ چهار تصمیم — تأییدشده توسط مالک
+
+مالک پس از درخواست صریح تأیید هر چهار پیشنهاد، پاسخ «بله» داد. وضعیت `DEC-004/004a/004b/005` اکنون **RESOLVED** است و [ADR-006](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) تصمیم پذیرفته‌شده را ثبت می‌کند. این تأیید به‌معنای تکمیل پیاده‌سازی یا تأیید متخصصان حقوقی/امنیتیِ نام‌گذاری‌نشده نیست. جدول زیر دلایل و محدودیت‌های همان انتخاب‌های تأییدشده را حفظ می‌کند.
+
+| تصمیم | پیشنهاد مشخص | دلیل و اثر | هزینه یا محدودیت | جایگزین |
+| :--- | :--- | :--- | :--- | :--- |
+| **DEC-004 — ورود و نشست** | گزینه‌های **(b)+(c)+(b)**: نشست تصادفی و قابل لغو در سرور، گذرواژهٔ Argon2id در مرحلهٔ اول، امکان اتصال OIDC در آینده؛ هفت نقش پیشنهادی موجود در `specs/AUTH.md` §3 | خروج کاربر یا لغو دسترسی در درخواست بعدی اعمال می‌شود؛ نصب سامانهٔ هویت جداگانه از ابتدا لازم نیست. شناسهٔ نشست در کوکی `HttpOnly`/`Secure` با کنترل CSRF نگهداری شود و فقط هش آن در پایگاه داده بماند | بررسی نشست نیازمند پایگاه داده است؛ بازیابی حساب و امنیت گذرواژه مسئولیت پروژه خواهد بود | نشست ترکیبی با توکن کوتاه‌عمر، یا سامانهٔ هویت خارجی؛ جزئیات هر دو به تصمیم و آزمون جداگانه نیاز دارد |
+| **DEC-004a — عامل دوم** | گزینهٔ **(b)**: احراز هویت دومرحله‌ای برای `OWNER`، `ADMIN`، `LEGAL_REVIEWER` و `SUPER_ADMIN`؛ کدهای بازیابی هش‌شده و بازیابی مدیریتی دونفره | عملیات پراثر و تأیید اسناد به گذرواژهٔ تنها وابسته نخواهد بود | راه‌اندازی و بازیابی حساب پیچیده‌تر می‌شود؛ این انتخاب، الزام عامل دوم برای همهٔ کاربران نیست | گزینهٔ (c): الزام برای همهٔ نقش‌ها با اصطکاک بیشتر؛ گزینهٔ (a): اختیاری برای همه با ریسک بیشتر |
+| **DEC-004b — ثبت رویداد** | گزینهٔ **(b)**: تغییرات، محاسبات و رویدادهای شواهد در زنجیرهٔ هش؛ ثبت کامل خواندن‌ها در دفتر جداگانهٔ فقط‌افزودنی با خلاصهٔ امضاشده برای آشکارسازی دستکاری | رویداد خواندن حذف یا نمونه‌برداری نمی‌شود و زنجیرهٔ اصلی با هر خواندن قفل نمی‌شود | زمان‌بندی و محل امن نگهداری خلاصهٔ امضاشده باید پیش از ساخت مشخص شود؛ بدون آن، حفاظت دفتر خواندن کامل نیست | گزینهٔ (a): زنجیره‌کردن همهٔ رویدادها با بار نوشتن بیشتر؛ گزینهٔ (c) نمونه‌برداری خواندن‌ها توصیه نمی‌شود |
+| **DEC-005 — اصلاح ساختار داده** | گزینهٔ **A**: ستون‌های هش `CHAR(64)`؛ شاخص جست‌وجوی رمزنگاری‌شده روی `candidates`؛ حذف موجودیت عملیاتی `employees` از محدودهٔ فعلی؛ اتصال `actor_id` به `users` | رفع خطر کوتاه‌شدن هش و مشخص‌شدن عامل انسانی رویداد؛ حفظ مرز محصول پیش از استخدام | دستور شاخص `employees` در ADR-003 باید از مسیر اصلاح رسمی یا ADR جانشین هماهنگ شود؛ تصویب این پیشنهاد مجوز بازنویسی خود ADR پذیرفته‌شده نیست | گزینهٔ B: نگهداری موجودیت کارکنان؛ گزینهٔ C: موجودیت جداگانه برای عامل رویداد؛ هر دو پیچیدگی بیشتری دارند |
+
+**دامنهٔ تأیید:** هر چهار مورد با تاریخ ۲۰۲۶-۱۱-۱۴ توسط مالک تأیید شد؛ هیچ امضایی به‌نام فرد حقوقی یا امنیتی جعل نشده است. تصمیم «نشست» به‌تنهایی انتخاب سلسله‌مراتب کلیدها یا بازکردن همهٔ موانع `P0-T08` نیست. ADR-006 تعارض نام جدول در ADR-003 و برچسب نشست در مشخصات را از مسیر رسمی رفع می‌کند؛ سایر اختلاف‌ها و پیش‌نیازها همچنان باید بررسی شوند.
+
+**دو موضوع جداگانه:** برای CI، پیشنهاد موجود DEC-F گزینهٔ (b)، یعنی CI میزبانی‌شده فقط برای مخزن توسعه است؛ حساب/مخزن هنوز انتخاب و متصل نشده و هیچ دادهٔ واقعی متقاضی نباید وارد آن شود. سه وابستگی `P4-T15` نیز به تصمیم دربارهٔ مقصد صحیح نیاز دارند؛ آن‌ها خودکار به کار دیگری تبدیل نشده‌اند.
+
+**وابستگی‌های انسانی و داده:** حسابدار رسمی، مشاور حقوق کار، دادهٔ مجاز حقوق و مجموعهٔ اسناد واقعی دارای رضایت فعلاً **MISSING / BLOCKING** هستند. مسئول پیگیری تا تعیین فرد مشخص، مالک پروژه است. دادهٔ ساختگی برای آزمون فنی استفاده می‌شود و جای نمونه‌های تأییدشده یا مجموعهٔ اسناد واقعیِ معیار پذیرش را نمی‌گیرد. این جلسه شامل تماس با افراد یا ارسال اطلاعات نیست.
+
 ---
 
 ## DEC-A — Install the backend dependency set
@@ -41,7 +60,7 @@
 | **Recommendation** | **(b)** — a reviewable branch, then a merge. |
 | **Blocked?** | No for engineering; **yes** for worktree-based parallel agents and for the CI pipeline (`P0-T19`). |
 
-**Resolution (2026-11-14, Project Owner).** Option **(b)** — commit on `bootstrap/initial-import`, then merge into `main`. Both commits exist; the merge was made with `--no-ff` so the branch history is preserved. **Nothing was pushed**: there is still no remote. Worktree-based agent isolation and `P0-T19` are now unblocked.
+**Resolution (2026-11-14, Project Owner).** Option **(b)** — commit on `bootstrap/initial-import`, then merge into `main`. The commit exists as `2fc2b6f`; `main` and `bootstrap/initial-import` both point at it. (`main` had never existed as a ref — the repository was initialised with `-b main` but the first commit landed on the new branch — so there was no second parent to merge and no merge commit was created.) **Nothing was pushed**: there is still no remote. Worktree-based agent isolation and `P0-T19` are now unblocked.
 
 ---
 
@@ -116,21 +135,23 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — TRIVIAL`** |
-| **Question** | May the Holy Bible §11.1 be corrected from *"No `backend/app/`, no `backend/tests/`"* to record that the **empty package skeleton exists** (`backend/app/{api,api/v1,core,engines,models,schemas,services}` and `backend/tests/`, created 2026-11-13), containing zero source files? |
-| **Consequence** | The current wording says the directories do not exist; they do exist and are empty. The distinction matters: an empty skeleton is consistent with the target layout, but it is **not implementation**, and no task may be marked complete on the strength of it. |
+| **Status** | `RESOLVED` — owner authorized factual documentation corrections on 2026-11-14 |
+| **Question** | Correct the obsolete statement that no backend source/tests/tooling/Git exist, while preserving the original audit as historical evidence. |
+| **Consequence** | Holy Bible v1.0.1 records the actual FastAPI scaffold, Git/tooling and WBS census. No domain implementation or additional completed task is inferred. |
 | **Recommendation** | **(a) — correct it.** A factual correction to a rank-4 derived document, with a changelog entry. |
 | **Blocked?** | No. |
 
 ---
 
-## DEC-I — The four open Phase 0 engineering decisions (summary pointer)
+## DEC-I — The four resolved Phase 0 engineering decisions (summary pointer)
+
+**RESOLVED — owner approval, 2026-11-14.** All four choices below are accepted by ADR-006. This pointer is not a duplicate decision or a claim that implementation is complete. The historical approver-role column does not assert signatures by named humans; the actual decision-maker is Project Owner.
 
 These are **engineering** decisions already tracked in `docs/DECISIONS_REGISTER.md`. They are repeated here because they are the ones that actually sit on the Phase 0 critical path, and because their approvers are named humans.
 
 | ID | Question | Approver | Blocks | Recommendation (from the register) |
 | :--- | :--- | :--- | :--- | :--- |
-| **DEC-004** | Server-side opaque sessions or stateless JWT? Which identity provider? Which roles? | CISO + CTO | `P0-T05`, `P0-T18`, `P0-T22` | (b) opaque sessions + (c) first-party credentials with an OIDC path later + (b) MFA mandatory for privileged roles |
+| **DEC-004** | Server-side opaque sessions or stateless JWT? Which identity provider? Which roles? | CISO + CTO | `P0-T05`, `P0-T18`, `P0-T20` | (b) opaque sessions + (c) first-party credentials with an OIDC path later + (b) MFA mandatory for privileged roles |
 | **DEC-004a** | Which roles must complete a second factor? | CISO | `P0-T18` | (b) `OWNER`, `ADMIN`, `LEGAL_REVIEWER`, `SUPER_ADMIN` |
 | **DEC-004b** | Must every read event be hash-chained, or may reads go to a separate access log? | CISO | `P0-T10` | (b) chain mutations and evidentiary events; a separate, independently tamper-evident access log for reads |
 | **DEC-005** | Confirm the ERD corrections: `CHAR(64)` hashes, the blind index on `candidates`, `EMPLOYEES` deferred, `actor_id → users(id)` | CTO + DBA + Security Architect | `P0-T04`, `P0-T05`, `P0-T12`, `P0-T13` | (A) — the full correction |
@@ -151,6 +172,8 @@ These are **engineering** decisions already tracked in `docs/DECISIONS_REGISTER.
 
 ## 1. Summary
 
+**Urgent delivery context, 2026-11-15:** owner requests full scope by Wednesday 2026-11-18, prioritizing automatic regulatory collection. EXECUTION_PLAN §14.8 records the compressed target without changing REMEDIATED §7. Existing DEC-E/F and engineering legal/market/corpus/async/PDF/deployment decisions retain their actual statuses. Needed immediately: authorized names/access for certified tax accountant and labour counsel, licensed market/authentic-document data, CI provider/repository, and intended P4-T15 predecessor correction. No external contact or purchase was made. Automation may collect public legal sources and stage evidence; it does not substitute for the independent legal signatures required by SPEC-STAT-001 §4/§7.
+
 | ID | Title | Class | Blocks implementation? |
 | :--- | :--- | :--: | :--: |
 | DEC-A | Install the backend dependency set | **RESOLVED 2026-11-14** (a) | No — `P0-T01` verification now runs |
@@ -160,11 +183,11 @@ These are **engineering** decisions already tracked in `docs/DECISIONS_REGISTER.
 | DEC-E | Name owners; open the three external commissions | **Blocking** | **Yes** — the Phase 1 and Phase 2 gates |
 | DEC-F | CI provider and remote | Non-blocking | **Yes** — `P0-T19`, hence the Phase 0 gate |
 | DEC-G | Repository licence | **RESOLVED 2026-11-14** (a) | No |
-| DEC-H | Correct the Holy Bible §11.1 scaffold statement | Trivial | No |
-| DEC-I | The four open Phase 0 engineering decisions | **Blocking** | **Yes** — the Phase 0 critical path |
+| DEC-H | Correct the Holy Bible §11.1 scaffold statement | **RESOLVED 2026-11-14** — factual corrections only | No |
+| DEC-I | Four Phase 0 engineering decisions | **RESOLVED — ADR-006** | Decision gate cleared; implementation/dependencies remain |
 | DEC-J | The three highest-leverage actions | **Blocking** | **Yes** |
 
-**2 blocking · 2 non-blocking · 3 resolved.** Plus the 17 engineering register entries already tracked in `docs/DECISIONS_REGISTER.md`.
+**10 queue entries:** DEC-A/B/G/H are resolved authorizations/corrections; DEC-I is the resolved four-decision pointer; DEC-C/D remain non-blocking; DEC-F blocks CI; DEC-E blocks external acquisitions; DEC-J is an action-summary pointer. The engineering register has 17 entries: 4 resolved and 13 open. No queue, legal-year activation or deployment decision was approved by the four-choice confirmation.
 
 ---
 

@@ -49,9 +49,35 @@ A statutory parameter may only enter the engine if it is traceable to a source a
 
 **Consequence:** no **L1** primary PDF could be retrieved from this environment. The transcription in §3 is therefore **L2/L3-sourced**. Per §7 the 1405 rule set **remains disabled**.
 
+### 1.4 Latest acquisition probe — 2026-11-15
+
+Parent ran the bounded collector against all six official discovery entries. Ministry, tax authority and gazette: `TRANSPORT_FAILED`. SSO homepage, SSO wage-news discovery URL and Cabinet/legal portal: HTTP **403**. Zero complete HTTP-200 bodies or primary PDFs captured. Failure manifests exist in git-ignored `.freebuff/statutory-acquisition/`, with UTC retrieval times, source IDs, statuses and UNVERIFIED/LOCAL_STAGING flags. Final-code SSO repeat also returned 403. This is evidence of current reachability failure, not a legal-source completeness assessment or proof that an amendment does not exist. No gate or rule status changed. See BOOTSTRAP_CHANGELOG §16.
+
 ---
 
 ## 2. Document Acquisition and Archival
+
+### 2.1 Bounded acquisition implementation contract — 2026-11-15
+
+Owner-authorized first slice of P1-T02 (evidence collection only; the WBS task remains BLOCKED on external verification). Accountable owner: Codex `/root`. No prerequisite is claimed for independent public-source acquisition; database integration depends on P0-T04 and WORM integration on P0-T11. This slice does not implement those tasks.
+
+- A manually invoked CLI collects only public HTTPS GET responses from an explicit official-host catalog (ministry, SSO, tax authority, gazette and Cabinet/legal portal). Homepage/news captures are discovery evidence, never proof of a complete circular or latest law. No candidate data, credentials, cookies or external AI service is involved. No automatic schedule or queue is selected.
+- Permit port 443 only; reject userinfo, queries and fragments, non-allowlisted hosts, non-public DNS results and redirects. Connect to a validated public IP while keeping the original hostname for certificate verification/SNI; do not resolve it a second time for the connection. Keep TLS verification on, ignore environment proxies, bound timeout, response size and the number of PDF links queued from each page. Do not bypass 403/bot protection.
+- Preserve response bytes without content decoding and record URL, source code(s), timestamp, HTTP status, SHA-256, MIME type, retrieval outcome and legal verification state. Store only complete HTTP-200 HTML/PDF responses; reject unsupported encodings/content types and oversized/truncated responses. An HTML error/challenge page remains discovery-only, never parsed into a statutory value.
+- Each retrieval creates an exclusive new staging directory, raw bytes and manifest; existing evidence is never overwritten. Failed attempts produce a sanitized manifest without a complete accepted body/hash; storage failures may leave only a quarantined `.part` file. Local staging is explicitly `LOCAL_STAGING`, not an immutable/WORM archive or accepted legal evidence. All manifests carry `verification_status=UNVERIFIED`, `activation_eligible=false`. No code in this slice activates a rule, fills a seed, emits a wage or claims the latest law. Acquisition runs in a killable child process with a 30-second parent timeout covering DNS, TLS, headers and body.
+- Extract bounded same-allowlist PDF links from HTML for discovery; downloads require an explicit CLI flag. Link discovery neither validates legal content nor grants a new host permission. S3 GOVERNANCE/3650-day retention, database provenance, extraction, change review, signatures and A1–A8 remain subsequent integration work.
+- Acceptance: offline tests demonstrate byte hashes, no overwrite, sanitized failure manifests, size/encoding/MIME limits, redirect/host/IP rejection and PDF discovery bounds; independent security review; parent-observed lint, strict types, full suite and a bounded real acquisition run. Network denial is recorded as a failed acquisition, never successful statutory verification.
+
+Run from `backend/` using the existing environment:
+
+```powershell
+rtk proxy .\.venv\Scripts\python.exe -B -m app.statutory.collect_sources
+rtk proxy .\.venv\Scripts\python.exe -B -m app.statutory.collect_sources --source sso
+```
+
+`--download-pdfs` additionally retrieves at most eight allowlisted PDF links per source, without recursive crawling. Exit 1 means at least one acquisition failed. A successful capture still means UNVERIFIED discovery only. The CLI has no activation command and is not a scheduled service.
+
+### 2.2 Archival integration target
 
 1. **Acquisition** — retrieve the document at the highest reachable level (§1.1). Record, for each artefact:
    - `source_url`, `retrieved_at` (ISO-8601 with timezone), `http_status`

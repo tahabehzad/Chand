@@ -1,16 +1,36 @@
 # Environment Inventory — Pish Hesabdari
 
 - **Document ID:** `DOC-ENV-001`
-- **Status:** Active — verified by execution, not by assumption
+- **Status:** Active — dated evidence; use the current observation table before historical inventories
 - **Verified on:** 2026-11-14 (23 Aban 1405 SH) by direct execution on the developer workstation — re-verified in session 2 after `uv sync` (DEC-A)
 - **Scope:** The machine on which Phase 0 development will occur
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` §0.4, §4.12 · `docs/specs/DEPLOYMENT.md` §2
 
-> **Method.** Every row below was produced by *running* the tool and reading its output. A tool that merely appears on `PATH` is marked as such. No credential, token or secret value was read, printed or transmitted during this verification.
+> **Method and freshness.** Rows retain the date/session of their observation. Presence, command resolution, configuration, successful execution and safe delegation are different claims. No secret values are included. Recheck only capabilities relevant to the current task.
+
+## Current observations — documentation maintenance, 2026-11-14
+
+| Capability | Observation | Limit |
+| :--- | :--- | :--- |
+| Codex desktop | Installed package 26.1111.2228.0; active maintenance surface | Does not establish automated cross-tool orchestration |
+| Codex CLI | Command resolves to the desktop-bundled executable; 0.169.0 was observed in the preceding audit | Version was not re-run during documentation edits |
+| ripgrep / RTK | Both commands resolve on PATH in this Codex session | Earlier “rg not installed” statements are obsolete for this surface |
+| Antigravity | Process and executable path observed; ~/.gemini/config and ~/.gemini/antigravity exist | Exact application version, effective project skill list and orchestration safety UNKNOWN |
+| Antigravity CLI | agy, antigravity and gemini do not resolve in this session | PATH absence is not absence of the desktop app |
+| Git | HEAD 2fc2b6f; worktree list returns this repository on main | No worktree created; existing dirty tree preserved |
+| Backend environment | backend/.venv exists; prior audit launch reported “No Python at …” under restricted access | Earlier privileged-access verification is retained below; no missing-interpreter diagnosis or reinstall |
+| Docker / database | 2026-11-15, BOOTSTRAP_CHANGELOG §15: engine 29.9.2; official PostgreSQL 16.16 + pgAudit image built; local DB healthy | PASS: actual TLS/SCRAM/settings/pgAudit/privacy verifier; no tenant schema/RLS claim |
+| Dependencies / licence | Prior installation evidence exists; proprietary LICENSE is present | No install, package verification or licence change |
+
+Evidence: BOOTSTRAP_CHANGELOG §13. §§1–9 below retain earlier environment measurements; their old service states, paths and “current session” labels are historical, not fresh observations.
+
+> **2026-11-14 remediation recheck:** `backend/.venv` and its managed Python are usable. The initial Codex sandbox attempt reported `No Python at ...`; a direct path probe then returned `Access is denied`. Repeating the baseline test command with the required access returned **34 passed**. This was an access restriction, not proof of a missing interpreter; no reinstall, package upgrade or lockfile change was needed. Current remediation checks are in `docs/BOOTSTRAP_CHANGELOG.md` §10. Docker was not started or reconfigured. Other host versions in this inventory remain earlier-session evidence, not a new complete machine inventory.
+
+**Last recorded runtime verification (2026-11-15):** BOOTSTRAP_CHANGELOG §16 records 157 tests passed, strict types on 18 files, lint/format PASS, six failed official-source acquisitions (403/transport). PostgreSQL evidence remains §15: Docker 29.9.2; official 16.16 image built, local DB healthy at `127.0.0.1:55432`, hardening verifier PASS. Database-image 403 did not recur; root cause remains unproven. Tables below retain earlier session measurements. No dependency reinstall or registry/TLS relaxation occurred.
 
 ---
 
-## 1. Summary
+## 1. Historical summary — sessions 1–2
 
 | Class | Count | Items |
 | :--- | --: | :--- |
@@ -18,7 +38,7 @@
 | **Installed but the service is not running** | 2 | Docker Desktop engine (CLI present, daemon down), WSL2 (distro present, backend idle) |
 | **Available but not configured** | 3 | `pnpm` (via corepack 0.35.0), Claude Code, Codex |
 | **Not installed** | 9 | `psql`/`pg_ctl`/`createdb`, `make`, `jq`, `rg`, `pipx`, `yarn`, `podman`, `gemini`, `aider`/`cursor` |
-| **Not present as a CLI** | 1 | Antigravity (see §5 — the Freebuff tooling is the closest equivalent) |
+| **CLI not resolved by the earlier probe** | 1 | Antigravity; desktop/configuration presence is established in the current observation table, and Freebuff equivalence is not established |
 
 ---
 
@@ -63,7 +83,7 @@
 | **Claude Code** | yes | `2.1.300` | `C:\Users\Asus\.local\bin\claude.exe` | External coding agent | Has a `PreToolUse` Bash hook (`rtk hook claude`). **Not yet validated** for safe, non-interactive orchestration of this repository — see §6. |
 | **Codex CLI** | yes | `codex-cli 0.169.0` | `C:\Users\Asus\AppData\Local\Programs\OpenAI\Codex\bin\codex.exe` | External coding agent | MCP servers configured: `node_repl`, `headroom`. **Not yet validated** for this repository. |
 
-## 4. Installed but the service is not running
+## 4. Historical service state — superseded by §12 runtime evidence
 
 | Component | Detected | State | Evidence | Impact |
 | :--- | :--- | :--- | :--- | :--- |
@@ -77,18 +97,18 @@
 | `psql`, `pg_ctl`, `createdb` | **not installed** | No native PostgreSQL client on the host | Access PostgreSQL **only** through a container (`docker exec`) once the daemon is up. No host-level `psql` in the documented setup path. |
 | `make` | not installed | Makefile targets unavailable | Use the explicit `uv`/`npm` commands in `README.md` and `SPEC-OPS-001` §2.3 |
 | `jq` | not installed | No shell JSON pretty-printing | Use `python -c` / `node -e` |
-| `rg` (ripgrep) | not installed | No fast recursive grep | `Select-String` (PowerShell) / `git grep` after the first commit |
+| `rg` (ripgrep) | Present in the current Codex surface | Earlier probe did not resolve it; current command lookup does | Use RTK-prefixed rg; no installation needed |
 | `pipx` | not installed | No isolated CLI installs | `uv tool install` |
 | `yarn` | not installed | — | npm / pnpm |
 | `podman` | not installed | No daemonless alternative to Docker | Docker Desktop must be started |
 | `gemini`, `aider`, `cursor` | not installed | — | The three CLIs in §3 cover the requirement |
-| **Antigravity** | **not present as a CLI** | The brief refers to "Antigravity agent/team functionality" | The closest equivalent in this environment is the **Freebuff** tooling (`freebuff` npm shim on `PATH`; `.freebuff/project-id` present in the workspace) plus the three verified coding CLIs. See `docs/AGENT_OPERATING_MODEL.md` §5. |
+| **Antigravity** | Desktop process/configuration present; CLI not resolved on current PATH | Earlier CLI-only probe did not establish desktop absence | Verify exact version and native orchestration before delegating; Freebuff is not evidence of equivalence |
 
-## 6. Agent tooling and MCP servers
+## 6. Historical agent tooling and MCP observations
 
 | Surface | Verified | Configuration observed | Orchestration safety |
 | :--- | :--- | :--- | :--- |
-| **opencode** | yes, `v2.2.5` | `~/.config/opencode/opencode.jsonc`; one local MCP server: `browser-control-mcp` (`type: local`) | **This session runs here.** Safe: all work is in the shared workspace. |
+| **opencode** | earlier session, `v2.2.5` | `~/.config/opencode/opencode.jsonc`; local `browser-control-mcp` | Historical host; not the current Codex documentation-maintenance surface. Shared workspace alone does not prove safe concurrent writes. |
 | **Codex** | yes, `0.169.0` | `~/.codex/config.toml`; MCP servers: `node_repl`, `headroom` | **Not yet exercised.** Before delegating work to it, confirm it operates on the same working tree and does not create a competing Git state. |
 | **Claude Code** | yes, `2.1.300` | `~/.claude/settings.json`; `PreToolUse` Bash hook `rtk hook claude` | **Not yet exercised.** The same working-tree check applies. |
 | **Git worktrees** | yes | Verified by executing `git init` + `git worktree list` in a scratch directory | **Available and verified.** This is the isolation mechanism for parallel agents once the first commit exists (a worktree needs a commit to branch from). |
@@ -120,16 +140,16 @@ From `SPEC-OPS-001` §2.6:
 | # | Gap | Why it is open |
 | --: | :--- | :--- |
 | 1 | Whether `claude` and `codex` can be driven non-interactively against this repository | Not exercised. Deliberate: the brief forbids assuming a CLI can be orchestrated just because it is installed. The five preconditions in `docs/AGENT_OPERATING_MODEL.md` §5 still stand. |
-| 2 | Whether the Docker Desktop engine starts reliably and how long it takes | The daemon is down. Starting it is a GUI action with side effects on the user's machine. |
+| 2 | Current Docker/image availability | §15 records official pull/build success, healthy local database and actual hardening verifier PASS on 2026-11-15 |
 | 3 | ~~Whether `uv sync` resolves Windows wheels for `argon2-cffi`, `cryptography` and `asyncpg`~~ | **CLOSED in session 2.** All three installed on Windows without a compiler; DEC-A was approved. |
 | 4 | Whether a native PostgreSQL 16 is desirable on the host | No `psql` present. The container path is the spec's approach; no host install is proposed. |
-| 5 | Antigravity's actual capabilities in this environment | No Antigravity CLI, service or API endpoint is present. Only Freebuff tooling is. Recorded as `UNKNOWN`. |
+| 5 | Antigravity version, effective discovery and orchestration safety | Desktop presence is verified; safe task delegation and exact version remain UNKNOWN. A missing CLI on PATH proves neither desktop absence nor Freebuff equivalence |
 
 ---
 
 ## 10. Re-verification
 
-This inventory is a point-in-time measurement. **Re-run it before any environment-sensitive claim is made**, and after any of these change: a tool upgrade, a Docker Desktop update, a Node/Python change, the addition of an agent CLI, or the enabling of `pnpm`.
+This inventory contains point-in-time measurements. **Recheck only the relevant capability before making a new environment-sensitive claim.** Broaden the check when a tool upgrade, Docker update, Node/Python change or configuration change affects the task. Do not rerun the entire inventory for ordinary documentation work; distinguish historical PASS from current NOT RUN.
 
 ---
 

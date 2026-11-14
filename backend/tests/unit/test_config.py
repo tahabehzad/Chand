@@ -7,7 +7,7 @@ Related:   WBS P0-T02 — FastAPI skeleton and configuration.
 from __future__ import annotations
 
 import pytest
-from pydantic import SecretStr
+from pydantic import SecretStr, ValidationError
 
 from app.core.config import (
     ACTIVE_STATUTORY_YEARS,
@@ -46,6 +46,28 @@ EXPECTED_VARIABLES: frozenset[str] = frozenset(
         "vault_token",
     }
 )
+
+
+def _production_settings(
+    *, retention_days: int = 3650, missing_secret: str | None = None
+) -> Settings:
+    secrets = dict.fromkeys(SECRET_VARIABLE_NAMES, "synthetic-test-value")
+    if missing_secret is not None:
+        secrets[missing_secret] = ""
+    return Settings(
+        _env_file=None,
+        app_env="production",
+        db_ssl_mode="verify-full",
+        s3_retention_days=retention_days,
+        database_url=secrets["database_url"],
+        s3_access_key_id=secrets["s3_access_key_id"],
+        s3_secret_access_key=secrets["s3_secret_access_key"],
+        vault_addr=secrets["vault_addr"],
+        vault_token=secrets["vault_token"],
+        vault_role_id=secrets["vault_role_id"],
+        blind_index_pepper=secrets["blind_index_pepper"],
+        master_kek=secrets["master_kek"],
+    )
 
 
 def test_model_exposes_exactly_the_matrix_variables() -> None:
@@ -104,9 +126,10 @@ def test_production_refuses_a_non_verifying_database_tls() -> None:
         Settings(_env_file=None, app_env="production", db_ssl_mode="require")
 
 
-def test_production_requires_every_secret_to_hold_a_value() -> None:
-    with pytest.raises(ConfigurationError):
-        Settings(_env_file=None, app_env="production")
+@pytest.mark.parametrize("missing", sorted(SECRET_VARIABLE_NAMES))
+def test_production_requires_every_secret_to_hold_a_value(missing: str) -> None:
+    with pytest.raises(ConfigurationError, match=f"missing: {missing}$"):
+        _production_settings(missing_secret=missing)
 
 
 def test_staging_refuses_debug() -> None:
@@ -144,3 +167,20 @@ def test_get_settings_is_cached_and_clearable(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setenv("APP_ENV", "local")
     assert get_settings().app_env == "local"
     get_settings.cache_clear()
+
+
+@pytest.mark.parametrize("days", [0, -1])
+def test_object_retention_must_be_positive(days: int) -> None:
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, s3_retention_days=days)
+
+
+@pytest.mark.parametrize("days", [1, 365, 3649, 3651])
+def test_production_rejects_retention_other_than_the_approved_period(days: int) -> None:
+    with pytest.raises(ConfigurationError, match="S3_RETENTION_DAYS must be 3650"):
+        _production_settings(retention_days=days)
+
+
+def test_production_accepts_the_approved_retention_period() -> None:
+    settings = _production_settings()
+    assert settings.s3_retention_days == 3650
