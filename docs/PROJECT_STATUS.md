@@ -16,6 +16,8 @@
 
 ## 2. Delivery state
 
+**Latest packet update, 2026-11-15 (BOOTSTRAP_CHANGELOG §17.2):** OpenCode implemented P1-T04 Decimal money primitives; parent observed 245 tests PASS and scoped strict types PASS. Independent Kilo review remains pending; P1-T04 is READY_FOR_REVIEW, not complete. OpenCode now assesses P0-T04's database contract (IN_PROGRESS; no migration accepted). AlphaCode P0-T11 is still running without a delivered storage file. Current census supersedes older counts below: 1 COMPLETED, 2 IN_PROGRESS, 3 READY_FOR_REVIEW, 76 NOT_STARTED, 4 BLOCKED (86 total). No phase gate passed; no complete financial engine, frontend or integrated product exists yet.
+
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
 | Application source code | FastAPI scaffold, isolated AES-256-GCM primitive and bounded official-source acquisition CLI (`app/statutory/collect_sources.py`). No financial engine, database models or product routers | Crypto §11; collector tests/independent review §16. Collector writes UNVERIFIED local staging, not WORM/active laws |
