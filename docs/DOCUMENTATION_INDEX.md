@@ -63,9 +63,10 @@ Keep the loaded document revision/section in the task handoff; reread when the s
 | [`docs/adr/ADR-001-frontend-architecture-react-vite-spa.md`](adr/ADR-001-frontend-architecture-react-vite-spa.md) | Accepted |
 | [`docs/adr/ADR-002-object-storage-worm-ceph-s3-governance.md`](adr/ADR-002-object-storage-worm-ceph-s3-governance.md) | Accepted |
 | [`docs/adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md`](adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md) | Accepted |
-| [`docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md`](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | Accepted |
+| [`docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md`](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | Accepted — module list and directives 2–3 **superseded by ADR-008**; text retained |
 | [`docs/adr/ADR-005-async-execution-strategy.md`](adr/ADR-005-async-execution-strategy.md) | **Proposed** |
 | [`docs/adr/ADR-006-phase-0-owner-approved-security-and-schema.md`](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) | **Accepted — owner-approved four Phase 0 choices; limited amendment of ADR-003 directive 3** |
+| [`docs/adr/ADR-008-product-scope-statutory-payroll-engine.md`](adr/ADR-008-product-scope-statutory-payroll-engine.md) | **Accepted — product scope refocus on the statutory payroll calculation engine; resolves DEC-002a; ADR-004 module list superseded** |
 
 ### 1.4 Upstream sources — outside `docs/`, unmodified by this workstream
 
@@ -204,6 +205,7 @@ Never cite it as a current specification and never copy a figure from it without
 
 | Version | Date | Change | Author |
 | :--: | :--: | :-- | :-- |
+| 1.5 | 2026-11-15 | ADR-008 (Accepted, Project Owner): product scope refocused on the statutory payroll calculation engine; ADR-004's module list and directives 2–3 superseded (text retained); DEC-002a resolved, DEC-007/008 rejected out of scope; DEC-K recorded in the owner queue; WBS Phase 1 rows annotated and §14.9 added; AGENTS.md §1 and README orientation aligned. Evidence: BOOTSTRAP_CHANGELOG §23. | Codex implementation owner |
 | 1.4 | 2026-11-14 | Owner-authorized documentation maintenance: task-focused reading in §0; current orientation and environment/agent guidance reconciled; historical evidence preserved. No code, roadmap, seed, ADR or WBS-status change. Evidence: BOOTSTRAP_CHANGELOG §13. | Codex documentation owner |
 | 1.3 | 2026-11-14 | Add P0-T03 dev contract in DEPLOYMENT §4.1.1 and infra/postgres runbook/verifier; current Docker/image blocker and WBS state recorded. Local checks only, no DB runtime acceptance. Evidence: BOOTSTRAP_CHANGELOG §12. | Codex implementation owner |
 | 1.2 | 2026-11-14 | Register accepted ADR-006; AUTH §8.5 defines P0-T06's field-encryption contract; primitive review-ready with 110 passing tests. No prior accepted ADR text rewritten. Evidence: BOOTSTRAP_CHANGELOG §11. | Codex implementation owner |
@@ -227,3 +229,8 @@ These are gaps in the **package**, not in the implementation. Each is a task or 
 | 7 | 1405 is transcribed but unverified and inactive; primary evidence and activation conditions remain outstanding | `P1-T02`, `P1-T03`; no activation by this maintenance |
 | 8 | Root `README.md` and `AGENTS.md` now exist | Bootstrap; factual status corrected in Holy Bible v1.0.1 |
 | 9 | `.gitignore`, `.editorconfig`, `.gitattributes` and proprietary `LICENSE` now exist | Bootstrap; CI remains outstanding in `P0-T01` |
+
+
+## 2026-11-15 — DEC-012 resolution
+
+[ADR-007](adr/ADR-007-statutory-global-access-and-deferred-identity.md) is Accepted by the Project Owner: T-2 global FORCE-RLS statutory records, restricted database roles and F-1 deferred identity FKs with write gate. [Contract revision 3](specs/STATUTORY_DATABASE_CONTRACT.md) governs P0-T04. No existing ADR or roadmap changed.

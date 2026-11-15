@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-STATUS-001`
 - **Status:** Active — re-verified at every phase gate
-- **As at:** 2026-11-15 — owner-authorized local PostgreSQL recovery/runtime verification; historical session records retained
+- **As at:** 2026-11-15 — owner-authorized development, independent review and fresh local verification (§19); historical records retained
 - **Verification basis:** direct inspection of the workspace and execution of the tooling, not the documentation's own claims
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` (authority) · `docs/EXECUTION_PLAN.md` (WBS) · `docs/IMPLEMENTATION_READINESS.md` (readiness) · `docs/ENVIRONMENT_INVENTORY.md` (tools)
 
@@ -12,37 +12,47 @@
 
 ## 1. One-line status
 
-**A documented specification with a verified toolchain, FastAPI scaffold and independently reviewed field-encryption primitive.** No financial engine or integrated security/database foundation exists. Owner-approved Phase 0 choices are recorded in ADR-006; implementation readiness still depends on real integration/gate evidence.
+**An executable foundation with FastAPI liveness, reviewed Decimal primitives, isolated field encryption, a reviewed tenant-scoped S3 adapter and a partial Persian React interface.** No complete statutory engine, real authentication or integrated tenant-security/database foundation exists. Local tests/builds pass; no phase gate is passed.
 
 ## 2. Delivery state
 
-**Latest packet update, 2026-11-15 (BOOTSTRAP_CHANGELOG §17.2):** OpenCode implemented P1-T04 Decimal money primitives; parent observed 245 tests PASS and scoped strict types PASS. Independent Kilo review remains pending; P1-T04 is READY_FOR_REVIEW, not complete. OpenCode now assesses P0-T04's database contract (IN_PROGRESS; no migration accepted). AlphaCode P0-T11 is still running without a delivered storage file. Current census supersedes older counts below: 1 COMPLETED, 2 IN_PROGRESS, 3 READY_FOR_REVIEW, 76 NOT_STARTED, 4 BLOCKED (86 total). No phase gate passed; no complete financial engine, frontend or integrated product exists yet.
+**Current evidence, BOOTSTRAP_CHANGELOG §19:** P1-T04 and P0-T11 passed independent bounded code review after immutable-report, safe-error and UTF-8 corrections; both remain READY_FOR_REVIEW because CI/live acceptance is incomplete. Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is now READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18.
 
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
-| Application source code | FastAPI scaffold, isolated AES-256-GCM primitive and bounded official-source acquisition CLI (`app/statutory/collect_sources.py`). No financial engine, database models or product routers | Crypto §11; collector tests/independent review §16. Collector writes UNVERIFIED local staging, not WORM/active laws |
-| WBS tasks | **86 total — 1 `COMPLETED` (`P0-T02`), 1 `IN_PROGRESS` (`P0-T01`), 0 `APPROVED`, 2 `READY_FOR_REVIEW` (`P0-T03`, `P0-T06`), 78 `NOT_STARTED`, 4 `BLOCKED`** | P0-T03 local runtime AC verified on 2026-11-15; CI dependency remains; no phase gate passed |
+| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter and partial React interface | §19 fresh verification; collector stages UNVERIFIED local evidence; no complete financial engine or authenticated workflow |
+| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 5 READY_FOR_REVIEW, 70 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | Existing partial frontend work reconciled; P0-T11 becomes review-ready locally; no dependency waived |
 | Phase gates passed | **0 of 5** | No gate evidence pack exists |
-| Engine code | **None.** The statutory seeds are *parameter files*, not an engine. | `backend/data/seeds/` |
-| Migrations | **None.** No Alembic configuration, no `alembic/versions/`. | Directory listing |
-| Tests | Latest full suite: **157 passed**, 2 warnings; strict types on 18 files; lint/format pass (§16) | §15: real PostgreSQL hardening verifier PASS. §16: 40 collector cases; six real sources failed acquisition; RLS/WORM acceptance remains unimplemented |
+| Engine code | Decimal conversion, half-up Rial rounding, signed reconciliation and exact largest-remainder allocation | Reviewed bounded primitives only; tax/SSO/CTC/inverters/loader absent |
+| Migrations | P0-T04 five-table baseline adopted under ADR-007; global FORCE RLS, restricted reader/reviewer, all-write identity gate | Real isolated PostgreSQL upgrade/downgrade/re-upgrade and 101 integration tests PASS; users FKs remain P0-T05; CI/production acceptance pending (§21) |
+| Tests | **443 backend (342 unit/API + 101 real PostgreSQL integration) and 102 frontend tests PASS**; strict backend types on 30 files; frontend typecheck/build PASS | Final backend rerun: 443 PASS, 2 third-party deprecation warnings, 16.99s; local HTTP startup PASS; independent security review PASS (§21). CI/phase gates remain pending |
 | CI/CD | **None.** No workflow file, no CI provider configuration. **DEC-F is open.** | Directory listing |
-| Frontend | **None.** No `frontend/` directory. | Directory listing |
-| Containers | Docker engine **29.9.2**; official PostgreSQL **16.16** + pgAudit development image built; project DB **healthy** at `127.0.0.1:55432` | Official pull/build and runtime verifier PASS, 2026-11-15; BOOTSTRAP_CHANGELOG §15 |
+| Frontend | React/Vite/TypeScript RTL shell, Vazirmatn, number/currency helpers, typed client and disabled presentation-only auth screens | Local build/component tests PASS (§19); only health is a delivered backend contract; no visual/axe/auth acceptance |
+| Containers | Last recorded PostgreSQL 16.16 + pgAudit runtime passed at `127.0.0.1:55432` | BOOTSTRAP_CHANGELOG §15; container/DB state not re-verified in §19 |
 | OpenAPI contract | **Minimal** — the liveness endpoint only. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1 |
 | Benchmark data | **None.** No licensed corpus, no `salary_observations` rows. | DEC-007 open |
+
+**Local MVP 0.1 supplement (2026-11-15):** the owner explicitly requested a
+small accounting-themed UI demo. Dashboard, read-only synthetic transactions,
+session-only display settings and navigation are implemented and verified;
+102 frontend tests, typecheck, production build and logical-utility gate PASS.
+Browser checks at 360 × 800 and 1440 × 1000 verified RTL layout, navigation,
+unit changes and no document overflow (table overflow is confined to its region).
+See BOOTSTRAP_CHANGELOG §20. This is a bounded local demo, not completion of
+P3-T01/T02/T05/T06, a product-scope amendment or a production financial workflow.
+The WBS census and outstanding dependencies above are unchanged.
 
 ## 3. Version control state
 
 | Item | State |
 | :--- | :--- |
 | Git repository | **Initialised in session 1** on `main`; the first commit was made in session 2 on `bootstrap/initial-import`, and `main` was then pointed at it. |
-| Commits | **1** — `2fc2b6f`, the bootstrap commit. `main` and `bootstrap/initial-import` both point at it. |
-| Remote | **None configured. Nothing has ever been pushed.** |
-| Files git tracks | **72** — the documentation corpus, the seeds, the 11 skill contracts, the control files, the licence and the first application source |
+| Commits | Local baseline history includes `2fc2b6f`, `eb806e4` and `55eef45`; development/publication record is in BOOTSTRAP_CHANGELOG §19. |
+| Remote | Owner supplied `https://github.com/tahabehzad/pish-hesabdari`; `origin` configured and fetched. Remote initial commit `898388c` is preserved; no force-push authorized. |
+| Branch | `codex/foundation-hardening`; publication outcome recorded in §19. |
 | Files git ignores | **`backend/.venv`, the tool caches, `__pycache__`, and `.freebuff/*`** — everything the local toolchain produces |
-| Working tree | Pre-existing documentation edits plus owner-authorized remediation; see `docs/BOOTSTRAP_CHANGELOG.md` §10. No commit or push performed in remediation. |
-| Rollback | Review and reverse only the remediation hunks after preserving existing uncommitted edits. There is one commit, so `2fc2b6f^` is not a valid parent revision. Never reset or remove `.git` as a routine rollback. |
+| Working tree | Owner-authorized development and adoption of reviewed existing code. Unaccepted migration/model/integration/contract drafts remain outside this milestone. |
+| Rollback | Revert only the milestone commits after review; preserve uncommitted drafts and both histories. Never reset or remove `.git` as routine rollback. |
 
 ## 4. Statutory baseline
 
@@ -167,3 +177,8 @@ Everything downstream of `P0-T04`/`P0-T05` is gated on DEC-004 and DEC-005, and 
 ---
 
 *Derived from `docs/EXECUTION_PLAN.md` and `docs/DECISIONS_REGISTER.md`, re-verified against the workspace. Re-verify at every phase gate and after any change to a rank-1…4 document.*
+
+
+### P0-T04 final verification — 2026-11-15
+
+Owner approved T-2/F-1 explicitly; accepted ADR-007 and contract revision 3 govern this implementation. Local P0-T04 acceptance verified, READY_FOR_REVIEW; no additional completed task or phase. No software version bump: backend/frontend remain 0.1.0. Next work is P0-T05 identity schema and validated statutory actor foreign keys; all statutory writes stay blocked until then. CI provider/migration job remains outstanding. Evidence: BOOTSTRAP_CHANGELOG §21.

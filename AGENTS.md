@@ -4,13 +4,13 @@ Behaviour contract for every contributor and agent. Accepted ADRs and the Holy B
 
 ## 1. Start with the task
 
-The product is Iran's **pre-employment compensation intelligence and evidentiary verification platform**. The approved roadmap remains **five phases / 20 weeks**. The verified statutory baseline is **1404 SH**; 1405 is transcribed, unverified and inactive.
+The product is the **statutory payroll calculation engine** (ADR-008, accepted 2026-11-15): SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — pure functions plus one minimal API endpoint on the verified **1404 SH** baseline. The prior pre-employment platform scope (ADR-004's module list) is superseded; the five-phase/20-week roadmap table is retained for traceability. 1405 is transcribed, unverified and inactive.
 
 Read this file, then use **docs/DOCUMENTATION_INDEX.md §0** to select context. Before your first change, read the Holy Bible **§0.3, §13.1 and §13.8**, the relevant §3 requirements and the applicable primary sources. Read §0.4 only when source provenance is relevant; it is a historical inventory. Do not load the entire Holy Bible, WBS, changelog or research corpus by default.
 
 - Current delivery status: **docs/PROJECT_STATUS.md §2**; task dependencies/acceptance: **docs/EXECUTION_PLAN.md §14.3**.
 - Latest recorded application/collector evidence: **docs/BOOTSTRAP_CHANGELOG.md §16**; PostgreSQL runtime: §15; documentation maintenance: §13. Historical test results are not a fresh runtime check.
-- Decisions: **docs/DECISIONS_REGISTER.md** and **docs/ADR_INDEX.md**. ADR-006 is accepted; ADR-005 remains proposed.
+- Decisions: **docs/DECISIONS_REGISTER.md** and **docs/ADR_INDEX.md**. ADR-006, ADR-007 and ADR-008 are accepted; ADR-005 remains proposed.
 - Research Markdown/DOCX is historical and contains rejected recommendations. Consult only for a specific evidence question after checking the supersession index.
 
 ## 2. Non-negotiable invariants

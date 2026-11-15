@@ -186,9 +186,39 @@ These are **engineering** decisions already tracked in `docs/DECISIONS_REGISTER.
 | DEC-H | Correct the Holy Bible §11.1 scaffold statement | **RESOLVED 2026-11-14** — factual corrections only | No |
 | DEC-I | Four Phase 0 engineering decisions | **RESOLVED — ADR-006** | Decision gate cleared; implementation/dependencies remain |
 | DEC-J | The three highest-leverage actions | **Blocking** | **Yes** |
+| DEC-K | Product scope refocus on the payroll calculation engine | **RESOLVED 2026-11-15 — ADR-008** | No — unblocks the v1 engine arithmetic (DEC-002a resolved) |
 
-**10 queue entries:** DEC-A/B/G/H are resolved authorizations/corrections; DEC-I is the resolved four-decision pointer; DEC-C/D remain non-blocking; DEC-F blocks CI; DEC-E blocks external acquisitions; DEC-J is an action-summary pointer. The engineering register has 17 entries: 4 resolved and 13 open. No queue, legal-year activation or deployment decision was approved by the four-choice confirmation.
+**11 queue entries:** DEC-A/B/G/H are resolved authorizations/corrections; DEC-I and DEC-K are resolved decision pointers (ADR-006, ADR-008); DEC-C/D remain non-blocking; DEC-F blocks CI; DEC-E blocks external acquisitions; DEC-J is an action-summary pointer. The engineering register has 18 entries: 5 resolved by owner approval (ADR-006/007/008), 2 rejected out of scope (ADR-008) and 11 open. No queue, legal-year activation or deployment decision was approved by the four-choice confirmation.
 
 ---
 
 *Queue maintained alongside `docs/DECISIONS_REGISTER.md`. When an entry is resolved, record the decision, the date and the approver here and in the register, and update `docs/PROJECT_STATUS.md`.*
+
+### Owner-requested MVP 0.1 demo — 2026-11-15
+
+The owner explicitly requested a small local accounting-themed dashboard with
+synthetic income/expense data, transactions and settings. Implemented only as a
+labelled frontend demo (BOOTSTRAP_CHANGELOG §20). This request does not authorize
+production bookkeeping, replace the pre-employment platform scope in ADR-004,
+or change the five-phase/20-week roadmap. Any future expansion of the product
+boundary still requires a superseding approved decision. No queue entry resolved.
+
+
+### DEC-012 resolved — 2026-11-15
+
+The Project Owner explicitly approved T-2 + F-1 with the presented conditions. ADR-007 records global FORCE-RLS statutory tables, restricted database access, deferred users FKs owned by P0-T05, ON DELETE RESTRICT/account deactivation and a closed write path until validation. No further owner decision blocks P0-T04; local verification is recorded in BOOTSTRAP_CHANGELOG §21. CI and other existing decisions are unchanged.
+
+---
+
+## DEC-K — Product scope refocus on the statutory payroll calculation engine
+
+| Field | Value |
+| :--- | :--- |
+| **Status** | `RESOLVED` — 2026-11-15 |
+| **Question** | Should the product boundary be formally shrunk so that the product is minimal and centred on the statutory payroll calculation engine (insurance, progressive tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC, Art. 11), delivered as pure functions plus one minimal API endpoint — and which tax arithmetic the engine implements? |
+| **Options** | **(1) Scope:** (a) engine-first with the ADR-004 module list unchanged · (b) formal scope shrink. **(2) Interface:** (a) pure functions + API only · (b) API + a simple payslip page · (c) API + PDF payslip. **(3) v1 coverage:** SSO+tax+net · overtime/night · Sanavat+Eydi+CTC · Art. 11 worst case (multi-select). **(4) DEC-002a:** welfare allowances posture-dependent · always taxable · always exempt; primary Art. 137 posture `conservative_inta` or `court_precedent`. |
+| **Consequence** | A superseding ADR amends the accepted ADR-004 boundary; out-of-scope modules are annotated in the WBS; DEC-002a and the primary posture are resolved, unblocking the tax-engine arithmetic. |
+| **Recommendation** | (b) formal shrink + (a) functions/API + full v1 coverage + DEC-002a posture-dependent with `conservative_inta` primary (the register's recorded recommendation). |
+| **Blocked?** | No — engine work on the verified 1404 baseline is already permitted (PROJECT_STATUS §5). |
+
+**Resolution (2026-11-15, Project Owner).** All recommended options selected: **(b)** formal scope shrink ("کوچک‌سازی رسمی دامنه"), interface **"فقط تابع + API"**, **full v1 coverage** (all four calculation families, "مهم ترین چیزی که الان میخوام حقوقه"), **DEC-002a = posture-dependent** with **`conservative_inta` as the primary response posture**. [ADR-008](adr/ADR-008-product-scope-statutory-payroll-engine.md) records the accepted boundary; ADR_INDEX, DECISIONS_REGISTER (DEC-002a RESOLVED; DEC-007/008 REJECTED out of scope) and the WBS annotations are updated in the same change. Evidence: BOOTSTRAP_CHANGELOG §23.

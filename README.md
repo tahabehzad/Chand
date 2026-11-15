@@ -11,25 +11,27 @@ Pre-employment compensation intelligence and evidentiary verification for Iran. 
 | Product knowledge and requirements | Relevant sections of [Holy Bible](docs/PISH_HESABDARI_HOLY_BIBLE.md), then the authoritative source it cites |
 | Owner decisions | [DECISIONS_REGISTER](docs/DECISIONS_REGISTER.md) and [DECISION_REQUIRED_FROM_OWNER](docs/DECISION_REQUIRED_FROM_OWNER.md) |
 | Environment-dependent work | [ENVIRONMENT_INVENTORY](docs/ENVIRONMENT_INVENTORY.md); recheck only the capability needed |
-| Verification evidence | [BOOTSTRAP_CHANGELOG §12](docs/BOOTSTRAP_CHANGELOG.md#12-p0-t03-local-postgresql-scaffold-registry-blocker--2026-11-14); §13 records documentation maintenance |
+| Verification evidence | [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §19 records fresh foundation verification; §15 records prior PostgreSQL runtime evidence |
 
 Read sections relevant to the task. The full Holy Bible, complete WBS, execution history and research corpus are not a default startup packet. Required specifications and safety rules still apply.
 
 ## Current orientation
 
-FastAPI scaffolding, tests, an isolated field-encryption primitive and a local PostgreSQL scaffold exist. No completed financial engine or integrated tenant-security/database foundation is claimed. The last recorded PostgreSQL attempt was blocked by official image/build HTTP 403; see the evidence above rather than assuming a live service.
+**Product scope (ADR-008, accepted 2026-11-15): the statutory payroll calculation engine** — SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — delivered as pure functions plus one minimal API endpoint. The prior pre-employment platform scope is superseded; non-engine modules are out of product scope pending a future ADR.
 
-The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The approved roadmap remains **five phases / 20 weeks**. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
+FastAPI liveness, isolated field encryption, reviewed Decimal money primitives, a tenant-scoped S3 adapter and a partial Persian React interface exist. Fresh verification: 329 backend unit/API tests and 99 frontend tests pass; frontend build, strict backend types and scoped lint/security checks pass. No complete statutory engine, real authentication or integrated tenant-security/database foundation is claimed. PostgreSQL runtime passed in changelog §15; its current state was not rechecked in §19.
 
-Accepted ADRs are **001–004 and 006**; ADR-005 remains **Proposed**. ADR-006 amends only ADR-003's indexed table target and records the owner's four Phase 0 decisions. See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
+The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The five-phase/20-week roadmap table is retained for traceability. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
+
+Accepted ADRs are **001–004, 006, 007 and 008**; ADR-005 remains **Proposed**. ADR-008 supersedes ADR-004's Phase 1 module list and directives 2–3 (product scope refocus on the calculation engine). See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
 
 ## Repository layout
 
 ```text
 .agents/skills/      11 shared engineering contracts
 backend/
-  app/              FastAPI, configuration/logging and isolated security code
-  tests/            scaffold, security and local-material tests
+  app/              FastAPI, security, money primitives and storage adapter
+  tests/            unit/API tests; unaccepted migration tests kept separate
   data/seeds/       immutable 1404 baseline; inactive 1405 candidate
   pyproject.toml    dependencies/tooling; uv.lock pins exact versions
 docs/
@@ -40,9 +42,10 @@ docs/
 infra/
   compose/          development Compose configuration
   postgres/         local PostgreSQL scaffold, runbook and verifiers
+frontend/           partial React/Vite Persian RTL interface and typed API client
 ```
 
-Frontend scaffolding is not present. Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
+The frontend has a real health-status client; authentication screens are disabled and business-module screens state their missing dependencies. See [frontend/README.md](frontend/README.md). Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
 
 ## Development and verification
 
@@ -51,13 +54,12 @@ Dependency installation was approved and performed earlier; backend/.venv exists
 For an existing usable environment, from the repository root:
 
 ```powershell
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff check backend/app backend/tests
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff format --check backend/app backend/tests
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m mypy --config-file backend/mypy.ini backend/app backend/tests
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m pytest -q backend/tests
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff check backend/app backend/tests/unit backend/tests/api
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m mypy --config-file backend/mypy.ini backend/app backend/tests/unit backend/tests/api
+rtk proxy .\backend\.venv\Scripts\python.exe -B -m pytest -q backend/tests/unit backend/tests/api
 ```
 
-These are application verification commands, not checks run by the documentation-maintenance session. For first-time setup use DEPLOYMENT §2 and the frozen lockfile workflow; do not reinstall or start services merely to inspect documentation. Local database setup and its side effects are documented in [infra/postgres/README.md](infra/postgres/README.md).
+The scope above deliberately excludes unaccepted migration tests. DEC-012 blocks running the local Alembic/model drafts; their presence is not approval to apply them. For first-time setup use DEPLOYMENT §2 and the frozen lockfile workflow, subject to current blockers. Local database setup and its side effects are documented in [infra/postgres/README.md](infra/postgres/README.md).
 
 ## Contributor rules and licence
 

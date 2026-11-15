@@ -14,9 +14,10 @@
 | [ADR-001](adr/ADR-001-frontend-architecture-react-vite-spa.md) | Selection of React + Vite SPA over Next.js SSR for the Enterprise Client Application | **Accepted** | 2026-11-13 | Enterprise Architect, Frontend Lead, Security Architect | `P3-T01`, `P3-T14`, deployment topology |
 | [ADR-002](adr/ADR-002-object-storage-worm-ceph-s3-governance.md) | Replacement of MinIO with Ceph / S3-compatible storage and adoption of `GOVERNANCE` WORM locking | **Accepted** | 2026-11-13 | Infrastructure Architect, Legal Counsel, Security Lead | `P0-T11`, `P2-T03`, `P4-T04`, emergency access |
 | [ADR-003](adr/ADR-003-sensitive-data-encryption-alee-blind-indexing.md) | Adoption of Application-Level Envelope Encryption (ALEE) and blind indexing for candidate PII | **Accepted** | 2026-11-13 | Security Architect, Database Administrator, Lead Backend Engineer | `P0-T06`, `P0-T07`, `P0-T08`, `P0-T12`, `P4-T04` |
-| [ADR-004](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | De-escalation of Phase 1 scope to pure pre-hire simulation and deferral of post-hire HRIS operations | **Accepted** | 2026-11-13 | Lead Product Manager, CTO, Head of Engineering | `REMEDIATED` §1.2, §2; every phase's scope |
+| [ADR-004](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | De-escalation of Phase 1 scope to pure pre-hire simulation and deferral of post-hire HRIS operations | **Accepted** — module list and directives 2–3 superseded by ADR-008 (2026-11-15); original text retained unchanged | 2026-11-13 | Lead Product Manager, CTO, Head of Engineering | `REMEDIATED` §1.2, §2; every phase's scope |
 | [ADR-005](adr/ADR-005-async-execution-strategy.md) | Asynchronous execution strategy for long-running document processing | **PROPOSED** | 2026-11-14 | CTO (owner), DevOps Lead, Lead Backend Engineer, Security Architect | `P2-T04` (blocked), `P2-T05`–`P2-T09`, `P4-T01` |
 | [ADR-006](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) | Owner-approved identity, privileged MFA, split audit scope and schema corrections | **Accepted** | 2026-11-14 | Project Owner (actual chat approval; no invented human role signatures) | DEC-004/004a/004b/005; supersedes ADR-003 directive 3's table name only |
+| [ADR-008](adr/ADR-008-product-scope-statutory-payroll-engine.md) | Product scope refocus on the statutory payroll calculation engine (minimal boundary; DEC-002a and the Art. 137 primary posture resolved) | **Accepted** | 2026-11-15 | Project Owner (explicit in-session answers) | Supersedes ADR-004's Phase 1 module list and implementation directives 2–3 only; resolves DEC-002a; unblocks `P1-T01`–`P1-T12`, `P1-T14` engine path |
 
 ---
 
@@ -53,7 +54,8 @@ These are gaps. Each is covered by a register entry and, where architectural, sh
 | Authentication/session core, seven roles, privileged MFA, read/mutation audit split | DEC-004/004a/004b | **Resolved — ADR-006 Accepted**; unapproved timing/emergency/key details are not ratified |
 | Database schema corrections (§6.2 of the execution plan) | DEC-005 | **Resolved — ADR-006** formally corrects ADR-003 index target; implementation/migrations remain pending |
 | Statutory rule-set versioning and the four-eyes activation gate | DEC-001 | Open — procedure documented in `SPEC-STAT-001`; an ADR is recommended |
-| Market data ingestion and licensing | DEC-007 | Open — a product/legal decision, not architectural |
+| Market data ingestion and licensing | DEC-007 | **REJECTED — out of product scope (ADR-008, 2026-11-15)**; DEC-008 likewise out of scope |
+| Taxable-base treatment of welfare allowances × Art. 137 posture | DEC-002a | **Resolved — ADR-008 Accepted** (posture-dependent: taxable under `conservative_inta`, exempt under `court_precedent`; both always reported; `conservative_inta` is the primary response posture) |
 | Deployment topology | DEC-010 | Open — an ADR is recommended for the air-gapped baseline |
 | Persian localisation strategy | DEC-006 | Open — an engineering decision documented in `SPEC-FE-001` |
 | Job queue data model and lease protocol | ADR-005 | **Proposed** |
@@ -122,3 +124,12 @@ New ADRs follow the MADR 3.0 / Nygard structure already used by ADR-001…ADR-00
 | Amendments | An amendment is a new ADR that supersedes the old one; the old ADR is marked `Superseded` and retained |
 | Rejection | A rejected ADR stays in the register with `Rejected` status; its rationale is preserved so the decision is not relitigated without cause |
 | Index sync | This index is updated within 1 working day of any ADR change |
+
+
+## 2026-11-15 — DEC-012 resolution
+
+[ADR-007](adr/ADR-007-statutory-global-access-and-deferred-identity.md) is Accepted by the Project Owner: T-2 global FORCE-RLS statutory records, restricted database roles and F-1 deferred identity FKs with write gate. [Contract revision 3](specs/STATUTORY_DATABASE_CONTRACT.md) governs P0-T04. No existing ADR or roadmap changed.
+
+## 2026-11-15 — ADR-008 Accepted (product scope refocus)
+
+[ADR-008](adr/ADR-008-product-scope-statutory-payroll-engine.md) is Accepted by the Project Owner: the product boundary is the statutory payroll calculation engine (SSO, progressive tax, net, overtime/night, Sanavat, Eydi, CTC, Art. 11) delivered as pure functions plus one minimal API endpoint on the verified 1404.1 baseline. ADR-004's Phase 1 module list and directives 2–3 are superseded (its text is retained unchanged); document forensics, title disambiguation, benchmarking (DEC-007/008 → REJECTED out of scope), the DB snapshot ledger, the net-to-gross inverter (`P1-T13`) and the external golden corpus (`P1-T15`) leave the product boundary pending a future superseding ADR. DEC-002a is resolved (posture-dependent welfare treatment; `conservative_inta` primary). The five-phase/20-week roadmap, ADR-001…007 and the rejected-technology register are unchanged. Evidence: `BOOTSTRAP_CHANGELOG.md` §23.

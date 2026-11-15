@@ -854,3 +854,403 @@ OpenCode P1-T04 run exited 0 with three new owned files: engines/money.py, engin
 Kilo read-only review process remains running, no final disposition accepted. AlphaCode P0-T11 process remains running; no storage source file existed at inspection. No completion or fresh package assignment is falsely claimed for these busy tools.
 
 OpenCode was dispatched next on free `opencode/glm-5.3-flash-free` to P0-T04. Exclusive allowed files: backend/alembic.ini, backend/alembic/**, backend/app/models/statutory.py, backend/tests/integration/test_statutory_migrations.py and new docs/specs/STATUTORY_DATABASE_CONTRACT.md. Must derive and write exact contract before code from actual required specifications/ADRs; user-FK ordering, statutory tenancy and signature semantics must not be guessed. If unresolved, report precise questions in owned spec, stop only affected migration. Existing pish_dev/volumes must not be dropped; runtime checks require an isolated test DB. P0-T04 status is IN_PROGRESS only for contract assessment, no implemented migration or accepted schema is claimed. No file ownership overlaps storage/money or shared control docs. Full task census now 1 COMPLETED, 2 IN_PROGRESS (including P0-T04 assessment), 3 READY_FOR_REVIEW, 76 NOT_STARTED, 4 BLOCKED = 86.
+
+### 17.3 Continued dispatch after completed external processes
+
+Owner requested continuing bounded packages. AlphaCode storage process exited 0 without implementation, incorrectly treating absent new owned paths as a blocker. Coordinator explicitly corrected that it may CREATE backend/app/storage/** and test_object_storage.py and restarted the same P0-T11 packet with bounded exploration. This is a retry, not a completed package or real product blocker. Kilo's prior process exited 0 without a final usable review disposition; checks visible in its output do not establish independent approval. A new narrowly scoped read-only review was dispatched using free kilo/cohere/north-mini-code:free, focusing on money precision/ambient-context behavior and exact findings. OpenCode database contract assessment continues in its already exclusive paths. No source edited by Codex; no completion gate advanced.
+
+### 17.4 Tool failure recovery and database decision escalation
+
+AlphaCode's corrected storage run still produced empty files/malformed write calls; interrupted before accepting any artifact. Free alternate poolside/laguna-s-2.1:free returned HTTP404; AlphaCode's OpenCode provider lacks configured authentication (no credentials inspected/changed). Transferred SAME exclusive P0-T11 paths to verified free OpenCode/deepseek-v4.1-flash-free. Empty files are failed output, not implementation. No simultaneous storage writers remain. Kilo/north-mini-code review repeatedly used incompatible shell/global Python and wrote scratch scripts outside the requested read-only scope; interrupted, no review accepted. Retried read-only review using free Kilo Auto with exact paths and bounded calls. These are observed reliability failures, not claims of quota exhaustion.
+
+OpenCode/GLM created only docs/specs/STATUTORY_DATABASE_CONTRACT.md, asserting that global/no-RLS scope and deferred user FKs were derived decisions. Coordinator paused the writer BEFORE any migration code. Actual independent read-only review by OpenCode/MiniMax returned migration MUST NOT PROCEED: draft-schema omissions do not authorize no-RLS; deferred user attribution constraints require explicit decision/ownership, and the no-pgcrypto citation was wrong. Raise DEC-012 OPEN — BLOCKING; never silently choose a security/schema variant. Contract-only corrective edit assigned exclusively to MiniMax; no approved ADR changes. Parent has not verified any migration, and no migration exists. P0-T04 becomes BLOCKED; P0-T11 becomes IN_PROGRESS (fallback implementation). Updated census: 1 COMPLETED, 2 IN_PROGRESS, 3 READY_FOR_REVIEW, 75 NOT_STARTED, 5 BLOCKED = 86. Original full scope and gates remain unchanged.
+
+### 17.5 Owner-requested coordinator pause and unaccepted late artifacts
+
+Owner explicitly requested handing work to external tools and pausing Codex promptly. Active bounded jobs at handoff: free OpenCode/DeepSeek implements P0-T11 storage; free OpenCode/MiniMax corrects the proposed database contract only; another free MiniMax job was dispatched to reproduce/repair P1-T04 ambient Decimal context behavior in money.py/test_money.py only. No overlapping writers. AlphaCode routes failed or produced empty files; Kilo money review finished with a claimed FAIL, but its 1.5→2 example alone does not demonstrate a defect. Repair agent must reproduce a genuine identical-input precision counterexample before changing code; review claim is not accepted blindly. Parent verification of new output is NOT RUN while paused.
+
+Correction to §17.4 timing claim: subsequent filesystem inspection found unaccepted backend/alembic.ini, alembic/env.py, script.py.mako, versions/0001_statutory_baseline.py and app/models/statutory.py from the stopped assessment process. Their write timing relative to the interrupted launcher is not established; the earlier claim of no migration files must not be relied on. These artifacts are NOT APPROVED/VERIFIED, must not be run or counted as completed under DEC-012, and are preserved for later review rather than silently deleted. A targeted process inventory found no matching active P0-T04 writer. Schema decision block remains. No deployment/seed activation is authorized.
+
+No promise of automatic cross-tool supervision after the coordinator pauses: each launched process has only its assigned packet and must report completion/blockers; additional reassignment and parent-observed verification wait for the owner's next continuation. No project-wide completion or final debugging is claimed.
+
+## 18. Owner-requested progress inspection — 2026-11-15
+
+Scope: inspect actual worker output and verify current artifacts; no implementation/fixes or new dispatch. Previous exec process IDs are no longer available, so exit reports cannot be recovered from those handles. A targeted process inventory found no matching active assigned worker. Current files, not assumed process success, establish the findings below.
+
+- Money primitive repair exists: quantization now uses an internal precision-34/HALF_UP context and ambient-context regression cases were added. Complete payroll/tax/SSO engines and current-law activation are still absent.
+- S3 adapter and its unit tests now contain real implementations (s3_adapter.py 19,662 bytes; test_object_storage.py 17,914 bytes). This is source/local-unit evidence, not a live retention/credential-policy acceptance.
+- Frontend exists with React/Vite/TypeScript, RTL shell, Vazirmatn, number/currency helpers, typed client boundary and presentation-only auth screens. README explicitly labels missing APIs and provisional contracts; actual authentication, simulations, Jalali conversion and PDF pipeline are not delivered. Synthetic development preview is labelled. Its chunk is emitted in the production build; no visual/production-access review was performed here.
+- Database contract revision 2 is PROPOSED/BLOCKED; old unaccepted migration/model/integration-test artifacts remain present. Contract §8 statements that migration/test source is absent are stale compared with this filesystem inspection. No migration or database integration test was run; DEC-012 remains unresolved. No scope/status or legal decision was silently advanced.
+
+Parent-observed commands (backend/ cwd):
+
+| Result | Exact command | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider --tb=short tests/unit tests/api` | **317 passed**, 2 third-party warnings, 12.10s; deliberately excludes unaccepted migration integration tests |
+| PASS | `rtk proxy .\.venv\Scripts\ruff.exe check --no-cache app tests/unit tests/api` | All checks passed |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m mypy --no-incremental app tests/unit tests/api` | No issues in **25 source files** |
+
+Parent-observed commands (frontend/ cwd), reusing installed dependencies without install/global changes:
+
+| Result | Exact command | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `rtk proxy npm run typecheck` | TypeScript exits 0 |
+| PASS | `rtk proxy npm run lint` | Logical-utility gate: 58 files, zero violations; not a full ESLint/accessibility claim |
+| PASS | `rtk proxy npm test -- --reporter=dot` | **90 tests**, 11 files, passed; React act warning in drawer test |
+| PASS | `rtk proxy npm run build` | Vite 6.4.6 production build succeeded, 135 modules; 4.43s |
+
+No new package was installed, no source fixed, no worker relaunched, no migration executed and no commit/push performed in this inspection. Pending edits and newly generated backend/frontend files remain uncommitted after `55eef45`; no complete-product or phase-gate claim follows from passing isolated suites.
+
+## 19. Reviewed foundation milestone — 2026-11-15
+
+### 19.1 Authorization, ownership and implementation plan
+
+The owner supplied a development mission explicitly authorizing implementation,
+local execution, verification, meaningful commits and verified GitHub pushes.
+The owner then supplied `https://github.com/tahabehzad/pish-hesabdari` and
+confirmed it is public. This supersedes the earlier coordinator-only/pause and
+GitHub-deferral instructions for this bounded work. It does not approve an open
+schema, legal, authentication-detail, CI-provider or production decision.
+
+Scope/plan: audit actual implementation against accepted decisions; adopt and
+repair the existing P1-T04 money and P0-T11 storage packets; independently review;
+verify unit/API/build/live behavior; reconcile factual status; publish reviewed
+source on a separate development branch while preserving both Git histories.
+P3-T01/T02/T04/T05/T06 contain pre-existing partial interface work, not newly
+completed Phase 3 tasks. The formatter defects discovered during review were
+fixed under P3-T04 before adoption. No predecessor or phase gate is waived.
+
+Sole accountable implementation/integration owner: Codex `/root`. Owned files:
+`backend/app/engines/money.py`, `backend/tests/unit/test_money.py`,
+`backend/app/storage/**`, `backend/tests/unit/test_object_storage.py`; adopted
+`frontend/**` source/config/lockfile with bounded formatter/copy fixes; root
+README and existing status/execution/changelog documents. All pre-existing
+unaccepted Alembic/model/integration/contract drafts are preserved outside the
+milestone and were not executed. No financial rate, statutory seed or accepted
+ADR was changed. P0-T01's installed tooling is usable; its CI clause remains
+incomplete. P0-T11 still needs actual RGW and credential-policy acceptance.
+
+Actual delegation (both agents read required source documents, never wrote):
+
+| Task/role | Agent | Actual scope and evidence |
+| :--- | :--- | :--- |
+| Independent financial/security review | `/root/independent_review` | Read money/storage source, tests, governing specs/skills/ADR-002; reproduced mutable report/allocation and invalid-Unicode-key defects; identified money amounts in exception text. Independently observed 160 baseline and 170 corrected scoped tests PASS. Final bounded review PASS; no live RGW or phase acceptance. |
+| Architecture/roadmap and independent frontend review | `/root/roadmap_audit` | Read the entire Holy Bible in bounded chunks, accepted ADRs and required execution sources; inspected all frontend runtime source/config. Confirmed dependency blocks; found wrong percentage shifting and unsafe-number acceptance. Independently ran corrected formatter suite: 23 PASS. Final baseline review PASS; no visual/axe/production acceptance. |
+
+No external OpenCode/AlphaCode/Kilo writer was launched. No planned role is
+represented as an active worker. Parent directly observed all checks below;
+reviewer claims do not substitute for parent verification.
+
+### 19.2 Real changes and observed verification
+
+- Money: preserved the pre-existing ambient-context repair after review; copied
+  validated report/allocation input into immutable tuples; exposed canonical
+  `rounding_residual_rial = sum(rounded lines) - rounded total`, retaining
+  `residual_rial` compatibility. `closing_adjustment_rial` remains the opposite
+  signed posting under its own name. Removed financial amounts from mismatch
+  errors. Added regressions and two Hypothesis properties (200 examples each,
+  no persistent example database) for exact signed allocation/reconciliation.
+  Existing AST float/round/purity checks already existed and were verified,
+  rather than duplicated or falsely claimed as newly implemented.
+- Storage: adopted the existing tenant-prefixed GOVERNANCE adapter after review;
+  invalid UTF-8 surrogate keys now produce sanitised `InvalidStorageKeyError`
+  before client calls. No bucket/IAM provisioner, destructive API or live WORM
+  acceptance is implied.
+- Frontend: adopted the pre-existing partial Persian RTL shell/client and
+  disabled auth screens. Fixed rate-to-percent decimal shifting (`1.5` now
+  displays `۱۵۰٫۰٪`, `0.7` displays `۷۰٫۰٪`); rejected unsafe JavaScript number
+  amounts while preserving exact strings/bigints. Corrected the prior test
+  expecting the wrong percentage. Removed misleading session-expiry and base-URL
+  claims. No login, session expiry enforcement or business API was invented.
+
+Commands below ran in `backend/` unless marked `frontend/`. All fixtures were
+synthetic. No installation, real candidate data, migration or production access.
+
+| Result | Exact command/check | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider --tb=short tests/unit tests/api` (baseline) | 317 passed, 2 third-party warnings, 7.93s |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider --tb=short tests/unit/test_money.py tests/unit/test_object_storage.py` | 170 passed, 1 third-party warning, 0.50s; before two additional property tests |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider --tb=short tests/unit tests/api` (final) | **329 passed**, 2 third-party warnings, 8.42s; includes existing AST gate and both new property tests |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m mypy --no-incremental app tests/unit tests/api` | No issues in 25 source files |
+| PASS | `rtk proxy .\.venv\Scripts\ruff.exe check --no-cache app tests/unit tests/api` | All checks passed after the import-order correction |
+| PASS | `rtk proxy .\.venv\Scripts\ruff.exe format --check app/engines app/storage tests/unit/test_money.py tests/unit/test_object_storage.py` | 6 files already formatted after formatting correction |
+| PASS | `rtk proxy .\.venv\Scripts\python.exe -B -m bandit -q -r app/engines app/storage` | Exit 0, no findings |
+| FAIL → PASS | Same scoped `ruff format --check` command above; then `rtk proxy .\.venv\Scripts\ruff.exe format app/engines/money.py tests/unit/test_money.py` | Initial 1 unformatted file; repaired and final check PASS |
+| FAIL → PASS | Same full `ruff check` command above | Initial unsorted Hypothesis import; combined imports and final check PASS |
+| FAIL → PASS | `rtk proxy npm test -- src/lib/money.test.ts --reporter=dot` (`frontend/`) | Before fix: 6 failures/23 tests reproduced percentage/unsafe-number defects; after fix: 23 PASS. No monetary failure quarantined |
+| PASS | `rtk proxy npm test -- --reporter=dot` (`frontend/`, final) | **99 tests**, 11 files passed, 8.93s; existing React act warning in drawer test |
+| PASS | `rtk proxy npm run build` (`frontend/`, final) | TypeScript and Vite 6.4.6 production build succeed, 135 modules, 4.73s |
+| PASS | `rtk proxy npm run lint` (`frontend/`) | Logical-utility gate: 58 files, 0 violations; not a full ESLint/accessibility claim |
+| PASS | Live backend HTTP smoke below | Actual 200/alive, correlation echo and allowed-origin CORS verified |
+| PASS | Live frontend HTTP smoke below | Actual 200 and document `lang=fa`/`dir=rtl`; not a visual browser check |
+| NOT RUN | Alembic upgrade/downgrade and migration integration tests | DEC-012 unresolved; drafts remain unaccepted |
+| NOT RUN | Actual RGW upload/delete-denial/bypass-permission checks, RLS, auth/session, certified golden corpus, visual/axe/E2E and production/phase gates | Required dependencies/environments/approvals not delivered; mocks and a build do not replace them |
+
+Exact local backend launch (`backend/`):
+
+```powershell
+rtk proxy .\.venv\Scripts\python.exe -B -c "import uvicorn; from app.main import create_app; from app.core.config import Settings; uvicorn.run(create_app(Settings(_env_file=None, allowed_origins='http://127.0.0.1:5273')), host='127.0.0.1', port=58000)"
+```
+
+Exact backend smoke (`backend/`):
+
+```powershell
+rtk proxy .\.venv\Scripts\python.exe -B -c "import httpx; r=httpx.get('http://127.0.0.1:58000/health/live', headers={'Origin':'http://127.0.0.1:5273','X-Request-Id':'synthetic-smoke-001'}); assert r.status_code == 200; assert r.json() == {'status':'alive'}; assert r.headers['X-Request-Id'] == 'synthetic-smoke-001'; assert r.headers['access-control-allow-origin'] == 'http://127.0.0.1:5273'; print('PASS live HTTP liveness, correlation and CORS')"
+```
+
+Exact frontend launch (`frontend/`, installed dependencies reused):
+
+```powershell
+rtk proxy ..\backend\.venv\Scripts\python.exe -B -c "import os, subprocess; process_env = os.environ.copy(); process_env['VITE_API_BASE_URL'] = 'http://127.0.0.1:58000'; subprocess.run(['node', 'node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '5273', '--strictPort'], env=process_env, check=True)"
+```
+
+Exact frontend smoke (`backend/`):
+
+```powershell
+rtk proxy .\.venv\Scripts\python.exe -B -c "import httpx; r=httpx.get('http://127.0.0.1:5273/'); assert r.status_code==200; assert 'dir='+chr(34)+'rtl'+chr(34) in r.text; assert 'lang='+chr(34)+'fa'+chr(34) in r.text; print('PASS local frontend HTTP and Persian RTL root')"
+```
+
+The first frontend-smoke attempt failed in shell quoting before any HTTP
+request; the exact corrected command above passed. Both services bind loopback
+only. Startup/request logs were observed; no application error in these smokes.
+An orphan production chunk still contains labelled synthetic preview fixtures;
+the production route is unregistered, but absence of the chunk is not claimed.
+
+Status changes: P0-T11 IN_PROGRESS → READY_FOR_REVIEW for local code review only;
+P1-T04 remains READY_FOR_REVIEW; P3-T01/T02/T04/T05/T06 NOT_STARTED → IN_PROGRESS
+to reflect existing partial code and the formatter repairs. Census: 1 COMPLETED,
+6 IN_PROGRESS, 4 READY_FOR_REVIEW, 70 NOT_STARTED, 5 BLOCKED = 86. No new task or
+phase is COMPLETED. Assumptions/blockers remain in the respective WBS rows and
+must be rechecked at the phase gate.
+
+### 19.3 Git/GitHub record
+
+`origin` was added from the owner's exact repository URL and fetched. Remote
+`main` initially contains only README commit `898388c`; local history ends at
+`55eef45` before this milestone. Work uses `codex/foundation-hardening`.
+`rtk proxy gh auth status` and the subsequent `gh api` permission probe FAIL
+because gh's stored credential is invalid (401); no credential was printed.
+Git's separate credential path works: `rtk proxy git -c credential.interactive=false -c core.askPass= push --dry-run origin HEAD:refs/heads/codex/foundation-hardening`
+PASS. No login/credential extraction or account switch was needed.
+
+Documentation checks PASS: `rtk git diff --check` found no whitespace defects;
+parent's Python local-link check found no missing file targets in README,
+frontend README, PROJECT_STATUS, EXECUTION_PLAN and this changelog. WBS row
+enumeration independently produced 86 tasks and the exact §19.2 status counts.
+The pre-existing DEC-012 register entry/census is adopted with its unresolved
+status; its stale operational sentence was corrected. No decision resolved.
+
+Publication finalization is pending in this entry until commit, history
+integration, actual push and remote-ref verification are observed. No force-push,
+main rewrite, repository creation or CI-provider choice is authorized/implied.
+
+## 20. Owner-requested MVP 0.1 local frontend demo — 2026-11-15
+
+Owner: Codex /root, sole implementer; no delegation. Status: COMPLETED for the
+bounded local demo only. Related existing WBS: P3-T01/P3-T02/P3-T06; P3-T04
+formatting and P3-T05 client reused without financial/client implementation changes.
+Read Holy Bible §§0.3, 3.2 M8, 4.2–4.3, 13.1, 13.8; ADR-001; SPEC-FE-001;
+DOCUMENTATION_INDEX §0; current WBS rows/dependencies and PROJECT_STATUS §2.
+Ownership: frontend demo files, shell/router/navigation/icons/styles and bounded
+status/README/changelog/owner-request record updates. Backend, seeds, ADRs,
+existing staged changes and migration drafts preserved; no commit/push/deployment.
+
+Acceptance: Persian RTL/light/Vazirmatn dashboard, three summary cards,
+six-month income/expense chart with exact-value accessible table, recent synthetic
+transactions, basic session-only unit settings, working desktop/mobile navigation.
+Data is separately labelled synthetic UI fixtures, never a production API fallback.
+Previous overview/health client retained at /system; previous module routes retained.
+No new dependencies, backend architecture, calculations or auth implementation.
+
+Blocking issues/assumptions: no blocker to this local synthetic UI demo. Existing
+P1-T19/P0-T18 dependencies and DEC-006 remain unresolved as recorded; no WBS task
+or phase gate advanced. Demo amounts are precomputed fixtures, not emitted statutory
+figures, rule activation or candidate data. Settings reset on full reload. Chart
+bar geometry is predefined presentation data; exact amounts are in its disclosure.
+
+Verification observed by /root (frontend working directory unless stated):
+- FAIL: rtk proxy pnpm run typecheck: host wrapper attempted dependency reinstall
+  and refused non-interactive modules replacement; no dependency/config change made.
+- PASS: rtk proxy pnpm --config.manage-package-manager-versions=false --config.verify-deps-before-run=false run typecheck.
+- PASS: rtk proxy node node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json.
+- Initial FAIL: rtk proxy node node_modules/vitest/vitest.mjs run: 2 new assertions
+  matched both summary and chart detail amounts. Scoped assertions to summary region.
+- PASS: rtk proxy node node_modules/vitest/vitest.mjs run: 102 tests across 12 files;
+  all prior tests retained. Existing shell tests now expand preserved navigation.
+- PASS: rtk proxy node node_modules/vite/bin/vite.js build: 142 modules; local
+  Vazirmatn woff2 assets emitted; route chunks built successfully.
+- PASS: rtk proxy node scripts/check-logical-utilities.mjs src: 66 files, 0 violations.
+- PASS: rtk git diff --check (workspace root).
+- PASS: local Vite server via rtk proxy node node_modules/vite/bin/vite.js --host
+  127.0.0.1; browser loaded dashboard at http://127.0.0.1:5273/.
+- PASS: browser desktop settings → Toman → dashboard and mobile menu → transactions;
+  drawer closes on navigation. RTL/lang/font observed in rendered document.
+- PASS: browser viewport 360 × 800: document content/viewport both 360 px; table
+  608 px confined to 326 px scroll region. At 1440 × 1000: content/viewport both
+  1425 px (scrollbar excluded); summary renders three 363 px columns.
+- NOT RUN: backend tests/migrations (backend untouched), production deployment,
+  axe audit, real financial API/auth flows. No such acceptance claimed.
+
+Desktop screenshot saved outside repository in the session visualization directory
+as pish-mvp-desktop.jpg. Temporary viewport override reset after browser checks.
+
+Final verification: PASS rtk proxy pnpm --config.manage-package-manager-versions=false --config.verify-deps-before-run=false run build (typecheck + Vite).
+PASS rtk proxy node node_modules/vitest/vitest.mjs run after adding cleanup before
+store reset: 102/102 tests; the prior React act warning no longer appears.
+PASS: Python local Markdown-link check for the four modified documentation files;
+final git diff --check. Git index preserved: no staging, commit or push performed.
+The owned local preview server was stopped after QA (Ctrl+C); restart instructions
+are in frontend/README.md. No application server was left running by this task.
+
+
+## 21. Owner-approved P0-T04 baseline and final verification — 2026-11-15
+
+Owner explicitly approved “T-2 و F-1 با همون شرایطی که گفتی”. Codex /root
+implemented the existing P0-T04 milestone, retaining backend/frontend 0.1.0 and
+the approved roadmap. No new product scope or statutory interpretation.
+ADR-007/contract revision 3 record the exact approval. Previous contract rev2
+is retained verbatim in docs/specs/history; pre-edit draft code copies are in
+the active chat's work/p0t04-before. Existing staged/unstaged work was preserved.
+
+Implementation: adopted the unapplied 0001 migration and typed models; corrected
+L1…L4 storage to VARCHAR(2); installed ENABLE/FORCE RLS on all five global tables,
+column-limited ACTIVE-only security-invoker/security-barrier reader view,
+separate evidence-reviewer SELECT and database-wide statutory write gate until
+P0-T05 validates users FKs (ON DELETE RESTRICT). Append-only signatures separately
+reject UPDATE/DELETE/TRUNCATE. Role provisioning is explicit, NOLOGIN and no
+membership grant; validates existing unsafe roles. Migration AST storage lint
+rejects lengthless strings, floating point and naive timestamps. Connection
+diagnostics are sanitized and metadata is registered for autogeneration.
+
+Required independent security review was delegated to
+`/root/statutory_security_review`, read-only/no file ownership, under AGENTS §6
+and AGENT_OPERATING_MODEL §3. Reviewer read the actual ADR/contract/AUTH/ingestion
+sources and owned code. Found a default-ACL leak: owner deployment defaults
+could grant reader full-table SELECT, including actor/source columns. Fixed by
+clearing role table/view grants before exact grants; integration fixture now
+deliberately sets broad deployment defaults. Reviewer re-read the fix and
+reported PASS with no further actionable findings. Parent observed runtime
+verification independently. No named human security/legal approval is asserted.
+
+Exact backend checks (backend/):
+
+| Result | Command | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `rtk proxy .venv\Scripts\python.exe -B -m pytest tests/unit tests/api tests/integration -q --tb=short -p no:cacheprovider` | Final resumed run: **443 passed**, 2 existing third-party deprecation warnings, 16.99s; 342 unit/API + 101 actual PostgreSQL integration; no skips |
+| PASS | `rtk proxy .venv\Scripts\python.exe -B -m mypy --no-incremental app tests/unit tests/api tests/integration alembic/env.py` | No issues in **30 source files** |
+| PASS | `rtk proxy .venv\Scripts\ruff.exe check --no-cache app tests/unit tests/api tests/integration alembic/env.py` | All checks passed |
+| PASS | `rtk proxy .venv\Scripts\ruff.exe format --check app/core/migration_lint.py app/models/statutory.py alembic tests/integration/test_statutory_migrations.py tests/unit/test_migration_lint.py` | 5 files already formatted |
+
+Frontend checks performed in this same implementation stage; frontend code was
+not modified by P0-T04 and did not change before the resumed final verification:
+
+| Result | Command (frontend/) | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `rtk proxy node node_modules/vitest/vitest.mjs run` | **102 passed**, 12 files |
+| PASS | `rtk proxy node node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json` | Exit 0 |
+| PASS | `rtk proxy node node_modules/vite/bin/vite.js build` | Vite 6.4.6, 142 modules, production build succeeds |
+
+FAIL → fixed during development: asyncpg multi-command helper used a prepared
+fetch; switched provisioning statements to execute. TRUNCATE test originally
+stopped at FK protection; used CASCADE with deliberately broad fixture grants
+to exercise the write gate. mypy found SQLAlchemy's untyped dialect constructor;
+used one documented third-party-only no-untyped-call exemption in test code.
+Unused test noqa removed. All final checks above passed; no failure quarantined.
+
+Startup: parent ran chat work/p0t04_smoke.py through the existing backend Python.
+Actual backend /health/live and built frontend returned HTTP 200; Persian
+lang/RTL root verified. Both loopback-only child processes were stopped in
+finally. Integration tests created and removed only their generated
+pish-p0t04-migtest-* containers using locally cached official PostgreSQL 16.16;
+pish_dev and other services/volumes were untouched. No test container remains.
+
+Git: no stage, commit, push or history rewrite. Seed diff empty; 1404 hash still
+CA16C4558D29A81AE3123FBAB63732F130CC4425BF67617932C41B045FABE821.
+Final whitespace/link checks recorded below after documentation updates.
+
+Status: **P0-T04 READY_FOR_REVIEW**, not COMPLETED: local acceptance and independent
+static review passed; P0-T01 CI clause/real CI migration job remain unmet.
+Current census: 1 COMPLETED, 6 IN_PROGRESS, 5 READY_FOR_REVIEW, 70 NOT_STARTED,
+4 BLOCKED = 86; no phase gate passed. P0-T05 owns the real identity schema and
+validated statutory actor FKs; all five statutory write paths remain closed.
+NOT RUN: production/pish_dev migration, identity/auth integration, certified
+financial corpus, real RGW, release gate or production deployment. No 1405
+activation, seed change, legal sign-off or production-readiness claim.
+
+Final record: PASS rtk git diff --check; seed diffs empty (staged/unstaged); local Markdown-link check on ADR-007/contract/indexes; independently enumerated WBS census matches 86 tasks and the status counts above. No application code changed after the successful final suite.
+
+## 22. P0-T04 database/security re-verification and fail-closed hardening — 2026-11-15
+
+Database and Security Infrastructure Engineer (continuation task). Scope: verify the
+already-implemented ADR-007 baseline against the owner decision, close the remaining
+fail-closed test gap and fix the defects found. No product scope, statutory value,
+frontend, dashboard, authentication or ADR content was changed; ADR-001…007 and the
+approved decisions were read and left untouched.
+
+Read for this pass: Holy Bible §0.3/§5.1–§5.11/§13.8, AGENTS.md, ADR-001…007,
+STATUTORY_DATABASE_CONTRACT revision 3, STATUTORY_INGESTION §§2.2/4.2/5.2/5.5/10,
+DECISIONS_REGISTER DEC-012, DECISION_REQUIRED_FROM_OWNER (DEC-012 resolved
+2026-11-15), EXECUTION_PLAN §14.3. The owner decision is confirmed as T-2 + F-1 per
+ADR-007: five global tables with ENABLE/FORCE RLS, restricted reader/reviewer
+database roles, deferred users FKs owned by P0-T05, every statutory write path closed
+until then.
+
+### Defects found and fixed
+
+| # | Defect | Fix |
+| :-- | :--- | :--- |
+| D-1 | `trg_statutory_parameter_signatures_append_only()` had no pinned `search_path`, unlike its sibling `statutory_identity_write_gate()`. Asymmetric hardening on a trigger that runs before every statutory write. | The migration now declares the append-only function with `SET search_path = pg_catalog`. Behaviour is unchanged (the body references no object); the downgrade still drops it. |
+| D-2 | Every migration failure collapsed into one generic message, so the fail-closed refusal for missing/unsafe statutory roles was undiagnosable for an operator. | `alembic/env.py` maps only two repository-owned literal markers to a sanitized, actionable message. Every other driver error keeps the generic message, so no DSN, parameter or credential can still reach a log. |
+| D-3 | ADR-007 requires "a missing or unsafe role fails closed", but no test covered the refused path — it had only ever been exercised by hand. | New `backend/tests/integration/test_statutory_fail_closed.py`: missing roles refuse and leave no schema; an unsafe (LOGIN) role refuses identically; the same database then succeeds once the roles are safe, proving the refusals were the role precondition. Each scenario owns its own generated container. |
+
+Defect deliberately **not** changed: `infra/postgres/statutory_roles.sql` creates
+NOINHERIT roles but does not reject a pre-existing role carrying INHERIT. That is not
+a gap: the migration precondition already refuses any role membership, and a role
+with no memberships behaves identically with or without INHERIT. Changing it would
+alter an approved provisioning script without an owner decision.
+
+### Independent adversarial verification (outside the repository test suite)
+
+Re-probed the baseline with an independent harness against its own disposable
+containers. Confirmed: the migration refuses without the statutory roles and rolls
+back completely (no table, no `alembic_version`); the reader role holds no
+table-level privilege on any of the five tables and only the ten published columns
+of `statutory_rule_set_versions` plus the view; `verified_by`, `source_manifest`,
+`verified_at` and `to_jsonb(row)` are all refused for the reader; the reviewer reads
+all statutory evidence and is refused every write; the table owner sees zero rows
+(FORCE RLS) and is refused by the write gate with `Statutory writes require P0-T05
+identity FK enforcement`. Adversarial `ALTER DEFAULT PRIVILEGES ... GRANT ALL ON
+TABLES` for the migration owner is neutralised by the migration's explicit REVOKE,
+which is what keeps the reader column-limited.
+
+### Observed results
+
+| Result | Command (backend/) | Observed evidence |
+| :--- | :--- | :--- |
+| PASS | `.venv\Scripts\python.exe -B -m pytest tests/unit tests/api tests/integration -q --tb=short -p no:cacheprovider` | **446 passed**, 2 existing third-party deprecation warnings, 19.30s; no skips, no failures, no quarantined test |
+| PASS | `.venv\Scripts\python.exe -m mypy --no-incremental app tests/unit tests/api tests/integration alembic/env.py` | Success: no issues found in **31 source files** |
+| PASS | `.venv\Scripts\ruff.exe check --no-cache app tests/unit tests/api tests/integration alembic/env.py` | All checks passed |
+| PASS | `.venv\Scripts\ruff.exe format --check --no-cache app/core/migration_lint.py app/models/statutory.py alembic/env.py alembic/versions tests/integration tests/unit/test_migration_lint.py` | 8 files already formatted (two files reformatted during this pass) |
+| PASS | `git diff --check` | No whitespace defects introduced |
+
+Test census: 342 unit/API (unchanged by this pass) + 101 statutory migration
+integration + 3 new fail-closed integration = 446.
+
+Containers: only this module's generated `pish-p0t04-failclosed-*` containers were
+created and each was removed in `finally`; `docker ps -a` shows no P0-T04 test
+container remains. `pish_dev`, the pre-existing `pish-hesabdari-dev-db-1` container
+and all other volumes were untouched; the locally cached official
+`postgres:16.16-bookworm` image was reused and nothing was pulled.
+
+Git: no stage, commit, push or history rewrite. This pass changed only
+`backend/alembic/env.py`, `backend/alembic/versions/0001_statutory_baseline.py` and
+the new `backend/tests/integration/test_statutory_fail_closed.py`, all inside the
+already-untracked P0-T04 paths, plus this entry. Pre-existing staged and unstaged
+work was preserved; no unrelated change was committed or reverted.
+
+Status: unchanged — **P0-T04 READY_FOR_REVIEW**, not COMPLETED. P0-T01 CI clause and
+the real CI migration job remain unmet; P0-T05 still owns the identity schema and the
+validated statutory actor FKs. NOT RUN: production/pish_dev migration,
+identity/authentication integration, certified financial corpus, release gate and
+production deployment. No 1405 activation, seed change, legal sign-off or
+production-readiness claim is made.

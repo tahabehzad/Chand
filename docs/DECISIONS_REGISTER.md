@@ -97,13 +97,15 @@ Option A would propagate a 100 % effective tax rate into the golden corpus. Opti
 
 ## DEC-002a — Taxable-Base Definition (Which Allowances Are Exempt)
 
+> **Resolution — 2026-11-15, Project Owner (ADR-008):** Option **B** — posture-dependent. Welfare allowances (housing, grocery, marriage, child) are **taxable under `conservative_inta`** and **exempt under `court_precedent`**. Both postures are always computed and reported side by side, and the **primary response posture is `conservative_inta`**. This resolves the arithmetic axis for `P1-T05`/`P1-T09`/`P1-T14` within the ADR-008 minimal scope; the original analysis below is retained as history.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` (sub-decision of DEC-002) |
+| **Status** | `RESOLVED` — owner approval 2026-11-15, ADR-008 (Option B; primary posture `conservative_inta`) |
 | **Question** | Under each tax posture, are the welfare allowances (housing, grocery, marriage, child) taxable, exempt, or posture-dependent? |
 | **Responsible role** | Certified Tax Accountant |
 | **Required approver** | Legal Counsel + Certified Tax Accountant |
-| **Blocking tasks** | `P1-T05`, `P1-T13`, `P1-T20` |
+| **Blocking tasks** | `P1-T05`, `P1-T13`, `P1-T20` (within ADR-008 scope: `P1-T05`, `P1-T09`, `P1-T14`; `P1-T13`/`P1-T20` are out of product scope) |
 
 **Current evidence**
 
@@ -335,9 +337,11 @@ The PDF choice is the one that carries real risk: omitting the shaping stage pro
 
 ## DEC-007 — Market Data Ingestion and Licensing
 
+> **Resolution — 2026-11-15, Project Owner (ADR-008):** **REJECTED — out of product scope.** The market-benchmarking module (M5, `P1-T17`, `P1-T18`) is outside the ADR-008 minimal product boundary; no ingestion or licensing path is approved or implemented. Any revival requires a new superseding ADR. The original analysis below is retained as history.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` (for the benchmarking module) |
+| **Status** | `REJECTED` — out of product scope, ADR-008 (2026-11-15) |
 | **Question** | How is salary-benchmark reference data obtained and licensed? |
 | **Responsible role** | Product Manager + Data Analyst |
 | **Required approver** | Legal Counsel + Product Manager |
@@ -375,9 +379,11 @@ Option A is excluded on ToS grounds and on data quality: 70–80 % of specialist
 
 ## DEC-008 — Data-Flywheel Policy
 
+> **Resolution — 2026-11-15, Project Owner (ADR-008):** **REJECTED — out of product scope.** The data flywheel depends on the benchmarking module that ADR-008 removed from the product boundary; no pooling of employer-contributed data is authorised. Any revival requires a new superseding ADR. The original analysis below is retained as history.
+
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — NON-BLOCKING` |
+| **Status** | `REJECTED` — out of product scope, ADR-008 (2026-11-15) |
 | **Question** | May employer-contributed candidate salary expectations and budgets be pooled into the benchmark corpus after hiring and full anonymisation? |
 | **Responsible role** | Product Manager |
 | **Required approver** | Legal Counsel + Product Manager |
@@ -565,29 +571,39 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 
 ## Summary
 
-**Operational update (not a new architecture decision, 2026-11-15):** The previous P0-T03 HTTP 403 did not recur: official image pull/build and actual TLS/SCRAM/settings/pgAudit/privacy assertions PASS. Local database is healthy; P0-T03 is READY_FOR_REVIEW because P0-T01 CI remains incomplete. Historical root cause is unproven; no mirror, registry/proxy change or TLS relaxation was used. See BOOTSTRAP_CHANGELOG §15; §12 retains the prior failure. The 17-entry decision census below is unchanged.
+### DEC-012 — Statutory provenance ownership and identity-FK ordering
+
+**Current resolution:** Global FORCE-RLS tables, restricted DB reader/reviewer roles; deferred users FKs owned by P0-T05 with ON DELETE RESTRICT and all statutory writes blocked until enforcement. Owner explicitly accepted the concrete proposal; no human specialist signature is asserted. See ADR-007 and STATUTORY_DATABASE_CONTRACT revision 3. The original problem analysis below is retained as history.
+
+
+**Status: RESOLVED — Project Owner, 2026-11-15, T-2 + F-1 (ADR-007).** Required approvers: CTO/DBA and Security Architect. Independent review of the draft `specs/STATUTORY_DATABASE_CONTRACT.md` found that declaring all five statutory tables global/no-RLS and deferring every user FK is not established by the omission of tenant columns in the draft ingestion schema. Holy Bible §5.3/§5.4 use different table-scope wording; users are linked to organizations through memberships (AUTH §2). This affects evidentiary attribution and isolation, not merely syntax.
+
+Owner must confirm (1) which statutory/provenance/signature/change tables are global versus tenant-owned, and the approved DB access policy for global actor-linked evidence; (2) how user references are enforced despite P0-T04 preceding P0-T05, including migration ownership and deletion semantics. Deferred FKs and no-RLS are proposals, not accepted corrections under ADR-006. No migration implementation may proceed on those assumptions. Preserve full source evidence in BOOTSTRAP_CHANGELOG §17.4; the isolated draft contract is being corrected to BLOCKED. Other independent work may continue. This decision does not reopen or modify ADR-006's four accepted choices.
+
+**Operational update (not a new architecture decision, 2026-11-15):** The previous P0-T03 HTTP 403 did not recur: official image pull/build and actual TLS/SCRAM/settings/pgAudit/privacy assertions PASS in §15; no new DB runtime check was performed in §19. P0-T03 is READY_FOR_REVIEW because P0-T01 CI remains incomplete. Historical root cause is unproven; no mirror, registry/proxy change or TLS relaxation was used. See BOOTSTRAP_CHANGELOG §15; §12 retains the prior failure. The census below includes DEC-012; no decision was resolved by the §19 milestone.
 
 | ID | Title | Status | Blocking phase | Approver |
 | :-- | :--- | :--- | :-- | :-- |
 | DEC-001 | 1405 statutory baseline verification | OPEN — BLOCKING | Phase 1 | CTO + Legal Counsel |
 | DEC-002 | Corrected worked example and golden corpus | OPEN — BLOCKING | Phase 1 | CTO + Tax Accountant |
-| DEC-002a | Taxable-base definition | OPEN — BLOCKING | Phase 1 | Legal + Tax Accountant |
+| DEC-002a | Taxable-base definition | RESOLVED — ADR-008 | Phase 1 | Project Owner, ADR-008 |
 | DEC-003 | Async execution strategy | OPEN — BLOCKING | Phase 2 | CTO |
 | DEC-004 | Authentication and authorization model | RESOLVED | Phase 0 | Project Owner, ADR-006 |
 | DEC-004a | MFA mandatory role set | RESOLVED | Phase 0 | Project Owner, ADR-006 |
 | DEC-004b | Hash-chain scope for access events | RESOLVED | Phase 0 | Project Owner, ADR-006 |
 | DEC-005 | Database schema corrections | RESOLVED | Phase 0 | Project Owner, ADR-006 |
 | DEC-006 | Persian RTL / Jalali / PDF choices | OPEN — NON-BLOCKING | Phase 3 | CTO |
-| DEC-007 | Market data ingestion and licensing | OPEN — BLOCKING | Phase 1 | Legal + Product |
-| DEC-008 | Data-flywheel policy | OPEN — NON-BLOCKING | Phase 1 | Legal + Product |
+| DEC-007 | Market data ingestion and licensing | REJECTED — out of scope, ADR-008 | Phase 1 | Legal + Product |
+| DEC-008 | Data-flywheel policy | REJECTED — out of scope, ADR-008 | Phase 1 | Legal + Product |
 | DEC-009 | Tax-optimization advisory boundary | OPEN — NON-BLOCKING | Phase 3 | Legal + CTO |
 | DEC-010 | Deployment topology | OPEN — BLOCKING | Phase 4 | CTO + DevOps |
 | DEC-011 | Document intelligence acceptance criteria | OPEN — BLOCKING | Phase 2 | Product + CTO |
 | DEC-011a | Shahkar access route | OPEN — BLOCKING | Phase 2 | Legal + Product |
 | DEC-011b | Human adjudication of flagged documents | OPEN — NON-BLOCKING | Phase 2 | Product + CISO |
 | DEC-011c | Art. 86 720-day insured-days threshold | OPEN — BLOCKING | Phase 2 | Legal Counsel |
+| DEC-012 | Statutory provenance ownership and user-FK ordering | RESOLVED — ADR-007 | P0-T04 | CTO/DBA + Security Architect |
 
-**17 entries: 13 open (9 blocking, 4 non-blocking), 4 resolved by owner approval in ADR-006.** ADR-005 remains separately `PROPOSED`; no queue was approved.
+**18 entries: 11 open (7 blocking, 4 non-blocking), 5 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope.
 
 ---
 
