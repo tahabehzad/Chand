@@ -17,6 +17,11 @@ Contract notes
   enter a monetary path.
 * Arithmetic uses ``Decimal`` with ``prec=34`` and ``ROUND_HALF_UP`` only.  The
   built-in ``round()`` (banker's rounding) is never used.
+* The shared process context is configured at import (``getcontext().prec =
+  34``, ``ROUND_HALF_UP``), but every primitive quantizes and sums inside the
+  module's own internal context.  A caller that mutates the ambient decimal
+  context therefore cannot change a Rial figure: the result stays a pure
+  function of the input value.
 * A line item is rounded once, at the line-item boundary.  A total is rounded
   once from the *exact* sum, not from already-rounded lines.  The signed
   difference is surfaced as ``rounding_residual_rial``:
@@ -41,11 +46,17 @@ from dataclasses import dataclass
 from decimal import (
     ROUND_DOWN,
     ROUND_HALF_UP,
+    Clamped,
     Context,
     Decimal,
+    DivisionByZero,
+    FloatOperation,
     Inexact,
     InvalidOperation,
+    Overflow,
     Rounded,
+    Subnormal,
+    Underflow,
     getcontext,
     localcontext,
 )
@@ -60,7 +71,35 @@ RIAL_QUANTUM: Decimal = Decimal("1")
 MAX_RESIDUAL_RIAL_PER_LINE: int = 1
 
 #: Internal context for guards that must not inherit an ambient mutation.
-_INTERNAL_CONTEXT: Context = Context(prec=MONEY_PRECISION, rounding=ROUND_HALF_UP)
+#:
+#: The context is built explicitly rather than inherited from
+#: ``DefaultContext`` so that neither the ambient thread context nor a mutated
+#: ``decimal.DefaultContext`` can change a monetary result.  Every signal is
+#: listed because ``Context`` rejects a partial trap mapping.
+#:
+#: ``InvalidOperation``, ``DivisionByZero`` and ``Overflow`` keep Python's
+#: default trapping, so a value that cannot be represented at ``prec=34``
+#: still fails closed.  ``Rounded`` and ``Inexact`` are deliberately **not**
+#: trapped: rounding a non-whole Rial to a whole Rial is this module's own
+#: policy and legitimately sets both flags, so rejecting every rounding flag
+#: would reject the module's contract.  ``FloatOperation`` stays untrapped to
+#: match Python's default; binary floats are rejected earlier, by type, in
+#: :func:`to_decimal`.
+_INTERNAL_CONTEXT: Context = Context(
+    prec=MONEY_PRECISION,
+    rounding=ROUND_HALF_UP,
+    traps={
+        Clamped: False,
+        DivisionByZero: True,
+        FloatOperation: False,
+        Inexact: False,
+        InvalidOperation: True,
+        Overflow: True,
+        Rounded: False,
+        Subnormal: False,
+        Underflow: False,
+    },
+)
 
 # Configure the one shared process context at import.  Every consumer of
 # ``decimal`` in the application is expected to inherit these settings
@@ -126,12 +165,22 @@ def quantize_rial(value: object, *, field: str = "value") -> Decimal:
     zero (``2.5 -> 3``, ``-2.5 -> -3``); this is deliberately not Python's
     banker's rounding.  Negative zero is normalised to ``Decimal("0")``.
 
+    The quantization runs inside the module's internal context (``prec=34``,
+    ``ROUND_HALF_UP``), so the result is a pure function of *value* and cannot
+    be changed by a caller that mutates the ambient decimal context — a
+    lowered ambient precision can no longer reject a representable amount,
+    and a raised ambient precision can no longer smuggle out a figure that
+    exceeds ``prec=34``.  Ordinary quantization sets the ``Rounded`` and
+    ``Inexact`` flags; they are expected here and are not treated as errors.
+
     Raises:
         MoneyTypeError: The value has a forbidden type.
         MoneyValueError: The value is not finite or does not fit ``prec=34``.
     """
+    decimal_value = to_decimal(value, field=field)
     try:
-        quantized = to_decimal(value, field=field).quantize(RIAL_QUANTUM, rounding=ROUND_HALF_UP)
+        with localcontext(_INTERNAL_CONTEXT):
+            quantized = decimal_value.quantize(RIAL_QUANTUM, rounding=ROUND_HALF_UP)
     except InvalidOperation as exc:
         raise MoneyValueError(
             f"{field} cannot be represented at precision {MONEY_PRECISION} Rial"
@@ -245,15 +294,24 @@ class RoundingReport:
         residual = _require_int(self.residual_rial, field="residual_rial")
         expected = sum(lines) - total
         if residual != expected:
-            raise MoneyValueError(
-                f"residual_rial {residual} does not equal sum(lines_rial) - total_rial ({expected})"
-            )
+            raise MoneyValueError("residual_rial does not equal sum(lines_rial) - total_rial")
         bound = MAX_RESIDUAL_RIAL_PER_LINE * len(lines)
         if abs(residual) > bound:
             raise RoundingResidualError(
-                f"residual_rial {residual} exceeds the permitted bound of "
-                f"{MAX_RESIDUAL_RIAL_PER_LINE} Rial per line ({bound} Rial)"
+                "residual_rial exceeds the permitted bound of one Rial per line"
             )
+        # Copy validated inputs so a caller-owned mutable iterable cannot
+        # invalidate this frozen report after construction.
+        object.__setattr__(self, "lines_rial", lines)
+
+    @property
+    def rounding_residual_rial(self) -> int:
+        """Return the public residual: sum of rounded lines minus rounded total.
+
+        ``residual_rial`` remains available for existing callers. This public
+        name follows TESTING §4.2(2); a closing posting uses the opposite sign.
+        """
+        return self.residual_rial
 
     @property
     def sum_lines_rial(self) -> int:
@@ -265,8 +323,9 @@ class RoundingReport:
         """Return the signed residual line to post so lines add up to the total.
 
         This is ``total_rial - sum(lines_rial)``, the negation of
-        :attr:`residual_rial`.  It is the amount an engine posts as its
-        ``rounding_residual_rial`` line to close the reconciliation exactly.
+        :attr:`rounding_residual_rial`. Use the separate name
+        ``closing_adjustment_rial`` for this posting; publishing it under the
+        public residual name would reverse the binding sign convention.
         """
         return self.total_rial - self.sum_lines_rial
 
@@ -356,9 +415,13 @@ class RialAllocation:
         if not parts:
             raise MoneyValueError("parts_rial must not be empty")
         if sum(parts) != total:
-            raise MoneyValueError(
-                f"parts_rial sum to {sum(parts)} Rial, not the total {total} Rial"
-            )
+            raise MoneyValueError("parts_rial do not sum to total_rial")
+        object.__setattr__(self, "parts_rial", parts)
+
+    @property
+    def rounding_residual_rial(self) -> int:
+        """Return the public allocation residual, always zero by construction."""
+        return self.residual_rial
 
     @property
     def residual_rial(self) -> int:

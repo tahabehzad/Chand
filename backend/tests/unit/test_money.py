@@ -12,10 +12,19 @@ Related:
 from __future__ import annotations
 
 import ast
-from decimal import ROUND_HALF_EVEN, ROUND_HALF_UP, Decimal, getcontext, localcontext
+from decimal import (
+    ROUND_HALF_EVEN,
+    ROUND_HALF_UP,
+    Decimal,
+    Inexact,
+    Rounded,
+    getcontext,
+    localcontext,
+)
 from pathlib import Path
 
 import pytest
+from hypothesis import given, settings, strategies as st
 
 from app.engines import (
     MAX_RESIDUAL_RIAL_PER_LINE,
@@ -153,6 +162,102 @@ def test_precision_34_prevents_default_28_digit_loss() -> None:
     assert round_half_up(value) == 1234567890123456789012345679
 
 
+# ---------------------------------------------------------------------------
+# Ambient decimal context must not change a Rial figure
+# ---------------------------------------------------------------------------
+
+#: 31 digits before the point, one after: 32 significant digits, below the
+#: 34-digit money precision, so the amount is representable and must round to
+#: the same whole Rial under any ambient context.
+HIGH_PRECISION_HALF_RIAL = Decimal("1000000000000000000000000000000.5")
+HIGH_PRECISION_EXPECTED_RIAL = 1000000000000000000000000000001
+
+
+def test_quantize_rial_is_independent_of_the_ambient_precision() -> None:
+    for precision in (34, 28, 12, 60):
+        with localcontext() as context:
+            context.prec = precision
+            assert quantize_rial(HIGH_PRECISION_HALF_RIAL) == Decimal(HIGH_PRECISION_EXPECTED_RIAL)
+            assert round_half_up(HIGH_PRECISION_HALF_RIAL) == HIGH_PRECISION_EXPECTED_RIAL
+
+
+def test_quantize_rial_still_rejects_values_beyond_precision_34() -> None:
+    # A wide ambient context must not smuggle out a figure that exceeds prec=34.
+    with localcontext() as context:
+        context.prec = 60
+        with pytest.raises(MoneyValueError):
+            quantize_rial("1E+40")
+    with localcontext() as context:
+        context.prec = 60
+        with pytest.raises(MoneyValueError):
+            round_half_up(Decimal("1" + "0" * 40))
+
+
+def test_round_total_rial_is_independent_of_the_ambient_precision() -> None:
+    values = ["1234567890123456789012345678.5", "0.5"]
+    with localcontext() as context:
+        context.prec = 12
+        total = round_total_rial(values)
+    assert total == 1234567890123456789012345679
+
+
+def test_reconcile_lines_is_independent_of_the_ambient_precision() -> None:
+    with localcontext() as context:
+        context.prec = 12
+        report = reconcile_lines(["0.4", "0.4", "0.4"])
+    assert report.lines_rial == (0, 0, 0)
+    assert report.total_rial == 1
+    assert report.residual_rial == -1
+
+
+def test_quantize_rial_is_independent_of_the_ambient_exponent_range() -> None:
+    with localcontext() as context:
+        context.Emax = 9
+        context.Emin = -9
+        assert quantize_rial("1E+20") == Decimal("100000000000000000000")
+        assert quantize_rial("1E-20") == Decimal("0")
+
+
+def test_ambient_rounding_traps_do_not_break_ordinary_quantization() -> None:
+    # Rounded/Inexact are the expected outcome of rounding to a whole Rial;
+    # an ambient trap on them must not turn a valid figure into an error.
+    with localcontext() as context:
+        context.traps[Inexact] = True
+        context.traps[Rounded] = True
+        assert quantize_rial("2.5") == Decimal("3")
+        assert round_half_up("2.5") == 3
+
+
+def test_money_primitives_do_not_write_to_the_ambient_context() -> None:
+    with localcontext() as context:
+        context.prec = 34
+        context.clear_flags()
+        assert quantize_rial("2.5") == Decimal("3")
+        assert round_half_up("2.5") == 3
+        assert not context.flags[Inexact]
+        assert not context.flags[Rounded]
+        assert context.prec == 34
+
+
+def test_the_shared_process_context_is_still_configured_at_34_half_up() -> None:
+    # The fix isolates the primitives; it must not weaken the global policy.
+    assert getcontext().prec == 34
+    assert getcontext().rounding == ROUND_HALF_UP
+
+
+def test_half_up_tie_is_the_specified_policy_not_a_defect() -> None:
+    # REVIEW NOTE: "1.5 -> 2" is the specified ROUND_HALF_UP policy, not a bug.
+    # The genuine ambient-context defect is the precision case above.
+    assert round_half_up("1.5") == 2
+    assert round_half_up("2.5") == 3
+    assert round_half_up("-2.5") == -3
+    with localcontext() as context:
+        context.rounding = ROUND_HALF_EVEN
+        assert round_half_up("1.5") == 2
+        assert round_half_up("2.5") == 3
+        assert round_half_up("-2.5") == -3
+
+
 def test_quantize_rial_rejects_values_beyond_precision() -> None:
     with pytest.raises(MoneyValueError):
         quantize_rial("1E+40")
@@ -230,6 +335,86 @@ def test_report_accepts_bound_of_one_per_line() -> None:
     report = RoundingReport(lines_rial=(2, 2), total_rial=3, residual_rial=1)
     assert report.sum_lines_rial == 4
     assert report.closing_adjustment_rial == -1
+
+
+@pytest.mark.parametrize(
+    ("lines", "expected"),
+    [(["0.4", "0.4", "0.4"], -1), (["0.6", "0.6", "0.6"], 1), ([10, 20], 0)],
+)
+def test_public_residual_name_preserves_the_binding_sign(
+    lines: list[object], expected: int
+) -> None:
+    report = reconcile_lines(lines)
+    assert report.rounding_residual_rial == expected
+    assert report.rounding_residual_rial == sum(report.lines_rial) - report.total_rial
+    assert report.sum_lines_rial + report.closing_adjustment_rial == report.total_rial
+    assert report.closing_adjustment_rial == -report.rounding_residual_rial
+
+
+def test_report_preserves_identity_after_caller_mutates_input() -> None:
+    lines = [1, 1]
+    report = RoundingReport(lines_rial=lines, total_rial=2, residual_rial=0)  # type: ignore[arg-type]
+    lines.append(100)
+    assert report.lines_rial == (1, 1)
+    assert report.rounding_residual_rial == report.sum_lines_rial - report.total_rial == 0
+
+
+def test_allocation_preserves_identity_after_caller_mutates_input() -> None:
+    parts = [1, 1]
+    allocation = RialAllocation(total_rial=2, parts_rial=parts)  # type: ignore[arg-type]
+    parts.append(100)
+    assert allocation.parts_rial == (1, 1)
+    assert sum(allocation.parts_rial) == allocation.total_rial
+    assert allocation.rounding_residual_rial == allocation.residual_rial == 0
+
+
+def test_invalid_report_errors_do_not_disclose_amounts() -> None:
+    # Synthetic values only. These messages may reach a traceback/log sink.
+    for total, residual in [(234567891, 0), (234567891, -234567890)]:
+        with pytest.raises(MoneyValueError) as raised:
+            RoundingReport(lines_rial=(1,), total_rial=total, residual_rial=residual)
+        assert str(total) not in str(raised.value)
+        assert str(abs(residual)) not in str(raised.value)
+
+
+def test_invalid_allocation_error_does_not_disclose_amounts() -> None:
+    with pytest.raises(MoneyValueError) as raised:
+        RialAllocation(total_rial=234567891, parts_rial=(123456789,))
+    assert "234567891" not in str(raised.value)
+    assert "123456789" not in str(raised.value)
+
+
+@settings(max_examples=200, database=None)
+@given(st.integers(min_value=-(10**15), max_value=10**15), st.integers(1, 100))
+def test_split_conserves_signed_total_and_equal_parts_differ_by_at_most_one(
+    total: int, count: int
+) -> None:
+    allocation = split_rial(total, count)
+    assert sum(allocation.parts_rial) == total
+    assert len(allocation.parts_rial) == count
+    assert max(allocation.parts_rial) - min(allocation.parts_rial) <= 1
+    assert allocation.rounding_residual_rial == 0
+    assert (
+        all(part >= 0 for part in allocation.parts_rial)
+        if total >= 0
+        else all(part <= 0 for part in allocation.parts_rial)
+    )
+
+
+@settings(max_examples=200, database=None)
+@given(st.lists(st.integers(min_value=-(10**12), max_value=10**12), max_size=100))
+def test_reconciliation_surfaces_signed_residual_and_closes_exactly(
+    thousandths: list[int],
+) -> None:
+    # Construct exact synthetic fractions without the ambient Decimal context.
+    lines = [
+        f"{'-' if amount < 0 else ''}{abs(amount) // 1000}.{abs(amount) % 1000:03d}"
+        for amount in thousandths
+    ]
+    report = reconcile_lines(lines)
+    assert sum(report.lines_rial) - report.total_rial == report.rounding_residual_rial
+    assert abs(report.rounding_residual_rial) <= len(lines)
+    assert sum(report.lines_rial) + report.closing_adjustment_rial == report.total_rial
 
 
 def test_reconcile_lines_rejects_exact_sum_beyond_precision() -> None:

@@ -31,6 +31,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
+from app.api.v1.payroll import router as payroll_router
 from app.core.config import Settings, get_settings
 from app.core.logging import (
     configure_logging,
@@ -112,6 +113,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # The correlation id must stay bound while the line above is
             # written; resetting it afterwards would log "-".
             reset_correlation_id(token)
+
+    application.include_router(payroll_router)
 
     @application.get("/health/live", tags=["health"], summary="Liveness probe")
     async def health_live() -> dict[str, str]:
