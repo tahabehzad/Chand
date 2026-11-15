@@ -13,7 +13,7 @@ Contract notes
 * Employee share 7 %, employer share 20 %, unemployment insurance 3 %
   (employer-paid) — all loaded from the rule set, never hard-coded.
 * The insurable wage is ``min(earnings, ceiling)`` where the ceiling is
-  ``7 × daily minimum wage × days_in_month`` (29/30/31 variants).
+  ``7 x daily minimum wage x days_in_month`` (29/30/31 variants).
 * ``ceiling_applied`` is always emitted as an explicit boolean
   (iranian-payroll-engineering rule 4).
 * Each emitted line is rounded exactly once, from its exact Decimal value.
@@ -58,6 +58,10 @@ def compute_sso(
     """
     if isinstance(total_earnings_rial, bool) or not isinstance(total_earnings_rial, int):
         raise TypeError("total_earnings_rial must be an int number of Rial")
+    if total_earnings_rial < 0:
+        raise ValueError(
+            "PAYROLL_INPUT_INVALID: total_earnings_rial must be a non-negative int"
+        )
     ceiling = rule_set.insurable_ceiling_rial(days_in_month)
     insurable = min(total_earnings_rial, ceiling)
     ceiling_applied = total_earnings_rial > ceiling

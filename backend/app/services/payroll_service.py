@@ -178,16 +178,16 @@ def compute_gross_to_net(inputs: PayrollInput) -> PayrollResult:
         sso.employee_share_exact,
         bases.welfare_total_rial,
         non_welfare_exempt,
-        POSTURE_CONSERVATIVE_INTA,
-        rule_set,
+        posture=POSTURE_CONSERVATIVE_INTA,
+        rule_set=rule_set,
     )
     tax_court = compute_tax_for_posture(
         total_gross,
         sso.employee_share_exact,
         bases.welfare_total_rial,
         non_welfare_exempt,
-        POSTURE_COURT_PRECEDENT,
-        rule_set,
+        posture=POSTURE_COURT_PRECEDENT,
+        rule_set=rule_set,
     )
 
     primary_tax = tax_inta if inputs.tax_posture == POSTURE_CONSERVATIVE_INTA else tax_court

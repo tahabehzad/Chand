@@ -27,7 +27,9 @@ from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
@@ -115,6 +117,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             reset_correlation_id(token)
 
     application.include_router(payroll_router)
+
+    @application.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        _request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        """Return the one stable error shape for every refusal.
+
+        FastAPI's default validation body echoes the rejected input.  On this
+        API the input is a salary package, so the echo would place a
+        monetary amount inside an error response - the one thing the error
+        contract forbids.  Only the field path and the failure type are
+        reported.
+        """
+        problems = [
+            f"{'.'.join(str(part) for part in error.get('loc', ()))}: {error.get('type', 'invalid')}"
+            for error in exc.errors()
+        ]
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "PAYROLL_REQUEST_INVALID",
+                    "detail": "; ".join(problems) or "the request is not valid",
+                }
+            },
+        )
 
     @application.get("/health/live", tags=["health"], summary="Liveness probe")
     async def health_live() -> dict[str, str]:

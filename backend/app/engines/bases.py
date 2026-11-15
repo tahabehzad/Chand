@@ -76,8 +76,8 @@ def decompose_bases(gross_monthly_rial: int, allowances: Allowances) -> MozdDeco
 
     Formula (Holy Bible §2.3 D)::
 
-        Mozd_e_Saabet = Gross − housing − grocery − marriage − child
-                      = Gross − welfare allowances   (attraction RETAINED)
+        Mozd_e_Saabet = Gross - housing - grocery - marriage - child
+                      = Gross - welfare allowances   (attraction RETAINED)
 
     Raises:
         PayrollInputError: The inputs are not non-negative ints, or the
@@ -85,16 +85,14 @@ def decompose_bases(gross_monthly_rial: int, allowances: Allowances) -> MozdDeco
             never clamped or coerced).
     """
     gross = _require_non_negative_int(gross_monthly_rial, "gross_monthly_rial")
-    welfare = sum(
+    for value, field in (
+        (allowances.housing_rial, "housing_rial"),
+        (allowances.grocery_rial, "grocery_rial"),
+        (allowances.marriage_rial, "marriage_rial"),
+        (allowances.child_rial, "child_rial"),
+        (allowances.continuous_attraction_rial, "continuous_attraction_rial"),
+    ):
         _require_non_negative_int(value, field)
-        for value, field in (
-            (allowances.housing_rial, "housing_rial"),
-            (allowances.grocery_rial, "grocery_rial"),
-            (allowances.marriage_rial, "marriage_rial"),
-            (allowances.child_rial, "child_rial"),
-            (allowances.continuous_attraction_rial, "continuous_attraction_rial"),
-        )
-    )
     welfare_excluded = (
         allowances.housing_rial
         + allowances.grocery_rial

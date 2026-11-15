@@ -3,7 +3,7 @@
 Authority
 ---------
 ``docs/PISH_HESABDARI_HOLY_BIBLE.md`` §2.3 B/C and §2.5; Direct Taxation Act
-Arts. 82–92 and 137 with Note 2 of Art. 83; INTA Circular 200/98/44;
+Arts. 82-92 and 137 with Note 2 of Art. 83; INTA Circular 200/98/44;
 Diwan-e Edalat-e Edari Precedents 1956 and 3328; ``FIND-LEG-02``.
 Decision:
     ADR-008 (owner, 2026-11-15) resolves DEC-002a — the welfare allowances
@@ -20,9 +20,13 @@ Contract notes
   (iranian-payroll-engineering rule 15).
 * The deduction is never described as a "tax cap"; the two postures are two
   readings of the deduction, both emitted with their labels.
-* Tax = progressive slabs applied to ``taxable − monthly exemption``.  The
-  slabs are contiguous from the exemption edge, so shifting the base by the
-  exemption is exact.
+* Tax = progressive slabs applied to ``taxable - monthly exemption``.  The
+  seed states the ladder in absolute taxable Rial and its first slab *is* the
+  exemption, so the ladder is matched against a base that has already had the
+  exemption removed **and** a ladder that has moved down by the same amount
+  (:meth:`StatutoryRuleSet.brackets_above`).  Applying the absolute ladder to
+  the reduced base would offset every band by one whole exemption and tax the
+  excess at the wrong rate.
 * Tax is rounded exactly once, from the exact Decimal value.
 """
 
@@ -131,10 +135,12 @@ def compute_progressive_tax(
 ) -> tuple[Decimal, tuple[str, ...], tuple[SlabTaxLine, ...]]:
     """Return the exact tax on *base_after_exemption_exact* across the slabs.
 
-    The base has already had the monthly exemption removed by the caller.
-    Slab edges are the bracket boundaries lowered by one Rial, so a base of
-    exactly ``max_rial`` pays the band in full and a base one Rial higher
-    spills into the next slab — the boundary is exact to 1 Rial.
+    The base has already had the exemption removed by the caller, so
+    *brackets* must be expressed relative to that same exemption
+    (:meth:`StatutoryRuleSet.brackets_above`).  Slab edges are the bracket
+    boundaries lowered by one Rial, so a base of exactly ``max_rial`` pays the
+    band in full and a base one Rial higher spills into the next slab - the
+    boundary is exact to 1 Rial.
     """
     if base_after_exemption_exact < 0:
         raise ValueError("TAXABLE_BASE_NEGATIVE: the post-exemption base is negative")
@@ -151,10 +157,9 @@ def compute_progressive_tax(
             lower_edge = Decimal(bracket.min_rial - 1)
             if base <= lower_edge:
                 continue
-            if bracket.max_rial is None:
-                upper_edge = base
-            else:
-                upper_edge = Decimal(bracket.max_rial)
+            upper_edge = (
+                base if bracket.max_rial is None else Decimal(bracket.max_rial)
+            )
             band = min(base, upper_edge) - lower_edge
             if band <= 0:
                 continue
@@ -179,6 +184,7 @@ def compute_tax_for_posture(
     employee_sso_exact: Decimal,
     welfare_total_rial: int,
     non_welfare_exempt_rial: int,
+    *,
     posture: TaxPosture,
     rule_set: StatutoryRuleSet,
 ) -> PostureTaxResult:
@@ -188,6 +194,16 @@ def compute_tax_for_posture(
     (currently the continuous attraction allowance when the caller marks it
     exempt); the welfare treatment is bound to the posture by DEC-002a.
     """
+    if isinstance(total_gross_rial, bool) or not isinstance(total_gross_rial, int):
+        raise TypeError("total_gross_rial must be an int number of Rial")
+    if total_gross_rial < 0:
+        raise ValueError(
+            "PAYROLL_INPUT_INVALID: total_gross_rial must be a non-negative int"
+        )
+    if welfare_total_rial < 0 or non_welfare_exempt_rial < 0:
+        raise ValueError(
+            "PAYROLL_INPUT_INVALID: the exempt amounts must be non-negative ints"
+        )
     deduction_exact = art137_deduction_exact(employee_sso_exact, posture)
     welfare_taxable = resolve_welfare_taxable(posture)
     exempt_total = Decimal(welfare_total_rial if not welfare_taxable else 0) + Decimal(
@@ -201,7 +217,8 @@ def compute_tax_for_posture(
     base_exact = taxable_exact - Decimal(rule_set.monthly_tax_exemption_rial)
     if base_exact < 0:
         base_exact = Decimal(0)
-    tax_exact, labels, breakdown = compute_progressive_tax(base_exact, rule_set.tax_brackets)
+    ladder = rule_set.brackets_above(rule_set.monthly_tax_exemption_rial)
+    tax_exact, labels, breakdown = compute_progressive_tax(base_exact, ladder)
     return PostureTaxResult(
         posture=posture,
         art137_deduction_exact=deduction_exact,

@@ -12,7 +12,7 @@ Contract notes
 * The premium base is *Mozd-e Saabet* only: the welfare allowances are
   excluded from the hourly rate **and** from the divisor (they are already
   excluded from *Mozd-e Saabet* by :mod:`app.engines.bases`).
-* The monthly divisor is ``44 × days_in_month / 6`` paid calendar hours —
+* The monthly divisor is ``44 x days_in_month / 6`` paid calendar hours —
   220.00 for a 30-day month, 227.3̅ for 31 days, derived from the rule
   set's weekly hours.  The 176-hour attendance figure is never used.
 * Multipliers (1.40 overtime, 1.35 night shift) come from the rule set.
@@ -57,7 +57,7 @@ def compute_overtime_premiums(
     rule_set: StatutoryRuleSet,
     days_in_month: int,
 ) -> OvertimeResult:
-    """Compute the overtime (× multiplier) and night-shift premium lines.
+    """Compute the overtime (x multiplier) and night-shift premium lines.
 
     The premiums are **additional** payments: the ordinary-hours wage is
     already inside the contractual gross, exactly as the statutory

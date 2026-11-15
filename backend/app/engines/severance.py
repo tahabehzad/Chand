@@ -40,6 +40,10 @@ def compute_monthly_severance_accrual(mozd_e_saabet_rial: int) -> SeveranceAccru
     """Return ``Mozd-e Saabet ÷ 12`` rounded once to whole Rial."""
     if isinstance(mozd_e_saabet_rial, bool) or not isinstance(mozd_e_saabet_rial, int):
         raise TypeError("mozd_e_saabet_rial must be an int number of Rial")
+    if mozd_e_saabet_rial < 0:
+        raise ValueError(
+            "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be a non-negative int"
+        )
     with localcontext() as context:
         context.prec = MONEY_PRECISION
         context.rounding = ROUND_HALF_UP

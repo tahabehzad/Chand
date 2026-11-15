@@ -4,7 +4,7 @@ Authority
 ---------
 ``docs/PISH_HESABDARI_HOLY_BIBLE.md`` §10.5 (versioning), §10.6 (fail-closed
 loader behaviour) and §5.11 (verified seed inspection);
-``docs/specs/STATUTORY_INGESTION.md`` §7 (activation criteria A1–A8);
+``docs/specs/STATUTORY_INGESTION.md`` §7 (activation criteria A1-A8);
 ``docs/EXECUTION_PLAN.md`` §7.2 rule 6.
 Decision:
     ADR-008 — the only loadable year is the verified 1404 baseline; 1405 is
@@ -49,6 +49,7 @@ __all__ = (
     "StatutoryRuleSet",
     "TaxBracket",
     "load_rule_set",
+    "shift_brackets_by",
     "validate_invariants",
 )
 
@@ -84,12 +85,39 @@ _DecimalYamlLoader.add_constructor("tag:yaml.org,2002:float", _construct_decimal
 
 @dataclass(frozen=True, slots=True)
 class TaxBracket:
-    """One progressive salary-tax slab (DTA Arts. 82–92; Budget Law)."""
+    """One progressive salary-tax slab (DTA Arts. 82-92; Budget Law)."""
 
     slab: int
     min_rial: int
     max_rial: int | None
     rate: Decimal
+
+
+def shift_brackets_by(
+    brackets: tuple[TaxBracket, ...],
+    exemption_rial: int,
+) -> tuple[TaxBracket, ...]:
+    """Return *brackets* with every edge moved down by *exemption_rial*.
+
+    A progressive ladder whose first slab is the exemption can only be
+    matched against a base that has already had the exemption removed if the
+    ladder is shifted by the same amount.  The transformation is exact: the
+    shifted ladder evaluated at ``x - exemption`` equals the absolute ladder
+    evaluated at ``x``.
+    """
+    if exemption_rial < 0:
+        raise ValueError("PAYROLL_INPUT_INVALID: exemption_rial must be non-negative")
+    return tuple(
+        TaxBracket(
+            slab=bracket.slab,
+            min_rial=bracket.min_rial - exemption_rial,
+            max_rial=(
+                None if bracket.max_rial is None else bracket.max_rial - exemption_rial
+            ),
+            rate=bracket.rate,
+        )
+        for bracket in brackets
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,7 +186,7 @@ class StatutoryRuleSet:
         """Return the SSO insurable ceiling for *days_in_month*.
 
         Social Security Law Art. 39 and SSO circular S4 item 13: the ceiling
-        is 7 × the daily minimum wage **per calendar day**, applied over the
+        is 7 x the daily minimum wage **per calendar day**, applied over the
         actual month length (29/30/31).
         """
         _require_month_length(days_in_month)
@@ -168,7 +196,7 @@ class StatutoryRuleSet:
         """Return the paid-hours divisor for *days_in_month*.
 
         Labour Law Art. 51: 44 hours over 6 working days, so the monthly
-        paid-calendar-hours divisor is ``44 × days / 6`` (220.00 for a
+        paid-calendar-hours divisor is ``44 x days / 6`` (220.00 for a
         30-day month; 227.33… for 31 days).  The 176-hour attendance figure
         is never used here.
         """
@@ -181,6 +209,26 @@ class StatutoryRuleSet:
             if bracket.rate == rate:
                 return bracket
         return None
+
+    def brackets_above(self, exemption_rial: int) -> tuple[TaxBracket, ...]:
+        """Return the salary ladder expressed relative to *exemption_rial*.
+
+        The seed states the ladder in **absolute taxable Rial**, and its first
+        slab *is* the exemption (invariant R-09 pins
+        ``tax_brackets[0].max_rial == monthly_tax_exemption_rial``).  A base
+        that has already had the exemption removed must therefore be matched
+        against a ladder that has moved down by the same amount, otherwise
+        the ladder stays one whole exemption too high and the tax collapses
+        to zero for every base below the first taxable edge.
+
+        The transformation is exact and invertible: shifting the ladder down
+        by *exemption_rial* and evaluating it at ``x - exemption_rial`` is
+        identical to evaluating the absolute ladder at ``x``.  The reference
+        arithmetic in ``docs/PISH_HESABDARI_HOLY_BIBLE.md`` Appendix A
+        (A.4 tax ``3,792,061``; A.5 tax ``17,647,059``) is reproduced by this
+        form and by no other.
+        """
+        return shift_brackets_by(self.tax_brackets, exemption_rial)
 
 
 def _require_month_length(days_in_month: int) -> None:
@@ -393,17 +441,36 @@ def _parse_seed(year: int, path: Path) -> StatutoryRuleSet:
 def load_rule_set(year: int) -> StatutoryRuleSet:
     """Load the verified rule set for *year*, failing closed otherwise.
 
+    The refusal **kind** follows the state of the requested year:
+
+    * no seed at all -> :class:`RuleSetNotActive`;
+    * a seed that exists but is not verified and active (the 1405
+      placeholder) -> :class:`StatutoryParameterUnavailable`;
+    * a verified seed whose year is not an activated baseline ->
+      :class:`StatutoryParameterUnavailable`.
+
+    The 1405 placeholder is therefore refused with
+    ``StatutoryParameterUnavailable`` (ADR-008 directive 3), never with a
+    silent fallback to 1404.
+
     Raises:
         StatutoryParameterUnavailable: The seed exists but is unverified or
             carries null parameters (the 1405 placeholder), or a structural
             invariant failed.
         RuleSetNotActive: No seed exists for *year* at all.
     """
-    if year not in ACTIVE_STATUTORY_YEARS:
+    path = _SEEDS_DIR / f"statutory_rules_{year}.yaml"
+    if not path.exists():
         # A year outside the verified baseline can never be served; the
-        # message stays categorical and names no figures.
+        # message stays categorical and names no figure.
         raise RuleSetNotActive(
             "RULE_SET_YEAR_NOT_LOADABLE: the requested rule year has no "
             "verified and active rule set"
         )
-    return _parse_seed(year, _SEEDS_DIR / f"statutory_rules_{year}.yaml")
+    rule_set = _parse_seed(year, path)
+    if year not in ACTIVE_STATUTORY_YEARS:
+        raise StatutoryParameterUnavailable(
+            f"STATUTORY_SEED_{year}_NOT_ACTIVE: the rule set is verified but "
+            "the year is not an activated statutory baseline"
+        )
+    return rule_set

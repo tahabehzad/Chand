@@ -54,6 +54,12 @@ ignore = [
 "tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811"]
 "alembic/**" = ["ANN", "PLR2004", "I001"]
 "__init__.py" = ["F401"]
+# The domain error names are bound by the statutory error catalogue
+# (Holy Bible §3.2 Module 1) and by ADR-008 directive 3: the loader must
+# raise `StatutoryParameterUnavailable` and the API must surface that exact
+# code.  Renaming the classes to satisfy pep8-naming would fork the
+# documented contract, so the suffix rule is waived for that one module.
+"app/engines/errors.py" = ["N818"]
 
 [lint.flake8-tidy-imports.banned-api]
 # `round()` uses banker's rounding and is banned on monetary values.

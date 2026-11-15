@@ -4,7 +4,7 @@ Authority
 ---------
 ADR-008 (single minimal endpoint; provenance envelope);
 ``docs/EXECUTION_PLAN.md`` §7.2 rule 4 (five provenance fields) and §7.3;
-financial-data-integrity rules 25–27 (integer Rial JSON, rates as strings).
+financial-data-integrity rules 25-27 (integer Rial JSON, rates as strings).
 
 Contract notes
 --------------

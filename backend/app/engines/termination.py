@@ -16,7 +16,7 @@ Contract notes
   case is never truncated.
 * The leave buyout caps the *annual* carryover at 9 days per year of
   service (Art. 66) but pays **all accumulated** unused days at exit
-  (Art. 71), bounded by ``9 × years``.
+  (Art. 71), bounded by ``9 x years``.
 * The exit severance is one month of *Mozd-e Saabet* per year of service,
   pro-rated by tenure months.
 """
@@ -73,6 +73,7 @@ def _require_non_negative_int(value: int, field: str) -> int:
 def compute_termination_liability(
     mozd_e_saabet_rial: int,
     gross_monthly_rial: int,
+    *,
     days_in_month: int,
     probation_months: int,
     tenure_months: int,
@@ -94,7 +95,11 @@ def compute_termination_liability(
     )
     if isinstance(probation_months, bool) or not isinstance(probation_months, int):
         raise ValueError("PAYROLL_INPUT_INVALID: probation_months must be an int")
-    if not 1 <= probation_months <= MAX_PROBATION_MONTHS:
+    if probation_months < 1:
+        raise ValueError(
+            "PAYROLL_INPUT_INVALID: probation_months must be at least one month"
+        )
+    if probation_months > MAX_PROBATION_MONTHS:
         raise ValueError(
             "PROBATION_BEYOND_STATUTORY_MAX: probation_months exceeds the "
             "statutory maximum"
