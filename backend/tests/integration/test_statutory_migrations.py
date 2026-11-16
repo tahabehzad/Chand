@@ -36,6 +36,16 @@ TABLES = (
     "statutory_rule_changes",
     "statutory_verification_log",
 )
+IDENTITY_TABLES = (
+    "organizations",
+    "users",
+    "roles",
+    "permissions",
+    "role_permissions",
+    "organization_memberships",
+    "sessions",
+)
+ALL_TABLES = TABLES + IDENTITY_TABLES
 READER = "pish_statutory_reader"
 REVIEWER = "pish_statutory_reviewer"
 OWNER = "pish_migration_owner"
@@ -181,7 +191,7 @@ def test_roundtrip(db: dict[str, Any]) -> None:
 
 
 def test_models_and_storage_match_database(db: dict[str, Any]) -> None:
-    assert set(Base.metadata.tables) == set(TABLES)
+    assert set(Base.metadata.tables) == set(ALL_TABLES)
     for name in TABLES:
         columns = query(
             db,
@@ -269,8 +279,17 @@ def test_declared_constraints_and_deferred_identity(db: dict[str, Any]) -> None:
         "ck_statutory_source_artefacts_retrieval_level",
         "ck_statutory_rule_set_versions_status",
     } <= names
-    assert not any("REFERENCES users" in r["d"] for r in definitions)
-    assert query(db, "SELECT to_regclass('public.users') AS v")[0]["v"] is None
+    # After migration 0002, the deferred actor FKs are installed on statutory tables.
+    actor_fks = {
+        "fk_statutory_rule_set_versions_verified_by",
+        "fk_statutory_source_artefacts_archived_by",
+        "fk_statutory_parameter_signatures_verifier_id",
+        "fk_statutory_rule_changes_requested_by",
+        "fk_statutory_rule_changes_approved_by",
+        "fk_statutory_verification_log_transcriber_id",
+        "fk_statutory_verification_log_verifier_id",
+    }
+    assert actor_fks <= names
     for table in TABLES:
         assert query(db, f"SELECT count(*) FROM {table}")[0][0] == 0
 
@@ -286,7 +305,7 @@ def test_declared_constraints_and_deferred_identity(db: dict[str, Any]) -> None:
     ],
 )
 @pytest.mark.parametrize("role", [OWNER, REVIEWER, READER, TENANT])
-def test_no_writes_before_identity_fks(
+def test_rls_blocks_writes_for_all_roles(
     db: dict[str, Any], table: str, operation: str, role: str
 ) -> None:
     async def run() -> None:
@@ -294,10 +313,10 @@ def test_no_writes_before_identity_fks(
         transaction = conn.transaction()
         await transaction.start()
         try:
-            # Prove that an accidental broad grant cannot open the unfinished path.
+            # Even with broad grants, RLS policies deny writes.
             await conn.execute(f"GRANT ALL ON ALL TABLES IN SCHEMA public TO {role}")
             await conn.execute(f"SET LOCAL ROLE {role}")
-            with pytest.raises(asyncpg.ObjectNotInPrerequisiteStateError, match="P0-T05"):
+            with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security policy"):
                 await conn.execute(operation.format(t=table))
         finally:
             await transaction.rollback()
