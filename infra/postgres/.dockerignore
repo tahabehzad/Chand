@@ -1,0 +1,6 @@
+**
+!Dockerfile
+!postgresql.conf
+!pg_hba.conf
+!init.sql
+!entrypoint.sh

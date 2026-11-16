@@ -1,0 +1,59 @@
+# Statutory Rules & Parameters for 1405 Solar Hijri (1405/01/01 - 1405/12/29)
+# Baseline active year for Pish Hesabdari (as of November 13, 2026 / 22 Aban 1405 SH)
+# Note: Values below should be updated via the Administrative Update Interface
+# or Smart Circular Ingestion (Google Gemini API) once the official 1405 Circular is published.
+
+rule_year_shamsi: 1405
+effective_date: "1405-01-01"
+source_circular_reference: "1405 High Council of Labor Wage Circular & 1405 National Budget Law [PENDING OFFICIAL RATIFICATION]"
+is_verified_and_active: false # Set to true once verified by legal/payroll administrator
+
+# Base Wage Parameters (Rial)
+daily_minimum_wage_rial: null # [PLACEHOLDER - to be updated]
+monthly_minimum_wage_30days_rial: null
+monthly_minimum_wage_31days_rial: null
+
+# Statutory Allowances (Rial)
+monthly_housing_allowance_rial: null # Approved by Council of Ministers
+monthly_grocery_allowance_rial: null # Bon-e Kharobar
+monthly_marriage_allowance_rial: null # Hagh-e Ta'ahol
+child_allowance_per_child_rial: null # 3x Daily Minimum Wage per child (Labor Law Art. 86)
+daily_seniority_base_rial: null # Payeh Sanavat (after 1 year of service)
+monthly_seniority_base_30days_rial: null
+
+# Social Security Organization (SSO) Parameters
+employee_sso_rate: 0.070
+employer_sso_rate: 0.200
+employer_unemployment_rate: 0.030
+# Daily insurable ceiling = 7 x daily minimum wage
+max_daily_insurable_wage_rial: null
+max_monthly_insurable_wage_30days_rial: null
+max_monthly_insurable_wage_31days_rial: null
+
+# Overtime & Working Hours Convention (Labor Law Art. 59 & Art. 36 Note 3)
+# Note: Overtime base strictly excludes Housing, Grocery, and Child allowances
+overtime_monthly_divisor_30days: 220.00 # (44 hours * 30 / 6)
+overtime_monthly_divisor_31days: 227.33 # (44 hours * 31 / 6)
+standard_weekly_hours: 44.00
+overtime_multiplier: 1.40
+night_shift_multiplier: 1.35
+
+# Progressive Salary Income Tax Brackets (1405 Budget Law, Monthly, Rial)
+monthly_tax_exemption_rial: null # Annual Article 84 exemption / 12
+annual_tax_exemption_rial: null
+
+tax_brackets: [] # Array of {slab: int, min_rial: int, max_rial: int, rate: float, label: str}
+
+# Annual Bonus (Eydi) & Severance (Sanavat) Parameters
+eydi_min_days: 60
+eydi_max_days_min_wage: 90
+max_annual_eydi_rial: null # 3 x monthly minimum wage
+eydi_tax_exemption_rial: null # 1/12 of annual Article 84 exemption
+# Excess over exemption is taxed according to progressive salary tax brackets (FIND-LEG-04)
+
+# Severance Pay (Sanavat): 1 month (30 days) of base wage per year = 8.33% monthly accrual
+# Base wage MUST include continuous fixed attraction allowances (Precedent 3328)
+sanavat_monthly_accrual_rate: 0.0833333333
+
+# Article 137 Healthcare Tax Deduction Policy: 'conservative_inta' (2/7 of 7%) vs 'court_precedent' (full 7%)
+article_137_deduction_policy: "conservative_inta"

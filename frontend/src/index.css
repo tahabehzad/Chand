@@ -1,0 +1,101 @@
+@import '@fontsource-variable/vazirmatn';
+@import 'tailwindcss';
+
+/*
+  Persian design tokens — SPEC-FE-001 §§2–3.
+  Logical properties only. The font is bundled into the build output by the
+  @fontsource package, so it is served from the application origin and an
+  air-gapped intranet never depends on an external host (SPEC-FE-001 §3.1).
+*/
+
+@theme {
+  --font-sans:
+    'Vazirmatn Variable', Vazirmatn, 'IRANSans', Tahoma, 'Segoe UI', system-ui,
+    sans-serif;
+
+  /* Persian needs more leading than Latin: 1.5 clips descenders (§3.2). */
+  --leading-persian: 1.85;
+
+  /* Neutral surface palette. Contrast ratios documented in the README. */
+  --color-surface: oklch(99% 0 0);
+  --color-surface-muted: oklch(97% 0.004 250);
+  --color-surface-raised: oklch(100% 0 0);
+  --color-border-subtle: oklch(90% 0.006 250);
+  --color-ink: oklch(24% 0.012 255);
+  --color-ink-muted: oklch(46% 0.014 255);
+  --color-brand: oklch(42% 0.09 255);
+  --color-brand-strong: oklch(33% 0.1 255);
+  --color-chart-expense: oklch(74% 0.105 75);
+  --color-danger: oklch(48% 0.16 25);
+  --color-warning: oklch(45% 0.11 75);
+  --color-success: oklch(42% 0.09 155);
+
+  --radius-card: 0.75rem;
+}
+
+@layer components {
+  .summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 0.75rem;
+    background: color-mix(in oklch, var(--color-brand) 8%, white);
+    color: var(--color-brand);
+  }
+  .transaction-icon {
+    display: inline-flex;
+    padding: 0.5rem;
+    border-radius: 0.65rem;
+    background: var(--color-surface-muted);
+  }
+  .chart-grid {
+    background-image: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), var(--color-border-subtle) calc(25% - 1px), var(--color-border-subtle) 25%);
+  }
+}
+
+@layer base {
+  html {
+    /* Breakpoints are declared in rem so the browser font-size preference is honoured. */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-surface-muted);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: var(--leading-persian);
+    /* Persian is cursive: positive tracking breaks the joining rhythm (§3.2). */
+    letter-spacing: 0;
+    word-spacing: 0;
+  }
+
+  :where(h1, h2, h3, h4) {
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  /* A visible focus ring that is not clipped (§8). */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  /* Monetary and counter columns must not go ragged with Persian digits (§7). */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
