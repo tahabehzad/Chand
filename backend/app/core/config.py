@@ -92,7 +92,13 @@ class Settings(BaseSettings):
     app_env: AppEnvironment = "local"
     app_debug: bool = False
     log_level: LogLevel = "INFO"
-    allowed_origins: str = "http://localhost:5173"
+    # The SPA dev server runs on 5273 (`frontend/vite.config.ts`); 5173 is
+    # kept for the conventional port.  Both the `localhost` and `127.0.0.1`
+    # spellings are listed: a browser treats them as different origins.
+    allowed_origins: str = (
+        "http://localhost:5173,http://localhost:5273,"
+        "http://127.0.0.1:5173,http://127.0.0.1:5273"
+    )
     session_cookie_secure: bool = True
 
     # --- database ----------------------------------------------------------

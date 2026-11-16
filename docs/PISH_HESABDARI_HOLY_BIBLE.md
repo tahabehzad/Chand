@@ -5,15 +5,15 @@
 | Field | Value |
 | :--- | :--- |
 | **Document ID** | `DOC-HOLY-001` |
-| **Version** | `1.0.6` |
+| **Version** | `1.0.7` |
 | **Status** | **Active — the primary context document for the project** |
-| **Compiled** | 2026-11-14 (23 Aban 1405 SH) |
+| **Compiled** | 2026-11-15 (24 Aban 1405 SH) |
 | **Compiled by** | Chief Software Architect / Principal Product Analyst / Technical Documentation Engineer / Project Knowledge Auditor |
-| **Operational date of the corpus** | 2026-11-13 – 2026-11-14 (22–23 Aban 1405 SH) |
+| **Operational date of the corpus** | 2026-11-13 – 2026-11-15 (22–24 Aban 1405 SH) |
 | **Governing specification** | `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` (`2.0.0-PROD-SPEC`) |
 | **Binding decisions** | ADR-001…004 (**Accepted**), plus ADR-006 (**Accepted**, owner-approved Phase 0 choices; formally corrects ADR-003 directive 3's table target only) |
 | **Non-binding decision** | `docs/adr/ADR-005` (**PROPOSED** — not binding) |
-| **Implementation state** | **Bootstrap, isolated encryption and verified local PostgreSQL runtime.** 1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 78 `NOT_STARTED`, 4 `BLOCKED`; 86 total. P0-T03 official pull/build and real hardening verifier PASS (2026-11-15); CI dependency remains. No migration, financial engine or integrated tenant-security foundation exists. |
+| **Implementation state** | **Partial implementation; not production-ready.** Latest reported census: 1 `COMPLETED`, 6 `IN_PROGRESS`, 5 `READY_FOR_REVIEW`, 70 `NOT_STARTED`, 4 `BLOCKED` (86 total). P0-T03 and P0-T04 have local verification evidence and remain `READY_FOR_REVIEW` pending CI. P0-T04 migration/security work is locally accepted; P0-T05 identity/FK binding remains a dependency for enabling writes. No completed financial engine, production deployment, or signed phase gate is established by this snapshot. |
 | **Active statutory baseline** | **1404 SH** (`1404.1`, `VERIFIED`). 1405 SH is transcribed but **not activated**. |
 | **Overall readiness** | **NOT implementation-ready.** 2 of 5 phases `BLOCKED`, 3 `READY_WITH_CONDITIONS`. |
 
@@ -134,7 +134,7 @@
   - [10.1 Regulatory source hierarchy](#101-regulatory-source-hierarchy)
   - [10.2 The 1405 legal baseline — status](#102-the-1405-legal-baseline--status)
   - [10.3 1404 baseline (the only active set)](#103-1404-baseline-the-only-active-set)
-    - [10.3.1 The 1405 candidate parameter set — transcribed, not activated](#1031-the-1405-candidate-parameter-set--transcribed-not-activated)
+  - [10.2.1 The 1405 candidate parameter set — transcribed, not activated](#1021-the-1405-candidate-parameter-set--transcribed-not-activated)
   - [10.4 Statutory calculation rules and citations](#104-statutory-calculation-rules-and-citations)
   - [10.5 Effective dating and versioning](#105-effective-dating-and-versioning)
   - [10.6 Verification and update process](#106-verification-and-update-process)
@@ -171,17 +171,26 @@
   - [13.5 Contradiction register](#135-contradiction-register)
   - [13.6 Superseded documents and decisions](#136-superseded-documents-and-decisions)
   - [13.7 Missing information](#137-missing-information)
-  - [13.8 Instructions for future agents](#138-instructions-for-future-agents)
+  - [13.8 Instructions for AI-assisted implementation and human review](#138-instructions-for-ai-assisted-implementation-and-human-review)
 - [Appendix A — Independent recalculation of the worked financial example](#appendix-a--independent-recalculation-of-the-worked-financial-example)
 - [Appendix B — Gap register](#appendix-b--gap-register)
 - [Appendix C — Risk register](#appendix-c--risk-register)
 - [Appendix D — Missing requirements register](#appendix-d--missing-requirements-register)
-- [Appendix E — Final self-audit record](#appendix-e--final-self-audit-record)
+- [Appendix E — Original v1.0.0 self-audit record (historical)](#appendix-e--original-v100-self-audit-record-historical)
 - [Appendix F — Change log](#appendix-f--change-log)
+- [Appendix G — v1.0.7 review findings and verification boundary](#appendix-g--v107-review-findings-and-verification-boundary)
 
 ---
 
 ## 0. How to Use This Document
+
+**Implementation and evidence addendum, 2026-11-15 (v1.0.7):** This addendum supersedes stale implementation summaries in the original v1.0.0 inventory and earlier status tables wherever they conflict. The latest project addendum reports a census of 86 WBS tasks: 1 `COMPLETED`, 6 `IN_PROGRESS`, 5 `READY_FOR_REVIEW`, 70 `NOT_STARTED`, and 4 `BLOCKED`. P0-T03 and P0-T04 have local verification evidence but remain `READY_FOR_REVIEW` while CI dependencies are pending. Do not convert either to `COMPLETED` solely because local checks pass.
+
+**P0-T04 owner-reported evidence:** the project owner reports that its migration creates five tables; database access is restricted with `FORCE ROW LEVEL SECURITY` and restricted DB roles; published statutory-rule reads are separated from approver-evidence access; and writes remain gated until P0-T05 validates user foreign keys. The owner also reports 443 passing backend tests, 102 passing frontend tests, successful type checks/lint/frontend production build, local startup, and an independent local security review. These are recorded as `OWNER_REPORTED`; this review did not execute the repository test suite or inspect the live database. The current task disposition remains `READY_FOR_REVIEW` pending CI and any required integration evidence.
+
+**Task boundary correction:** P0-T04 is statutory-rule provenance/schema and its access controls; P0-T05 is the six identity entities, memberships and role matrix; P0-T18 is authentication/session lifecycle. They are separate tasks. P0-T04's write gate must not be removed before P0-T05 establishes and verifies the user foreign-key targets. This is a dependency, not permission to merge the task scopes.
+
+**What this review did and did not verify:** the v1.0.6 Holy Bible file was read and structurally checked; stale claims and numbering were corrected below. The current local repository, CI run, database catalogue, test logs, and the referenced `PROJECT_STATUS` / `BOOTSTRAP_CHANGELOG` files were not available for direct execution/inspection in this review. Consequently, owner-reported test counts are not represented as independently reproduced results, and no legal value, deployment state, phase gate, or production readiness is newly certified.
 
 **Implementation addendum, 2026-11-15:** Owner accepted DEC-012 T-2/F-1 in ADR-007. P0-T04 local migration/security acceptance and independent review now PASS; READY_FOR_REVIEW with CI pending. Latest census: 1 COMPLETED, 6 IN_PROGRESS, 5 READY_FOR_REVIEW, 70 NOT_STARTED, 4 BLOCKED. Statutory tables are global with FORCE RLS and restricted DB roles; writes remain gated until P0-T05 validates users FKs. Source of current evidence: PROJECT_STATUS §2 and BOOTSTRAP_CHANGELOG §21; older snapshots below are historical. No seed, roadmap, statutory activation or phase gate changed.
 
@@ -197,7 +206,7 @@ This document is the **single consolidated knowledge base** for Pish Hesabdari. 
 
 | Audience | Use |
 | :--- | :--- |
-| AI agents (including Codex and Antigravity) | Read task-relevant sections via DOCUMENTATION_INDEX §0; §0.3 gives precedence and §13.8 the operating constraints. |
+| AI coding tools (including Codex, Gemini and Antigravity) | Read task-relevant sections via DOCUMENTATION_INDEX §0; §0.3 gives precedence and §13.8 the operating constraints. |
 | Developers / backend / frontend engineers | §4 (architecture), §5 (data model), §11 (engineering), §2 (domain rules). |
 | Architects | §4.13 (trade-offs), §13.2–13.5 (decision and contradiction registers), Appendix B (gaps). |
 | QA engineers | §3 (requirements), §11.6–11.7 (test strategy and CI), §11.4 (money invariants). |
@@ -207,7 +216,7 @@ This document is the **single consolidated knowledge base** for Pish Hesabdari. 
 
 **Scope.** This document consolidates and verifies. It does **not** amend any accepted ADR, the authoritative specification, the seed files, or any historical document. Where this document disagrees with a binding artefact, the disagreement is recorded in §13.5 as a **contradiction** with an owner and a required action — it is never silently applied.
 
-**Out of scope by instruction:** no application source code was created or modified; no packages installed; no schema, migration or seed changed; no Git operation performed; no separate documentation files created.
+**Original v1.0.0 audit boundary (historical):** no application source code was created or modified; no packages were installed; no schema, migration or seed was changed; no Git operation was performed; no separate documentation files were created during that original documentation-only audit. This is not a statement about subsequent implementation work.
 
 ### 0.2 Evidence label legend
 
@@ -299,7 +308,7 @@ The binding order, preserved from `docs/EXECUTION_PLAN.md` §1.2 and `docs/DOCUM
 
 **Inspection totals:** 39 files enumerated; **39 inspected**; 0 inaccessible; 0 unparseable. Of the 39: **16 read line-by-line** in full; **10 text-extracted and read in substance** (a complete structural map, every requirement/ID table extracted, and the substantive sections read — the two DOCX files that were extracted in full but read selectively are counted here); **11 behaviour-contract files inspected by targeted search only** (their technology mandates were captured; their domain guidance was not line-by-line audited); **2 tooling files read** (their contents are a UUID and a four-line ignore file). The two `.docx` files that could not be read in their original encoding were successfully parsed by extracting `word/document.xml` and decoding UTF-8 — no content was lost.
 
-**Limitation — Git history:** the workspace is **not a Git repository** (`git status` → `fatal: not a git repository`). There is no commit history, branch model, or authorship record to analyse. Any statement about "how a decision evolved" is therefore derived from document timestamps and supersession banners, not from VCS history. `docs/EXECUTION_PLAN.md` §1.5 and `docs/DOCUMENTATION_INDEX.md` §5.5 describe a Git-based change-control process that **is not yet instantiated**.
+**Current Git evidence (2026-11-15):** the later owner-authorized correction confirms that Git exists with bootstrap commit `2fc2b6f` and no remote. Therefore the original v1.0.0 statement that the workspace was not a Git repository is historical and superseded. Branch protection, remote configuration, team review policy and a complete commit history remain unverified; do not claim those controls are active. See the current-state correction at the start of this document and `docs/BOOTSTRAP_CHANGELOG.md` §10.
 
 ### 0.5 Document hierarchy and supersession map
 
@@ -2517,7 +2526,7 @@ The Persian research §2.3 is explicit: *"AI-based anomaly detection never issue
 | Has it been activated? | **No** — `backend/data/seeds/statutory_rules_1405.yaml` has every value `null` and `is_verified_and_active: false` |
 | Are the activation conditions met? | **No.** A1 `NOT MET` · A2 partially met · A3 `NOT MET` · A4 `NOT MET` · A5 pending · A6 `NOT MET` · A7 `NOT MET` · A8 `NOT MET` |
 
-#### 10.3.1 The 1405 candidate parameter set — transcribed, not activated
+#### 10.2.1 The 1405 candidate parameter set — transcribed, not activated
 
 **The 1405 candidate values (transcribed, cross-corroborated, NOT four-eyes verified)** — reproduced from `SPEC-STAT-001` §3.1 so that the numbers are in one place:
 
@@ -2678,9 +2687,9 @@ A classified-workshop job wage or fixed wage **must not fall below 5,541,850 Ria
 
 ### 11.1 Repository structure — actual
 
-`VERIFIED` current additions: `.git/` (one bootstrap commit, no remote), `README.md`, `AGENTS.md`, `.gitignore`, `.gitattributes`, `.editorconfig`, `LICENSE`; `backend/{pyproject.toml,uv.lock,ruff.toml,mypy.ini,.env.example}`; `backend/app/{main.py,core/config.py,core/logging.py}` plus package initializers; `backend/tests/unit/{test_config.py,test_logging.py}` and `backend/tests/api/test_health.py`. The six bootstrap control documents under `docs/` also exist. Source: direct inventory and `git ls-files`; verification log: `docs/BOOTSTRAP_CHANGELOG.md` §10.
+**Historical inventory boundary:** the following repository tree and file inventory originate from earlier snapshots and are not a complete live inventory as of v1.0.7. Later evidence confirms Git/bootstrap commit `2fc2b6f`, a P0-T04 migration/security implementation, and owner-reported frontend test execution. The exact current tree, lockfiles, migrations, frontend files and CI configuration have not been independently enumerated in this review. Use `git ls-files`, filesystem inventory and the latest `BOOTSTRAP_CHANGELOG` before making file-existence claims.
 
-The tree below preserves the original v1.0.0 corpus inventory; it is not an exhaustive current listing.
+The tree below preserves the original v1.0.0 corpus inventory; it is historical, not an exhaustive current listing.
 
 ```
 C:\project\New project\
@@ -2708,7 +2717,7 @@ C:\project\New project\
     └── specs/ AUTH, DEPLOYMENT, DOCUMENT_FORENSICS, FRONTEND_PERSIAN, STATUTORY_INGESTION, TESTING
 ```
 
-**Still absent** (`VERIFIED` by current inventory): no frontend or frontend lockfile; no Alembic configuration or migrations; no Dockerfiles/compose services; no CI workflow; no domain API contract beyond the liveness scaffold; no licensed benchmark or certified golden/consented OCR corpus. Neither an empty directory nor a parameter seed is a financial engine.
+**Current absence / verification boundary:** CI remains pending according to the latest status addendum. A certified 10,000-case financial golden corpus, licensed benchmark dataset, and 500-slip consented OCR corpus remain external dependencies. The earlier claims that there is no frontend, no migration, or no Alembic configuration are stale in light of later owner-reported frontend test execution and P0-T04 migration work; their exact current file-level state is `NOT independently re-inventoried` here. No financial engine or production-ready product is established by the P0-T04 evidence.
 
 ### 11.2 Target repository structure
 
@@ -2734,14 +2743,14 @@ ops/
 
 ### 11.3 Implementation status by workstream
 
-| Workstream | Tasks | Status | Evidence |
+| Workstream | Tasks | Current status | Evidence / boundary |
 | :--- | --: | :--- | :--- |
-| P0 — Security and relational foundation | 20 | 1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 16 `NOT_STARTED`, 0 `BLOCKED` | P0-T03 runtime verified; P0-T06 reviewed; P0-T01 awaits CI. No schema, migrations or auth code |
-| P1 — Deterministic engine and inverters | 22 | 20 `NOT_STARTED`, 2 `BLOCKED` | P1-T02 acquisition preparation implemented, official probes failed; P1-T02/P1-T15 remain blocked; no financial engine |
-| P2 — Document forensics and identity | 18 | 16 `NOT_STARTED`, 2 `BLOCKED` | `P2-T04`, `P2-T16` blocked |
-| P3 — Pre-hire simulation and React SPA | 15 | `NOT_STARTED` | No frontend directory |
-| P4 — Pilot hardening and compliance | 11 | `NOT_STARTED` | — |
-| **Total** | **86** | **1 `COMPLETED`, 1 `IN_PROGRESS`, 2 `READY_FOR_REVIEW`, 78 `NOT_STARTED`, 4 `BLOCKED`** | No new completed task; P0-T03 CI dependency and P0-T06 integration/CI remain |
+| P0 — Security and relational foundation | 20 | Phase-level breakdown not re-derived in v1.0.7 | P0-T03 and P0-T04 have local verification evidence and remain `READY_FOR_REVIEW` pending CI; P0-T05 identity/FK binding is a write-enablement dependency; P0-T18 remains the separate authentication/session task. |
+| P1 — Deterministic engine and inverters | 22 | Use current task ledger; no new status inferred | P1-T02 source acquisition and P1-T15 certified golden corpus remain externally constrained in the latest recorded baseline; no certified financial engine is established here. |
+| P2 — Document forensics and identity | 18 | Use current task ledger; no new status inferred | `P2-T04` and `P2-T16` were recorded as externally/decision blocked in the prior baseline; reconfirm before changing status. |
+| P3 — Pre-hire simulation and React SPA | 15 | Use current task ledger; no new status inferred | Owner-reported frontend tests exist; this does not establish completion of the React product workflows. |
+| P4 — Pilot hardening and compliance | 11 | Use current task ledger; no new status inferred | No pilot or production gate is newly certified by this document review. |
+| **Total** | **86** | **1 `COMPLETED`, 6 `IN_PROGRESS`, 5 `READY_FOR_REVIEW`, 70 `NOT_STARTED`, 4 `BLOCKED`** | Latest aggregate census from the 2026-11-15 implementation addendum. A per-phase/per-task ledger is needed before changing any individual task status. |
 
 **The four `BLOCKED` tasks and why each is genuinely blocked rather than merely un-started:**
 
@@ -2975,10 +2984,10 @@ flowchart LR
 
 | Milestone | Phase | Gate | Status | Evidence |
 | :--: | :--: | :--- | :--- | :--- |
-| M0 | 0 | RLS 100 % pass; zero plaintext PII | **Not met** | No schema, no tests |
+| M0 | 0 | RLS 100 % pass; zero plaintext PII | **Not met** | P0-T04 local migration/security evidence is reported, but P0-T05 identity/FK binding, CI and full Phase 0 acceptance remain unverified/incomplete. |
 | M1 | 1 | 10 000 certified vectors, 0 Rial deviation | **Not met** | The corpus does not exist |
 | M2 | 2 | 500 authentic slips, > 95 % field accuracy | **Not met** | The corpus does not exist |
-| M3 | 3 | < 3 s end-to-end in the browser | **Not met** | No frontend |
+| M3 | 3 | < 3 s end-to-end in the browser | **Not met** | Frontend tests are owner-reported, but end-to-end workflow coverage and the performance target have not been independently measured or accepted. |
 | M4 | 4 | External pentest + labour-attorney sign-off | **Not met** | No vendor engaged |
 
 ### 12.3 Work breakdown structure
@@ -3357,25 +3366,29 @@ P0-T01 → P0-T04 → P0-T05 → P0-T06 → P0-T08 → P0-T07
 | 19 | The benchmark model parameters (QB-07) | The module's output is not reproducible across implementations | HB-GAP-018 |
 | 20 | The 1405 Budget Law citation string and the SSO circular date | The provenance record is incomplete | O4, O5 |
 
-### 13.8 Instructions for future agents
+### 13.8 Instructions for AI-assisted implementation and human review
 
-**Read this section before you touch anything.**
+**These rules apply to ChatGPT, Codex, Gemini, Antigravity, code-generation tools, and human contributors. A model or coding tool is an implementation instrument, not the autonomous owner of the project. The human project owner retains approval authority. Read this section before changing code or project decisions.**
 
-1. **Load context by task.** Read AGENTS.md and DOCUMENTATION_INDEX §0, then §0.3, §13.1, §13.8, relevant §3 requirements and required rank-1…4 sources. Use bounded reads, not the whole master document/history by default. Research Markdown/DOCX is historical; consult only for a specific evidence question after checking supersession.
-2. **Never hard-code a statutory value.** Read it from the rule set. The engine's loader must fail closed.
-3. **Never modify `backend/data/seeds/statutory_rules_1404.yaml`.** It is an immutable legal artefact; corrections require a new revision (`SPEC-STAT-001` §5.5). CI hash enforcement is a required gate, not an implemented CI claim.
-4. **Do not activate the current 1405 candidate.** It is transcribed but unverified and inactive; unavailable values remain unknown. Activation requires A1–A8 and a named approver, not the mere presence of transcribed values.
-5. **Never treat a proposal as binding.** ADR-005 remains proposed; DEC-004/004a/004b/005 are resolved by ADR-006. Consult the current register for all other entries. No task blocked by an open entry may be marked APPROVED or COMPLETED.
-6. **Never revive a rejected technology** without a new ADR (§13.2).
-7. **Use `Decimal` exclusively.** No `float` literal under `engines/`. Round once, at the line-item boundary, and surface the residual.
-8. **Writing a specification does not advance a task.** Task status reflects work actually performed.
-9. **Unknown is a value.** Record it as `MISSING`/`UNVERIFIED` and name the owner and the action. Never fill a gap with an estimate.
-10. **Never modify an accepted ADR.** If a decision needs to change, raise a superseding ADR.
-11. **Add cross-references in the same change.** `DOCUMENTATION_INDEX.md` and `ADR_INDEX.md` are updated within 1 working day of any ADR change.
-12. **Do not commit or push** without an explicit instruction. Git and the bootstrap commit exist; preserve uncommitted work and recheck ownership before delegation.
-13. **When you produce a financial figure, show every intermediate value and the rule-set version.** A figure without intermediates cannot be reviewed and will be wrong, as Appendix A demonstrates.
-14. **When you state a legal conclusion, cite the instrument and the article.** If you cannot, mark it `UNVERIFIED`.
-
+1. **Load context by task.** Read DOCUMENTATION_INDEX §0, then §0.3, §13.1, this section, relevant §3 requirements and required rank-1…4 sources. Read AGENTS.md or skill files only when they govern the specific tool/workflow being used. Use bounded reads, not the whole master document/history by default. Research Markdown/DOCX is historical; consult only for a specific evidence question after checking supersession.
+2. **One source of truth and explicit ownership.** The current repository and accepted project documents are authoritative; chat summaries, model memory and generated plans are not substitutes. Before editing, inspect `git status`, the current diff and the exact target files. Do not assume the workspace matches an old inventory.
+3. **No autonomous project-wide delegation.** Do not hand the entire project to an autonomous agent and do not let multiple models edit overlapping files concurrently. Use models for bounded analysis, code generation, review and tests; assign explicit file/task boundaries and have the human owner integrate the result.
+4. **Evidence before status changes.** A generated specification, code draft, passing isolated test or model assertion does not complete a WBS task. Require the task's acceptance criteria, relevant tests, integration evidence and required human/external approvals. Mark evidence provenance as `OWNER_REPORTED`, `MODEL_REVIEWED`, `LOCALLY_TESTED`, `CI_VERIFIED`, or `EXTERNALLY_APPROVED` where applicable; never collapse them into `VERIFIED`.
+5. **Review generated code adversarially.** Inspect the complete diff, run focused tests, type checks, lint and relevant security/financial invariants. Search for secrets, unsafe migrations, tenant-boundary bypasses, unhandled errors and unintended file changes. A second model review is advisory, not a substitute for execution or specialist approval.
+6. **Bounded execution and token discipline.** Ask models to load only the task-relevant source ranges and files, return concise evidence-linked findings, and avoid reprinting the Holy Bible. Do not sacrifice necessary source inspection or verification merely to reduce token use.
+7. **Never hard-code a statutory value.** Read it from the rule set. The engine's loader must fail closed.
+8. **Never modify `backend/data/seeds/statutory_rules_1404.yaml`.** It is an immutable legal artefact; corrections require a new revision (`SPEC-STAT-001` §5.5). CI hash enforcement is a required gate, not an implemented CI claim.
+9. **Do not activate the current 1405 candidate.** It is transcribed but unverified and inactive; unavailable values remain unknown. Activation requires A1–A8 and a named approver, not the mere presence of transcribed values.
+10. **Never treat a proposal as binding.** ADR-005 remains proposed; DEC-004/004a/004b/005 are resolved by ADR-006. Consult the current register for all other entries. No task blocked by an open entry may be marked APPROVED or COMPLETED.
+11. **Never revive a rejected technology** without a new ADR (§13.2).
+12. **Use `Decimal` exclusively.** No `float` literal under `engines/`. Round once, at the line-item boundary, and surface the residual.
+13. **Writing a specification does not advance a task.** Task status reflects work actually performed.
+14. **Unknown is a value.** Record it as `MISSING`/`UNVERIFIED` and name the owner and the action. Never fill a gap with an estimate.
+15. **Never modify an accepted ADR.** If a decision needs to change, raise a superseding ADR.
+16. **Add cross-references in the same change.** `DOCUMENTATION_INDEX.md` and `ADR_INDEX.md` are updated within 1 working day of any ADR change.
+17. **Do not commit or push** without an explicit instruction. Git and the bootstrap commit exist; preserve uncommitted work and recheck ownership before delegation.
+18. **When you produce a financial figure, show every intermediate value and the rule-set version.** A figure without intermediates cannot be reviewed and will be wrong, as Appendix A demonstrates.
+19. **When you state a legal conclusion, cite the instrument and the article.** If you cannot, mark it `UNVERIFIED`.
 ---
 
 ## Appendix A — Independent recalculation of the worked financial example
@@ -3746,7 +3759,7 @@ published income_tax_rial                   6,245,211   ← equals the WHOLE bas
 | **HB-GAP-030** | The `REMEDIATED` "human confirmation" activation rule is **weaker** than the four-eyes A1–A8 gate | **MEDIUM** | M9 | A reader of the rank-2 spec could implement single-approval activation | An amendment | Amend `REMEDIATED` §3.2 to reference `SPEC-STAT-001` §7 | CTO + Legal Counsel | CONF-05 | No | The specification text references the four-eyes gate |
 | **HB-GAP-031** | The `REMEDIATED` §3 "JWT" wording contradicts the proposed opaque-session model | **MEDIUM** | Security | A reader could implement a revocable-session-free design for encrypted PII | DEC-004 | Decide DEC-004, then amend the wording to "bearer-token middleware" | CTO + CISO | DEC-004; CONF-04 | **Yes** | The wording matches the ratified session model |
 | **HB-GAP-032** | No CI configuration exists | **HIGH** | Engineering | No gate can be enforced; the whole 13-stage strategy is unexecutable | The workflow file | Create it in `P0-T19` | DevOps Lead | — | **Yes** | Stages 0–8 run on every PR |
-| **HB-GAP-033** | The workspace is **not a Git repository** | **HIGH** | Engineering | There is no history, no branch protection, no review trail and no rollback. Every change-control rule in the corpus is unenforceable | A repository, a branch model, a commit convention | Initialise the repository; adopt the conventions | Lead Backend Eng + DevOps Lead | HB-GAP-032 | **Yes** | `git log` shows the history; branch protection is on |
+| **HB-GAP-033** | Git/bootstrap repository exists (`2fc2b6f`) but no remote is recorded; branch protection, review policy and rollback controls are not verified | **HIGH** | Engineering | Local history exists, but without a configured remote and verified collaboration controls, review, backup and recovery remain weak | Remote policy, branch protection, review rules and tested recovery | Configure the approved remote and enforce branch protection/review/backup controls | Lead Backend Eng + DevOps Lead | HB-GAP-032 | **Yes** | Remote, protected branch, required reviews and tested recovery are evidenced |
 | **HB-GAP-034** | The branch model and commit convention are unspecified | **LOW** | Engineering | Reviewers cannot know what a good commit looks like | A convention | Specify in `P0-T01` | Lead Backend Eng | QB-14 | No | The convention is written in the contributing guide |
 | **HB-GAP-035** | The HashiCorp Vault **BUSL licence** has not been assessed for Iranian air-gapped distribution | **MEDIUM** | Security, legal | Vault is source-available, not OSI open source, with a production-use restriction — a distribution risk | A licence opinion | A licence review; make the local Argon2id KEK path the default if needed | Legal Counsel + Security Architect | DEC-010 | No | A written licence position exists |
 | **HB-GAP-036** | The **DTA Art. 92** less-developed-region 50 % discount is neither implemented nor consciously excluded | **MEDIUM** | M1 | A statutory feature that the engine silently omits | A scope decision | Decide whether it is in scope; if yes, parameterise it | Certified Tax Accountant | QB-12 | No | A decision is recorded and either a parameter exists or a documented exclusion does |
@@ -3836,9 +3849,11 @@ Requirements that the corpus identifies as needed but that have **no ID, no task
 
 ---
 
-## Appendix E — Final self-audit record
+## Appendix E — Original v1.0.0 self-audit record (historical)
 
-**Procedure.** After writing this document, the entire file was re-read and checked against the following checklist. Each item is recorded with its outcome.
+> **Historical record only.** This checklist records the original v1.0.0 document-production audit. Its statements about the repository, implementation status, file inventory and verification are not current v1.0.7 claims. Later current-state corrections and Appendix G take precedence. Do not use this appendix as evidence that the present repository or codebase was re-audited.
+
+**Original procedure (v1.0.0).** After writing the initial document, the original author recorded the following checks and outcomes.
 
 | # | Check | Outcome | Resolution applied |
 | --: | :--- | :--- | :--- |
@@ -3909,6 +3924,7 @@ These are new contributions of this audit, not restatements of the earlier work:
 
 | Version | Date | Change | Author |
 | :--: | :--- | :--- | :--- |
+| 1.0.7 | 2026-11-15 | Correct stale implementation census and repository/migration claims; record P0-T04 owner-reported evidence with provenance; preserve READY_FOR_REVIEW pending CI; distinguish P0-T04/P0-T05/P0-T18; fix statutory subsection numbering; replace agent-centric execution guidance with AI-assisted implementation and human-review controls; append review findings and verification limits. No accepted ADR, statutory seed, roadmap or phase gate changed. | AI-assisted documentation review; owner-reported implementation evidence |
 | 1.0.6 | 2026-11-15 | Record full-scope Wednesday execution target without roadmap/gate changes; bounded regulatory acquisition preparation and failed official probes; 157 tests pass with independent static review. No statutory activation or WBS completion. Evidence: BOOTSTRAP_CHANGELOG §16. | Codex implementation owner |
 | 1.0.5 | 2026-11-15 | Factual runtime refresh: official PostgreSQL image pull/build and actual hardening verifier PASS; local DB healthy, P0-T03 READY_FOR_REVIEW with CI dependency pending. No infrastructure code, statutory rule, architecture decision or roadmap change. Evidence: BOOTSTRAP_CHANGELOG §15. | Codex implementation owner |
 | 1.0.4 | 2026-11-14 | Owner-authorized documentation maintenance: bounded context loading, ADR-006/current decision disposition, historical inventories/census labels and current agent constraints. No product decision, roadmap, financial rule, code or WBS-status change. Evidence: BOOTSTRAP_CHANGELOG §13. | Codex documentation owner |
@@ -3919,4 +3935,62 @@ These are new contributions of this audit, not restatements of the earlier work:
 
 ---
 
-*End of `docs/PISH_HESABDARI_HOLY_BIBLE.md` (`DOC-HOLY-001` v1.0.6). This document is derived. It must be re-derived whenever any rank-1…4 artefact changes, and re-issued at every phase gate, quarterly against the implemented behaviour, and annually alongside the statutory rule-set re-verification.*
+*End of `docs/PISH_HESABDARI_HOLY_BIBLE.md` (`DOC-HOLY-001` v1.0.7). This document is derived. It must be re-derived whenever any rank-1…4 artefact changes, and re-issued at every phase gate, quarterly against the implemented behaviour, and annually alongside the statutory rule-set re-verification.*
+
+---
+
+## Appendix G — v1.0.7 review findings and verification boundary
+
+**Review scope:** structural and consistency review of the 3,922-line v1.0.6 Holy Bible supplied in this conversation, with targeted inspection of its implementation addenda, task/status tables, Git claims, statutory section numbering, governance instructions, original self-audit and change log. The live repository and referenced status/changelog files were not available for execution in this review. Findings below therefore distinguish document-internal defects from owner-reported implementation facts.
+
+### G.1 Corrections applied in v1.0.7
+
+| ID | Finding | Correction | Evidence status |
+| :--- | :--- | :--- | :--- |
+| HB-REV-001 | The cover metadata and §11.3 retained the old census (1 completed, 1 in progress, 2 ready, 78 not started, 4 blocked) despite the newer §0 implementation addendum. | Updated the cover and §11.3 aggregate census to 1 / 6 / 5 / 70 / 4 (86 total). Per-phase counts are explicitly not inferred. | Latest document addendum; repository not independently queried |
+| HB-REV-002 | The cover and §11.1 said no migration/schema work existed, conflicting with the later P0-T04 implementation addendum and owner report. | Removed the stale absence claim; recorded the P0-T04 migration and its exact reported boundaries. | Owner-reported; CI pending |
+| HB-REV-003 | The P0-T04 result could be misread as completion of identity or authentication work. | Explicitly separated P0-T04 (statutory provenance/schema), P0-T05 (identity entities and role matrix), and P0-T18 (authentication/session lifecycle); preserved the user-FK write gate. | Task boundaries stated in project documentation and current addendum |
+| HB-REV-004 | §11.1 repeated an obsolete claim that no Git repository existed. | Replaced it with the later bootstrap-commit evidence and retained remote/branch-protection controls as unverified. | Owner-authorized current-state correction in the document |
+| HB-REV-005 | HB-GAP-033 still described the workspace as not being a Git repository. | Reframed it around the actual remaining gap: no remote and unverified branch/review/recovery controls. | Current-state correction; remote not inspected live |
+| HB-REV-006 | The 1405 candidate subsection was numbered 10.3.1 but appeared under §10.2, and its ToC nesting was inconsistent. | Renumbered it to §10.2.1 and corrected the ToC. | Direct document structure check |
+| HB-REV-007 | The operating instructions were explicitly agent-centric, while the current workflow is AI-assisted development with human ownership rather than autonomous project delegation. | Reframed §13.8 for AI coding/review tools and human approval; added bounded-context, diff-review, evidence-provenance and no-overlapping-edits rules. | Owner's stated workflow direction |
+| HB-REV-008 | Appendix E contained statements that were no longer true for the current repository. | Marked it as the original v1.0.0 historical self-audit and directed readers to current-state addenda and this appendix. | Direct document consistency check |
+
+### G.2 Owner-reported P0-T04 evidence — not independently reproduced
+
+The project owner reported the following for P0-T04:
+
+- Five-table migration implemented.
+- Database access restrictions, including `FORCE ROW LEVEL SECURITY` and restricted database roles.
+- Separation between published statutory-rule reads and approver-evidence visibility.
+- Writes gated until P0-T05 validates user foreign keys.
+- 443 backend tests and 102 frontend tests passing.
+- Type checks, lint, frontend production build, local startup and independent local security review passing.
+
+**Disposition:** recorded as `OWNER_REPORTED` / local evidence. This review did not run those tests, inspect the migration files, query PostgreSQL catalogues, inspect the security-review artefact, or observe CI. The task therefore remains `READY_FOR_REVIEW` pending its documented CI/integration requirements. No production readiness or phase-gate approval is implied.
+
+### G.3 Issues intentionally not “fixed” by assumption
+
+| Item | Current treatment | Why it remains open |
+| :--- | :--- | :--- |
+| 1405 statutory baseline and all candidate values | `UNVERIFIED` / inactive | The document records no completed L1 + A1–A8 + named-approver process. No legal source was independently retrieved in this review. |
+| 1404 statutory seed defects and immutability | Preserved; seed not edited | The seed is a protected legal artefact. A new revision and its required review are needed; editing the seed would be an unauthorized legal change. |
+| P0-T05 identity schema and user-FK validation | Not marked complete | P0-T04 writes remain gated until the identity targets are implemented and verified. |
+| P0-T18 authentication/session implementation | Kept separate | It is not part of P0-T05 and must not be inferred from identity-table work. |
+| CI, production deployment and phase gates | Not certified | No CI logs, deployment evidence or signed gate artefacts were available in this review. |
+| Certified accountant/legal counsel, 10,000-case golden corpus, licensed benchmark and 500 consented OCR samples | External blockers retained | AI-generated synthetic data cannot replace certified, licensed or consented evidence. |
+| Business/API/integration details not supported by the supplied evidence | `MISSING` / `UNVERIFIED` | No invented endpoints, legal values, vendor contracts or product behaviour were inserted. |
+
+### G.4 Remaining verification required before calling the Holy Bible fully synchronized with the repository
+
+1. Re-enumerate the current repository and reconcile every path in §11.1 against `git ls-files` and the filesystem.
+2. Inspect P0-T04 migration SQL, constraints, RLS policies, role grants, downgrade/rollback behaviour and the five-table inventory.
+3. Inspect P0-T05's six identity entities, foreign keys and role matrix; verify that P0-T04 write paths remain closed until the required bindings exist.
+4. Inspect P0-T18 independently for password hashing, opaque session storage, cookie attributes, MFA, rotation, revocation and audit events.
+5. Re-run the reported backend and frontend test suites, type checks, lint, production build and security tests; compare the results to the claimed 443/102 counts.
+6. Inspect CI configuration and a successful CI run; update task statuses only against acceptance criteria.
+7. Reconcile the 86-task aggregate census with the authoritative WBS row by row; do not allocate aggregate statuses to phases without evidence.
+8. Recheck every document ranked 1–4 changed since v1.0.6, then update the source register, contradiction/gap registers and change log.
+
+**v1.0.7 review conclusion:** the known stale claims and document-structure defects listed in G.1 have been corrected in this file. The Holy Bible is more internally consistent and reflects the latest reported P0-T04 state, but it is **not certified as a complete live-repository audit** until G.4 is executed against the current repository and CI evidence. No statutory, production, security-phase or financial-engine certification is claimed.
+

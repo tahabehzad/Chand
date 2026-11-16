@@ -3,7 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './app-shell';
-import { NAV_ITEMS } from './navigation';
+import { NAV_ITEMS, PRIMARY_NAV_ITEMS } from './navigation';
 import { useUiStore } from '@/state/ui-store';
 
 function renderShell(path = '/') {
@@ -40,9 +40,27 @@ describe('AppShell', () => {
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content');
   });
 
-  it('links every approved product module in the preserved section', async () => {
+  it('links every primary screen directly in the main navigation', () => {
     renderShell();
-    await userEvent.click(screen.getByText('بخش‌های پیشین پروژه'));
+    const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
+    for (const item of PRIMARY_NAV_ITEMS) {
+      expect(within(nav).getByRole('link', { name: new RegExp(item.labelFa) })).toHaveAttribute(
+        'href',
+        item.path,
+      );
+    }
+  });
+
+  it('offers the delivered statutory simulation in the primary navigation', () => {
+    renderShell();
+    const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
+    const link = within(nav).getByRole('link', { name: /شبیه‌سازی حقوق/ });
+    expect(link).toHaveAttribute('href', '/simulation');
+  });
+
+  it('links every deferred module in the collapsed section', async () => {
+    renderShell();
+    await userEvent.click(screen.getByText('بخش‌های در انتظار قرارداد'));
     const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
     for (const item of NAV_ITEMS) {
       expect(within(nav).getByRole('link', { name: new RegExp(item.labelFa) })).toHaveAttribute(
@@ -52,12 +70,25 @@ describe('AppShell', () => {
     }
   });
 
-  it('marks the active module with aria-current', async () => {
+  it('never links two navigation entries to the same path', () => {
+    const paths = [...PRIMARY_NAV_ITEMS, ...NAV_ITEMS].map((item) => item.path);
+    expect(new Set(paths).size).toBe(paths.length);
+  });
+
+  it('marks the active module with aria-current', () => {
     renderShell('/simulation');
-    await userEvent.click(screen.getByText('بخش‌های پیشین پروژه'));
     const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
     const link = within(nav).getByRole('link', { name: /شبیه‌سازی حقوق/ });
     expect(link).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('labels the statutory screen with its baseline and the demo with its notice', () => {
+    const { unmount } = renderShell('/simulation');
+    expect(screen.getByRole('banner')).toHaveTextContent('پایه قانونی ۱۴۰۴');
+    expect(screen.getByRole('banner')).not.toHaveTextContent('داده‌های نمایشی');
+    unmount();
+    renderShell('/');
+    expect(screen.getByRole('banner')).toHaveTextContent('داده‌های نمایشی');
   });
 
   it('discloses the statutory baseline in the footer', () => {

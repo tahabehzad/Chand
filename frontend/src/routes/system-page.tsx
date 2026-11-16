@@ -42,7 +42,7 @@ function ServiceStatus() {
   );
 }
 
-export default function OverviewPage() {
+export default function SystemPage() {
   const awaitingContracts = NAV_ITEMS.filter(
     (item) => item.contract !== undefined && item.contract.availability !== 'delivered',
   );
@@ -55,12 +55,13 @@ export default function OverviewPage() {
         description="این نسخه شامل پایه رابط فارسی، راست‌به‌چپ، مسیرها و مرز کلاینت API است. هیچ نتیجه مالی یا قانونی در آن تولید نمی‌شود."
       />
 
-      <Alert tone="warning" title="وابستگی بک‌اند هنوز تحویل نشده است">
+      <Alert tone="info" title="قرارداد محاسبه تحویل شده است">
         <p>
-          قراردادهای API محاسبات و احراز هویت (وظیفه‌های <Bdi>P1-T19</Bdi> و{' '}
-          <Bdi>P0-T18</Bdi>) پیاده‌سازی نشده‌اند. بنابراین تکمیل وظیفه{' '}
-          <Bdi>P3-T01</Bdi> و وظیفه‌های بعدی صورت نمی‌گیرد؛ آنچه ساخته شده، آماده‌سازی
-          رابط است، نه تحقق آن وابستگی.
+          قرارداد شبیه‌سازی حقوق (وظیفه <Bdi>P1-T19</Bdi>) پیاده‌سازی و تحویل شده
+          است: <Bdi>POST /api/v1/simulations/gross-to-net</Bdi> روی مجموعه قواعد
+          تأییدشده ۱۴۰۴ محاسبه می‌کند و هر دو حالت ماده ۱۳۷ را برمی‌گرداند. قرارداد
+          احراز هویت (وظیفه <Bdi>P0-T18</Bdi>) هنوز تحویل نشده است، بنابراین
+          صفحه‌های ورود فقط نمایشی می‌مانند.
         </p>
       </Alert>
 
@@ -68,8 +69,8 @@ export default function OverviewPage() {
         <CardHeader>
           <CardTitle>وضعیت اتصال</CardTitle>
           <CardDescription>
-            تنها مسیری که بک‌اند در حال حاضر ارائه می‌دهد، بررسی زنده‌بودن سرویس است. سایر
-            بخش‌ها به‌صراحت به‌عنوان «بدون قرارداد» علامت‌گذاری شده‌اند.
+            بک‌اند دو مسیر ارائه می‌دهد: بررسی زنده‌بودن سرویس و محاسبه ناخالص به
+            خالص. سایر بخش‌ها به‌صراحت به‌عنوان «بدون قرارداد» علامت‌گذاری شده‌اند.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -131,8 +132,8 @@ export default function OverviewPage() {
               رابط فقط نمایشی است.
             </li>
             <li>
-              کاتالوگ خطاها موقت است و بر پایه کد وضعیت HTTP نگاشت شده تا زمانی که کاتالوگ
-              بک‌اند تحویل شود.
+              کاتالوگ خطای رابط هم‌اکنون همان کدهای ماشینی خود بک‌اند را می‌خواند؛
+              مسیرهای بدون قرارداد همچنان با کد وضعیت HTTP نگاشت می‌شوند.
             </li>
           </ul>
         </CardContent>

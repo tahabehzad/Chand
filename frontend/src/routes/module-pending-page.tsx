@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { PageHeader } from '@/app/page-header';
 import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,6 +15,13 @@ type Props = {
   /** The frontend task that will build this screen. */
   frontendTask: string;
   planned: readonly string[];
+  /**
+   * An optional note for a module whose figures are already delivered
+   * elsewhere. ADR-008 places the employer cost and the termination
+   * liability inside the gross-to-net response, so those screens must say
+   * where the real figures live instead of implying that nothing exists.
+   */
+  note?: ReactNode;
 };
 
 /**
@@ -24,7 +32,14 @@ type Props = {
  * stakeholder cannot mistake this for a working feature, and no fixture stands
  * in for a failed real call.
  */
-export function ModulePendingPage({ title, description, contract, frontendTask, planned }: Props) {
+export function ModulePendingPage({
+  title,
+  description,
+  contract,
+  frontendTask,
+  planned,
+  note,
+}: Props) {
   return (
     <>
       <PageHeader
@@ -51,6 +66,7 @@ export function ModulePendingPage({ title, description, contract, frontendTask, 
           <Bdi>{frontendTask}</Bdi> است. ساخت این صفحه پیش از تحویل قرارداد، هیچ نتیجه‌ای
           تولید نمی‌کند.
         </p>
+        {note ? <div className="mt-2">{note}</div> : null}
       </Alert>
 
       <Card>

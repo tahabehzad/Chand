@@ -4,7 +4,7 @@ import { Icon } from '@/components/icon';
 import { Badge } from '@/components/ui/badge';
 import { StatutoryBaselineNotice } from '@/components/layout/statutory-baseline-notice';
 import { UnitToggle } from '@/components/layout/unit-toggle';
-import { NAV_ITEMS, MVP_NAV_ITEMS, type NavItem } from '@/app/navigation';
+import { NAV_ITEMS, PRIMARY_NAV_ITEMS, type NavItem } from '@/app/navigation';
 import { SessionBridge } from '@/app/session-bridge';
 import { useUiStore } from '@/state/ui-store';
 import { cn } from '@/lib/cn';
@@ -97,8 +97,8 @@ export function AppShell() {
           </div>
 
           <div className="ms-auto flex items-center gap-3">
-            <Badge tone="info">
-              داده‌های نمایشی
+            <Badge tone={isDemoPage ? 'info' : 'success'}>
+              {isDemoPage ? 'داده‌های نمایشی' : 'پایه قانونی ۱۴۰۴'}
             </Badge>
             <div className="hidden sm:block">
               <UnitToggle />
@@ -117,14 +117,10 @@ export function AppShell() {
           )}
         >
           <nav aria-label="ناوبری اصلی" className="flex flex-col gap-4">
-            <p className="px-3 text-xs font-medium text-ink-muted">فضای کاری نمونه</p>
-            <NavItems items={MVP_NAV_ITEMS} onNavigate={() => setMobileNavOpen(false)} />
-            <div className="mx-3 mt-6 rounded-xl border border-border-subtle bg-surface-muted p-3">
-              <p className="text-sm font-medium">پیش‌حسابداری ۰٫۱</p>
-              <p className="mt-2 text-xs text-ink-muted">یک شروع کوچک برای تصویری روشن از امور مالی.</p>
-            </div>
+            <p className="px-3 text-xs font-medium text-ink-muted">بخش‌های فعال</p>
+            <NavItems items={PRIMARY_NAV_ITEMS} onNavigate={() => setMobileNavOpen(false)} />
             <details className="mt-4 border-t border-border-subtle pt-4">
-              <summary className="cursor-pointer rounded px-3 py-2 text-xs text-ink-muted">بخش‌های پیشین پروژه</summary>
+              <summary className="cursor-pointer rounded px-3 py-2 text-xs text-ink-muted">بخش‌های در انتظار قرارداد</summary>
               <div className="pt-3"><NavItems onNavigate={() => setMobileNavOpen(false)} /></div>
             </details>
             <div className="mt-2 border-t border-border-subtle pt-4 lg:hidden">

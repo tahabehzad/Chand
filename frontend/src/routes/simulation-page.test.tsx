@@ -22,8 +22,27 @@ const RESPONSE: PayrollResponse = {
   rule_year_shamsi: 1404,
   days_in_month: 30,
   primary_tax_posture: 'conservative_inta',
-  inputs: {},
-  bases: { total_gross_rial: 341_850_120 },
+  inputs: {
+    gross_monthly_rial: 341_850_120,
+    allowances_rial: {
+      housing: 9_000_000,
+      grocery: 22_000_000,
+      marriage: 5_000_000,
+      child: 10_390_968,
+      continuous_attraction: 40_000_000,
+    },
+    overtime_hours: 0,
+    night_hours: 0,
+    continuous_attraction_taxable: false,
+  },
+  bases: {
+    welfare_total_rial: 46_390_968,
+    mozd_e_saabet_rial: 295_459_152,
+    overtime_divisor: '220.00',
+    overtime_pay_rial: 0,
+    night_shift_pay_rial: 0,
+    total_gross_rial: 341_850_120,
+  },
   sso: {
     insurable_wage_rial: 341_850_120,
     insurable_ceiling_rial: 727_367_760,
@@ -73,7 +92,18 @@ const RESPONSE: PayrollResponse = {
     includes_26day_leave_reserve: false,
   },
   rounding_residual_rial: 0,
-  provenance: {},
+  provenance: {
+    mozd_e_saabet_rial: {
+      rule_id: 'LABOUR_LAW_ART_36_NOTE_3_PRECEDENT_3328',
+      rule_year_shamsi: 1404,
+      formula_ref: 'gross - welfare_allowances (attraction retained)',
+    },
+    income_tax_rial: {
+      rule_id: 'DTA_ART_82_92_137',
+      rule_year_shamsi: 1404,
+      formula_ref: 'progressive slabs on (gross - art137_deduction - exempt)',
+    },
+  },
   termination_liability: null,
 };
 
@@ -123,7 +153,7 @@ describe('Simulation screen', () => {
     expect(init.headers).toMatchObject({ 'Content-Type': 'application/json' });
 
     const body = JSON.parse(String(init.body)) as Record<string, unknown>;
-    expect(body.gross_monthly_rial).toBe(50_000_000);
+    expect(body.gross_monthly_rial).toBe(300_000_000);
     expect(body.rule_year).toBe(1404);
     expect(body.days_in_month).toBe(30);
     expect(body.tax_posture).toBe('conservative_inta');
@@ -224,6 +254,21 @@ describe('Simulation screen', () => {
     expect(alert).toHaveTextContent('STATUTORY_PARAMETER_UNAVAILABLE');
     expect(alert).toHaveTextContent('یک مقدار قانونی لازم در دسترس یا تأیید‌شده نیست');
     expect(screen.queryByRole('region', { name: 'نتایج شبیه‌سازی' })).not.toBeInTheDocument();
+  });
+
+  it('renders the statutory bases, the insurance block and the field provenance', async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+
+    const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
+    // The statutory base of severance, Eydi and overtime must be visible:
+    // a net pay figure without its base is not auditable.
+    expect(within(results).getByText('مزد ثابت (مبنای سنوات و عیدی)')).toBeInTheDocument();
+    expect(within(results).getAllByText(/۲۹۵٬۴۵۹٬۱۵۲/).length).toBeGreaterThan(0);
+    expect(within(results).getByText('سقف بیمهٔ ماهانه')).toBeInTheDocument();
+    expect(within(results).getAllByText(/۷۲۷٬۳۶۷٬۷۶۰/).length).toBeGreaterThan(0);
+    expect(within(results).getByText('منشأ هر رقم')).toBeInTheDocument();
+    expect(within(results).getByText('DTA_ART_82_92_137')).toBeInTheDocument();
   });
 
   it('never renders a float as a monetary amount', async () => {

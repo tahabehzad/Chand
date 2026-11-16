@@ -2,10 +2,16 @@ import type { IconName } from '@/lib/icons';
 import { CONTRACTS, type ContractDefinition } from '@/api/contracts';
 
 /**
- * Navigation for the approved product modules (`EXECUTION_PLAN` §6, WBS
- * `P3-T07`…`P3-T10`). Every entry names the contract it needs, so the shell can
- * show which modules are waiting on the backend rather than implying a working
- * feature.
+ * Navigation for the delivered product and the deferred sections.
+ *
+ * ADR-008 fixed the product boundary on the statutory payroll calculation
+ * engine, so the navigation follows the same truth: the working screens are
+ * the primary navigation, and the sections whose backend contract does not
+ * exist yet stay in a clearly labelled, collapsed group where each item
+ * names the contract it waits for.
+ *
+ * Every entry names the contract it needs, so the shell can show which
+ * modules are waiting on the backend rather than implying a working feature.
  *
  * Route-level permission guards (`SPEC-AUTH-001` §3) are **not** implemented:
  * the session contract does not exist, and a client-side guard that "passes"
@@ -23,30 +29,43 @@ export type NavItem = {
   ownerTask?: string;
 };
 
-/** Local-only MVP demo navigation; approved product modules remain separate. */
-export const MVP_NAV_ITEMS: readonly NavItem[] = [
+/**
+ * The statutory simulation — the delivered ADR-008 screen. It calls the
+ * gross-to-net contract, which exists; the net-to-gross inverter is out of
+ * product scope, so it is not named here.
+ */
+export const SIMULATION_NAV_ITEM: NavItem = {
+  id: 'simulation',
+  path: '/simulation',
+  labelFa: 'شبیه‌سازی حقوق',
+  descriptionFa: 'محاسبه ناخالص به خالص با دو حالت ماده ۱۳۷',
+  icon: 'simulation',
+  contract: CONTRACTS.grossToNet,
+  ownerTask: 'P1-T19',
+};
+
+/**
+ * The primary navigation: the screens that work today.
+ *
+ * The dashboard, the transactions table and the settings are the local
+ * synthetic demo; the simulation is the statutory screen backed by the
+ * verified 1404 rule set; the system page reports the delivered contracts
+ * and the service status.
+ */
+export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   { id: 'dashboard', path: '/', labelFa: 'داشبورد', descriptionFa: '', icon: 'overview' },
+  SIMULATION_NAV_ITEM,
   { id: 'transactions', path: '/transactions', labelFa: 'تراکنش‌ها', descriptionFa: '', icon: 'wallet' },
   { id: 'settings', path: '/settings', labelFa: 'تنظیمات', descriptionFa: '', icon: 'settings' },
+  { id: 'system', path: '/system', labelFa: 'وضعیت سامانه', descriptionFa: '', icon: 'rule-sets' },
 ];
 
+/**
+ * The sections whose backend contract does not exist yet. They are grouped
+ * and collapsed so that a deferred module can never be mistaken for a
+ * working one.
+ */
 export const NAV_ITEMS: readonly NavItem[] = [
-  {
-    id: 'overview',
-    path: '/',
-    labelFa: 'نمای کلی',
-    descriptionFa: 'وضعیت سامانه و آمادگی بخش‌ها',
-    icon: 'overview',
-  },
-  {
-    id: 'simulation',
-    path: '/simulation',
-    labelFa: 'شبیه‌سازی حقوق',
-    descriptionFa: 'محاسبه خالص و ناخالص با دو سناریو',
-    icon: 'simulation',
-    contract: CONTRACTS.netToGross,
-    ownerTask: 'P3-T07',
-  },
   {
     id: 'ctc',
     path: '/ctc',

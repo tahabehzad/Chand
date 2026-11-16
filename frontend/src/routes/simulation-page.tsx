@@ -6,16 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/icon';
 import { CONTRACTS } from '@/api/contracts';
-import { createApiClient } from '@/api/client';
-import { readApiBaseUrl } from '@/api/client';
+import { apiClient } from '@/api/instance';
 import { formatMoney, formatPercentFromRate } from '@/lib/money';
 import { toPersianDigits } from '@/lib/numerals';
 import { isApiError } from '@/api/errors';
 import type { GrossToNetRequest, PayrollResponse, TaxPosture } from '@/api/payroll-types';
-
-const apiClient = createApiClient({
-  baseUrl: readApiBaseUrl(),
-});
 
 /**
  * The optional liability inputs are genuinely optional: an empty field means
@@ -116,7 +111,13 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
 
 export function SimulationPage() {
   const [formData, setFormData] = useState<GrossToNetRequest>({
-    gross_monthly_rial: 50000000,
+    /*
+     * The seeded example is illustrative, not a market claim: it is chosen so
+     * that the progressive ladder is actually engaged (the 1404 monthly
+     * exemption is 240,000,000 Rial), so a first-time user sees both Article
+     * 137 postures with a non-zero tax instead of an empty slab table.
+     */
+    gross_monthly_rial: 300000000,
     rule_year: 1404,
     days_in_month: 30,
     tax_posture: 'conservative_inta',
@@ -520,6 +521,102 @@ export function SimulationPage() {
 
               <div className='border-t border-border-subtle pt-3 text-xs text-ink-muted'>
                 <p>منشأ محاسبه: <code className='font-mono'>{result.engine_version}</code> · محاسبه در: {new Date(result.generated_at).toLocaleString('fa-IR', { timeZone: 'Asia/Tehran' })}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>مبانی حقوقی و بیمه</CardTitle>
+              <CardDescription>
+                مبانی استخراج‌شده از حقوق ناخالص و سهم بیمهٔ تأمین اجتماعی؛ هر رقم بالا از همین مبانی محاسبه شده است.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='space-y-3'>
+              <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>حقوق ناخالص ماهانه</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.total_gross_rial - result.bases.overtime_pay_rial - result.bases.night_shift_pay_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>جمع ناخالص با اضافه‌کاری و شب‌کاری</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.total_gross_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>مزایای رفاهی (خارج از مزد ثابت)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.welfare_total_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>مزد ثابت (مبنای سنوات و عیدی)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.mozd_e_saabet_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>اضافه‌کاری (مخرج {toPersianDigits(result.bases.overtime_divisor)} ساعت)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.overtime_pay_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>شب‌کاری</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.night_shift_pay_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>سقف بیمهٔ ماهانه</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.insurable_ceiling_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>اعمال سقف بیمه</p>
+                  <Badge tone={result.sso.sso_insurable_ceiling_applied ? 'danger' : 'neutral'} className='text-base'>
+                    {result.sso.sso_insurable_ceiling_applied ? 'بله' : 'خیر'}
+                  </Badge>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>حقوق مشمول بیمه</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.insurable_wage_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>بیمهٔ کارمند (۷٪)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.employee_share_7pct_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>بیمهٔ کارفرما (۲۰٪)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.employer_share_20pct_rial)} ریال</p>
+                </div>
+                <div className='rounded-lg border border-border-subtle bg-surface p-3'>
+                  <p className='text-xs text-ink-muted'>بیمهٔ بیکاری (۳٪)</p>
+                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.unemployment_fund_3pct_rial)} ریال</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>منشأ هر رقم</CardTitle>
+              <CardDescription>
+                قاعدهٔ قانونی و فرمول هر رقم صادرشده؛ شناسهٔ قاعده و سال قانونی مستقیماً از پاسخ سرویس خوانده شده است.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className='overflow-x-auto'>
+                <table className='w-full text-sm text-start'>
+                  <thead>
+                    <tr className='border-b border-border-subtle'>
+                      <th className='pb-2 text-ink-muted'>رقم</th>
+                      <th className='pb-2 text-ink-muted'>شناسهٔ قاعده</th>
+                      <th className='pb-2 text-ink-muted'>سال قانونی</th>
+                      <th className='pb-2 text-ink-muted'>فرمول</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(result.provenance).map(([figure, entry]) => (
+                      <tr key={figure} className='border-b border-border-subtle/50 last:border-0'>
+                        <td className='py-1 font-mono text-xs' dir='ltr'>{figure}</td>
+                        <td className='py-1 font-mono text-xs' dir='ltr'>{entry.rule_id}</td>
+                        <td className='py-1 tabular-nums'>{toPersianDigits(String(entry.rule_year_shamsi))}</td>
+                        <td className='py-1 text-xs text-ink-muted' dir='ltr'>{entry.formula_ref}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>

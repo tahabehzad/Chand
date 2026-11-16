@@ -62,6 +62,33 @@ export interface ProvenanceEntry {
   formula_ref: string;
 }
 
+export interface BasesView {
+  /** Art. 36 Note 3 welfare total, excluded from *Mozd-e Saabet*. */
+  welfare_total_rial: number;
+  /** *Mozd-e Saabet* — the statutory base of severance, overtime and Eydi. */
+  mozd_e_saabet_rial: number;
+  /** The paid-hours divisor, as a decimal string (e.g. "220.00"). */
+  overtime_divisor: string;
+  overtime_pay_rial: number;
+  night_shift_pay_rial: number;
+  /** Gross plus the overtime and night-shift premiums. */
+  total_gross_rial: number;
+}
+
+export interface PayrollInputsView {
+  gross_monthly_rial: number;
+  allowances_rial: {
+    housing: number;
+    grocery: number;
+    marriage: number;
+    child: number;
+    continuous_attraction: number;
+  };
+  overtime_hours: number;
+  night_hours: number;
+  continuous_attraction_taxable: boolean;
+}
+
 export interface PayrollResponse {
   statutory_version: string;
   rule_set_status: string;
@@ -72,8 +99,8 @@ export interface PayrollResponse {
   rule_year_shamsi: number;
   days_in_month: number;
   primary_tax_posture: TaxPosture;
-  inputs: Record<string, unknown>;
-  bases: Record<string, unknown>;
+  inputs: PayrollInputsView;
+  bases: BasesView;
   sso: SsoView;
   tax_postures: Record<TaxPosture, PostureTaxView>;
   net_rial: number;

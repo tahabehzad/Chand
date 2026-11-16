@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { ModulePendingPage } from './module-pending-page';
 import { CONTRACTS } from '@/api/contracts';
+import { Icon } from '@/components/icon';
 
 export function CtcPage() {
   return (
@@ -9,6 +11,20 @@ export function CtcPage() {
       contract={CONTRACTS.preHireCtc}
       frontendTask="P3-T08"
       planned={['تفکیک هزینه به قلم‌های قابل بازبینی', 'نمودار سهم هر مؤلفه']}
+      note={
+        <p className="text-sm">
+          <span className="font-medium">ارقام این بخش هم‌اکنون محاسبه می‌شوند.</span> هزینه
+          کل کارفرما و بهای تمام‌شده سالانه در پاسخ قرارداد محاسبه حقوق موجود است؛{' '}
+          <Link
+            to="/simulation"
+            className="inline-flex items-center gap-1 font-medium text-brand underline"
+          >
+            شبیه‌سازی حقوق
+            <Icon name="chevron-next" className="size-4" />
+          </Link>
+          {' '}را باز کنید.
+        </p>
+      }
     />
   );
 }
@@ -21,6 +37,21 @@ export function TerminationPage() {
       contract={CONTRACTS.terminationLiability}
       frontendTask="P3-T08"
       planned={['ریز اقلام تسویه', 'نمایش صریح حالت آزمایشی ماده ۱۱']}
+      note={
+        <p className="text-sm">
+          <span className="font-medium">تعهد پایان خدمت هم‌اکنون محاسبه می‌شود.</span> تعهد
+          آزمایشی ماده ۱۱، سنوات خروج و خرید مرخصی در پاسخ قرارداد محاسبه حقوق موجود
+          است؛{' '}
+          <Link
+            to="/simulation"
+            className="inline-flex items-center gap-1 font-medium text-brand underline"
+          >
+            شبیه‌سازی حقوق
+            <Icon name="chevron-next" className="size-4" />
+          </Link>
+          {' '}را باز کنید.
+        </p>
+      }
     />
   );
 }
