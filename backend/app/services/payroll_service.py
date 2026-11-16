@@ -321,7 +321,10 @@ def compute_gross_to_net(inputs: PayrollInput) -> PayrollResult:
             "income_tax_rial": {
                 "rule_id": "DTA_ART_82_92_137",
                 "rule_year_shamsi": rule_set.rule_year_shamsi,
-                "formula_ref": "progressive slabs on (gross - art137_deduction - exempt)",
+                "formula_ref": (
+                    "progressive slabs on (gross - art137_deduction - exempt), "
+                    "matched against the ladder shifted down by the monthly exemption"
+                ),
             },
             "overtime_pay_rial": {
                 "rule_id": "LABOUR_LAW_ART_51_59",

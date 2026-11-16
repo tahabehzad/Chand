@@ -46,6 +46,12 @@ vault-token.*
 .opencode/
 .continue/
 .agents/cache/
+# Local planning state of the other agent harnesses used on this workspace.
+.kilo/
+.zcode/
+# The behaviour contracts are tracked individually under .agents/skills/;
+# the archive is a local convenience copy.
+/.agents/skills.zip
 
 # --- Python ---------------------------------------------------------------
 __pycache__/

@@ -11,7 +11,7 @@ Pre-employment compensation intelligence and evidentiary verification for Iran. 
 | Product knowledge and requirements | Relevant sections of [Holy Bible](docs/PISH_HESABDARI_HOLY_BIBLE.md), then the authoritative source it cites |
 | Owner decisions | [DECISIONS_REGISTER](docs/DECISIONS_REGISTER.md) and [DECISION_REQUIRED_FROM_OWNER](docs/DECISION_REQUIRED_FROM_OWNER.md) |
 | Environment-dependent work | [ENVIRONMENT_INVENTORY](docs/ENVIRONMENT_INVENTORY.md); recheck only the capability needed |
-| Verification evidence | [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §19 records fresh foundation verification; §15 records prior PostgreSQL runtime evidence |
+| Verification evidence | [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §23 records the fresh statutory-engine verification; §19 the foundation verification; §15 the prior PostgreSQL runtime evidence |
 
 Read sections relevant to the task. The full Holy Bible, complete WBS, execution history and research corpus are not a default startup packet. Required specifications and safety rules still apply.
 
@@ -19,7 +19,7 @@ Read sections relevant to the task. The full Holy Bible, complete WBS, execution
 
 **Product scope (ADR-008, accepted 2026-11-15): the statutory payroll calculation engine** — SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — delivered as pure functions plus one minimal API endpoint. The prior pre-employment platform scope is superseded; non-engine modules are out of product scope pending a future ADR.
 
-FastAPI liveness, isolated field encryption, reviewed Decimal money primitives, a tenant-scoped S3 adapter and a partial Persian React interface exist. Fresh verification: 329 backend unit/API tests and 99 frontend tests pass; frontend build, strict backend types and scoped lint/security checks pass. No complete statutory engine, real authentication or integrated tenant-security/database foundation is claimed. PostgreSQL runtime passed in changelog §15; its current state was not rechecked in §19.
+The **statutory payroll engine** is implemented and verified on the 1404 baseline: the fail-closed rule-set loader, the base decomposition, SSO, the progressive income tax with both Article 137 postures, overtime and night shift, Sanavat, Eydi, the employer cost identity and the Article 11 termination simulator, composed by one service and served by one endpoint. Fresh verification (changelog §23): **548 backend tests and 110 frontend tests pass**; ruff, strict mypy, the frontend typecheck, the logical-utility gate and the production build pass; a live request and a live 1405 refusal were observed. No real authentication, no integrated tenant-security foundation and no certified golden corpus are claimed. The 104 PostgreSQL integration tests skip themselves where the container image cannot be pulled.
 
 The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The five-phase/20-week roadmap table is retained for traceability. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
 
@@ -30,8 +30,10 @@ Accepted ADRs are **001–004, 006, 007 and 008**; ADR-005 remains **Proposed**.
 ```text
 .agents/skills/      11 shared engineering contracts
 backend/
-  app/              FastAPI, security, money primitives and storage adapter
-  tests/            unit/API tests; unaccepted migration tests kept separate
+  app/engines/      the statutory payroll engines (loader, bases, SSO, tax, …)
+  app/api/v1/       the single gross-to-net simulation endpoint
+  app/              FastAPI, security, models, migrations and storage adapter
+  tests/            unit, API, property and integration suites
   data/seeds/       immutable 1404 baseline; inactive 1405 candidate
   pyproject.toml    dependencies/tooling; uv.lock pins exact versions
 docs/
@@ -45,21 +47,58 @@ infra/
 frontend/           partial React/Vite Persian RTL interface and typed API client
 ```
 
-The frontend has a real health-status client; authentication screens are disabled and business-module screens state their missing dependencies. See [frontend/README.md](frontend/README.md). Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
+The frontend has a real health-status client and a working gross-to-net simulation screen; authentication screens are disabled and the business-module screens state their missing dependencies. See [frontend/README.md](frontend/README.md). Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
 
 ## Development and verification
 
 Dependency installation was approved and performed earlier; backend/.venv exists. Historical results and current access limitations are distinguished in ENVIRONMENT_INVENTORY. An inaccessible interpreter is not evidence that packages should be reinstalled.
 
-For an existing usable environment, from the repository root:
+### Run the application
 
 ```powershell
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m ruff check backend/app backend/tests/unit backend/tests/api
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m mypy --config-file backend/mypy.ini backend/app backend/tests/unit backend/tests/api
-rtk proxy .\backend\.venv\Scripts\python.exe -B -m pytest -q backend/tests/unit backend/tests/api
+# Backend (Python 3.12+)
+cd backend
+uv sync --frozen --all-groups
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+
+# Frontend (Node 20+)
+cd frontend
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev            # http://localhost:5173
 ```
 
-The scope above deliberately excludes unaccepted migration tests. DEC-012 blocks running the local Alembic/model drafts; their presence is not approval to apply them. For first-time setup use DEPLOYMENT §2 and the frozen lockfile workflow, subject to current blockers. Local database setup and its side effects are documented in [infra/postgres/README.md](infra/postgres/README.md).
+The simulation endpoint is `POST /api/v1/simulations/gross-to-net`; the liveness
+probe is `GET /health/live`. The frontend reads the API origin from
+`VITE_API_BASE_URL` (see `frontend/.env.example`).
+
+### Verify
+
+```powershell
+# Backend
+cd backend
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m mypy --strict app tests
+.\.venv\Scripts\python.exe -m pytest -q
+
+# Frontend
+cd frontend
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+The same gates run on every push in `.github/workflows/ci.yml` (hosted CI for the
+development repository only; it deploys nothing and holds no credential).
+
+The PostgreSQL integration suites need the official container image; where it
+cannot be pulled they skip themselves and report the skip rather than passing
+silently. DEC-012 blocks running the local Alembic/model drafts against a live
+database; their presence is not approval to apply them. For first-time setup use
+DEPLOYMENT §2 and the frozen lockfile workflow, subject to current blockers.
+Local database setup and its side effects are documented in
+[infra/postgres/README.md](infra/postgres/README.md).
 
 ## Contributor rules and licence
 

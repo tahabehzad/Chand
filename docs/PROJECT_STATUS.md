@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-STATUS-001`
 - **Status:** Active — re-verified at every phase gate
-- **As at:** 2026-11-15 — owner-authorized development, independent review and fresh local verification (§19); historical records retained
+- **As at:** 2026-11-16 — autonomous completion mission: the statutory engine audited, two critical defects corrected, the engine test suite and the CI workflow delivered, fresh local verification (§23); historical records retained
 - **Verification basis:** direct inspection of the workspace and execution of the tooling, not the documentation's own claims
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` (authority) · `docs/EXECUTION_PLAN.md` (WBS) · `docs/IMPLEMENTATION_READINESS.md` (readiness) · `docs/ENVIRONMENT_INVENTORY.md` (tools)
 
@@ -12,24 +12,24 @@
 
 ## 1. One-line status
 
-**An executable foundation with FastAPI liveness, reviewed Decimal primitives, isolated field encryption, a reviewed tenant-scoped S3 adapter and a partial Persian React interface.** No complete statutory engine, real authentication or integrated tenant-security/database foundation exists. Local tests/builds pass; no phase gate is passed.
+**A working statutory payroll calculation engine on the verified 1404 baseline — rule-set loader, base decomposition, SSO, progressive income tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator — served by one minimal API endpoint and a Persian simulation screen, with FastAPI liveness, isolated field encryption and a tenant-scoped S3 adapter beside it.** Local tests, lint, strict types, build and live requests pass; no real authentication, no integrated tenant-security foundation and no certified golden corpus exist. No phase gate is passed.
 
 ## 2. Delivery state
 
-**Current evidence, BOOTSTRAP_CHANGELOG §19:** P1-T04 and P0-T11 passed independent bounded code review after immutable-report, safe-error and UTF-8 corrections; both remain READY_FOR_REVIEW because CI/live acceptance is incomplete. Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is now READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18.
+**Current evidence, BOOTSTRAP_CHANGELOG §23:** P1-T04 and P0-T11 passed independent bounded code review after immutable-report, safe-error and UTF-8 corrections; both remain READY_FOR_REVIEW because CI/live acceptance is incomplete. Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is now READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18.
 
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
-| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter and partial React interface | §19 fresh verification; collector stages UNVERIFIED local evidence; no complete financial engine or authenticated workflow |
-| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 5 READY_FOR_REVIEW, 70 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | Existing partial frontend work reconciled; P0-T11 becomes review-ready locally; no dependency waived |
+| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter, the **complete statutory payroll engine** (rule-set loader, base decomposition, SSO, progressive tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost, termination liability) and the Persian simulation screen | §23 fresh verification; the engine reproduces the Holy Bible Appendix A reference vectors; collector stages remain UNVERIFIED local evidence; no authenticated workflow |
+| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 17 READY_FOR_REVIEW, 58 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | The twelve ADR-008 engine tasks (`P1-T01`, `P1-T05`–`P1-T12`, `P1-T14`, `P1-T16`, `P1-T19`) became review-ready with verified evidence (§23); independent review is still outstanding, so none is APPROVED; no dependency waived |
 | Phase gates passed | **0 of 5** | No gate evidence pack exists |
-| Engine code | Decimal conversion, half-up Rial rounding, signed reconciliation and exact largest-remainder allocation | Reviewed bounded primitives only; tax/SSO/CTC/inverters/loader absent |
+| Engine code | Decimal conversion, half-up Rial rounding, signed reconciliation and exact largest-remainder allocation, plus the full statutory engine: fail-closed rule-set loader, base decomposition, SSO, progressive tax with the dual Article 137 posture, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator | §23: the Appendix A reference vectors reproduce to the Rial; a critical ladder-offset defect was found and corrected; the net-to-gross inverter stays out of scope (ADR-008) |
 | Migrations | P0-T04 five-table baseline adopted under ADR-007; global FORCE RLS, restricted reader/reviewer, all-write identity gate | Real isolated PostgreSQL upgrade/downgrade/re-upgrade and 101 integration tests PASS; users FKs remain P0-T05; CI/production acceptance pending (§21) |
-| Tests | **443 backend (342 unit/API + 101 real PostgreSQL integration) and 102 frontend tests PASS**; strict backend types on 30 files; frontend typecheck/build PASS | Final backend rerun: 443 PASS, 2 third-party deprecation warnings, 16.99s; local HTTP startup PASS; independent security review PASS (§21). CI/phase gates remain pending |
-| CI/CD | **None.** No workflow file, no CI provider configuration. **DEC-F is open.** | Directory listing |
-| Frontend | React/Vite/TypeScript RTL shell, Vazirmatn, number/currency helpers, typed client and disabled presentation-only auth screens | Local build/component tests PASS (§19); only health is a delivered backend contract; no visual/axe/auth acceptance |
+| Tests | **548 backend (342 unit/API + 102 new engine unit/API + 104 property, of which the 104 PostgreSQL integration tests skip without the container image) and 110 frontend tests PASS**; strict backend types on 62 files; frontend typecheck/build PASS | Final backend rerun: 548 PASS, 104 skipped, 2 third-party deprecation warnings, 16.5s; local HTTP startup and a live endpoint request PASS (§23). CI has never executed on GitHub and the phase gates remain pending |
+| CI/CD | **GitHub Actions for the development repository** — `.github/workflows/ci.yml` runs the backend lint/type/test gates and the frontend lint/type/test/build gates | DEC-F option (b) implemented as recorded; `contents: read` only, no credential, no deployment, no migration; the workflow has not yet run on GitHub (the `gh` token is invalid) |
+| Frontend | React/Vite/TypeScript RTL shell, Vazirmatn, number/currency helpers, typed client, disabled presentation-only auth screens and the **gross-to-net simulation screen** | §23: the screen's submission was broken by two HTML5 constraint violations and is now fixed and covered by 8 tests; the gross-to-net endpoint is a delivered backend contract; no visual/axe/auth acceptance |
 | Containers | Last recorded PostgreSQL 16.16 + pgAudit runtime passed at `127.0.0.1:55432` | BOOTSTRAP_CHANGELOG §15; container/DB state not re-verified in §19 |
-| OpenAPI contract | **Minimal** — the liveness endpoint only. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1 |
+| OpenAPI contract | **Minimal but complete for the ADR-008 scope** — the liveness endpoint and `POST /api/v1/simulations/gross-to-net`. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1; the endpoint contract is covered by `tests/api/test_payroll_simulation.py` (§23) |
 | Benchmark data | **None.** No licensed corpus, no `salary_observations` rows. | DEC-007 open |
 
 **Local MVP 0.1 supplement (2026-11-15):** the owner explicitly requested a
@@ -47,11 +47,11 @@ The WBS census and outstanding dependencies above are unchanged.
 | Item | State |
 | :--- | :--- |
 | Git repository | **Initialised in session 1** on `main`; the first commit was made in session 2 on `bootstrap/initial-import`, and `main` was then pointed at it. |
-| Commits | Local baseline history includes `2fc2b6f`, `eb806e4` and `55eef45`; development/publication record is in BOOTSTRAP_CHANGELOG §19. |
+| Commits | Local baseline history includes `2fc2b6f`, `eb806e4` and `55eef45`; the autonomous completion mission added `55a9547`, `3ab4c9f`, `abb4ce6`, `92dc221` and `c42fb9b`; the development/publication record is in BOOTSTRAP_CHANGELOG §§19 and 23. |
 | Remote | Owner supplied `https://github.com/tahabehzad/pish-hesabdari`; `origin` configured and fetched. Remote initial commit `898388c` is preserved; no force-push authorized. |
-| Branch | `codex/foundation-hardening`; publication outcome recorded in §19. |
+| Branch | `autonomous/project-completion` — every commit of the autonomous mission was pushed to that branch; `origin/main` was never touched and no force-push was used (§23). The earlier `codex/foundation-hardening` publication outcome stays in §19. |
 | Files git ignores | **`backend/.venv`, the tool caches, `__pycache__`, and `.freebuff/*`** — everything the local toolchain produces |
-| Working tree | Owner-authorized development and adoption of reviewed existing code. Unaccepted migration/model/integration/contract drafts remain outside this milestone. |
+| Working tree | The statutory engine, the frontend SPA and the documentation set are committed on `autonomous/project-completion`. The unaccepted migration/model/integration drafts are committed as reviewed drafts and remain outside the accepted scope. |
 | Rollback | Revert only the milestone commits after review; preserve uncommitted drafts and both histories. Never reset or remove `.git` as routine rollback. |
 
 ## 4. Statutory baseline

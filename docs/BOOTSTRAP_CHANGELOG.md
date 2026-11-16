@@ -1254,3 +1254,105 @@ validated statutory actor FKs. NOT RUN: production/pish_dev migration,
 identity/authentication integration, certified financial corpus, release gate and
 production deployment. No 1405 activation, seed change, legal sign-off or
 production-readiness claim is made.
+
+---
+
+## 23. Autonomous statutory-engine completion, audit and verification — 2026-11-16
+
+Lead Backend Engineer (autonomous mission). Scope: adopt the uncommitted ADR-008
+engine into version control, audit the whole statutory calculation path against the
+verified 1404 baseline, correct the defects found, and build the missing test
+coverage. No statutory value, seed, ADR-001…007, product scope or legal conclusion
+was changed; the 1405 placeholder stays inactive and the certified corpus stays
+blocked.
+
+Read for this pass: AGENTS.md; Holy Bible §0.3/§2.3/§2.5/§10.5/§10.6/§13.1/§13.8
+and **Appendix A** (the independent recalculation); ADR-006, ADR-007, ADR-008;
+EXECUTION_PLAN §7.1/§7.2/§14.3; SPEC-QA-001 §4 (the property table) and §5;
+TESTING §3.1 (the money-safety AST gate); the `financial-data-integrity` and
+`iranian-payroll-engineering` behaviour contracts; the seeds (read only).
+
+### Version control
+
+| Item | Value |
+| :--- | :--- |
+| Remote | `https://github.com/tahabehzad/pish-hesabdari` (pre-existing; verified, not recreated) |
+| Branch | `autonomous/project-completion` (created for this mission) |
+| Push | Every commit was pushed to that branch; **no force-push**, `origin/main` untouched |
+| Commits | `55a9547` engine, `3ab4c9f` frontend, `abb4ce6` documentation, `92dc221` the tax fix and the engine test suite, `c42fb9b` the screen fix and its tests, plus this documentation commit |
+| `gh` CLI | **NOT RUN** — the stored token is invalid (`gh auth status` → "The token in keyring is invalid"). Git pushes succeed through the credential helper, so the branch is published. `gh auth refresh -h github.com` restores the CLI |
+| Secrets | None committed: `.secrets/` and `.env` remain ignored; only `.env.example` is tracked |
+
+### Defects found and fixed
+
+| # | Severity | Defect | Fix | Evidence |
+| :-- | :--- | :--- | :--- | :--- |
+| E-1 | **Critical** | The progressive tax ladder was offset by one whole exemption: the engine subtracted the monthly exemption from the taxable income and then matched the result against the **absolute** slab edges, although the seed states the ladder in absolute taxable Rial and its first slab *is* the exemption (invariant R-09). Every band therefore sat too high and the tax collapsed to 0 for any base below the first taxable edge. | `StatutoryRuleSet.brackets_above(exemption_rial)` / `shift_brackets_by` express the ladder relative to an exemption; the reduced base is matched against that ladder. The transformation is exact and invertible, and a test asserts the equivalence with the absolute ladder. The Eydi excess is taxed across the same shifted ladder. | Holy Bible Appendix A: A.4 taxable income 277,920,611.60 → tax **3,792,061** (slab 2); A.5 taxable income 377,647,058.87 → tax **17,647,059** (slabs 2 and 3). The engine returned **0** for both before the fix and now reproduces both to the Rial. ADR-008 directive 4 lists the same two figures as the reusable engineering-reference expectations |
+| E-2 | **Critical** | The simulation screen — the product's only screen — could never be submitted. Two independent HTML5 constraint violations blocked the form before any request was sent: the gross field carried `min={1}` with `step={100000}` (the seeded 50,000,000 is not `1 + k × 100000`), and the optional liability fields were seeded with `0` while the probation field's minimum is one month. | `step="any"` for the Rial fields; an unset optional field is empty and is sent as `null`; a cleared field returns to `null`. | `frontend/src/routes/simulation-page.test.tsx` — the request is now observed; before the fix the fetch mock was never called |
+| E-3 | High | The API client could not read the delivered error envelope `{"error": {"code", "detail"}}`, so every refusal was reported as the generic `VALIDATION_FAILED` and the categorical code was lost. The error catalogue still carried the provisional placeholder codes. | The client reads the nested code and the detail line; the catalogue carries the backend's own codes (`RULE_SET_NOT_ACTIVE`, `PAYROLL_REQUEST_INVALID`, `PAYROLL_INPUT_INVALID`); the screen shows the Persian explanation together with the machine code. | The refusal test asserts `STATUTORY_PARAMETER_UNAVAILABLE` reaches the screen |
+| E-4 | High | The loader's active-year gate ran before the seed was inspected, so the 1405 placeholder raised `RuleSetNotActive` and the `StatutoryParameterUnavailable` refusal mandated by ADR-008 directive 3 and by the `P1-T01` acceptance criterion was unreachable. | The refusal kind now follows the state of the requested year: no seed → `RuleSetNotActive`; a seed that exists but is unverified → `StatutoryParameterUnavailable`; a verified seed outside the baseline → `StatutoryParameterUnavailable`. | `tests/unit/test_statutory_rule_loader.py`; live `POST` with `rule_year=1405` → 422 `STATUTORY_PARAMETER_UNAVAILABLE` |
+| E-5 | Medium | A negative monetary input was accepted by the SSO, severance, Eydi and tax engines, so a negative statutory figure could be produced. | All four engines refuse a negative input with `PAYROLL_INPUT_INVALID`. | Engine unit tests |
+| E-6 | Medium | FastAPI's default validation body echoes the rejected input; on this endpoint the input is a salary package, so a monetary amount could appear inside an error response — the one thing the error contract forbids. | One exception handler returns the documented envelope with the field path and the failure type only. | Live `POST` with a negative gross → 422 `{"error": {"code": "PAYROLL_REQUEST_INVALID", "detail": "body.gross_monthly_rial: greater_than"}}` — no value echoed |
+| E-7 | Low | 30 ruff findings in the engine package: ambiguous unicode in docstrings, a dead local in the base decomposition, too many positional arguments, and exception names that the specification binds. | All cleared. The step-mismatch between the two postures was fixed by making the affected arguments keyword-only. `N818` is waived **only** for the error-catalogue module, whose names the specification and ADR-008 directive 3 bind. | `ruff check .` → `All checks passed!` |
+| E-8 | Low | The screen re-implemented money and numeral formatting with a local `Intl.NumberFormat` helper, bypassing the project's own `formatMoney` / `toPersianDigits` / `formatPercentFromRate` policy, and rendered the tax bands as mixed Latin/Persian text without the rate. | The screen renders through the project helpers; the band rate is carried in the response as a **string** (`rate`) and the band is rendered as a Persian label with the applied rate. | The logical-utility gate and the typecheck pass; the screen test asserts `پله ۲` |
+
+### Test coverage added
+
+| Layer | File | Content |
+| :--- | :--- | :--- |
+| L1 unit | `tests/unit/test_statutory_rule_loader.py` | the 1404 baseline, the 1405 refusal, the refusal kinds, invariants R-01…R-10, the month-length variants, the ladder shift, the never-exposed seed literals |
+| L1 unit | `tests/unit/test_base_decomposition.py` | the welfare exclusion, the retained attraction, the fail-closed negative base |
+| L1 unit | `tests/unit/test_sso_engine.py` | the three rates, the ceiling at and above the boundary, the 29/30/31 variants, property P-04 |
+| L1 unit | `tests/unit/test_tax_engine.py` | the two Appendix A reference vectors, the slab boundaries to one Rial, the two postures, properties P-07 and P-08 |
+| L1 unit | `tests/unit/test_overtime_engine.py` | the 220 / 227.33 / 212.67 divisors, the multipliers, the excluded welfare |
+| L1 unit | `tests/unit/test_severance_engine.py` | the 1/12 accrual, the single rounding, the never-used seed literal, property P-05 |
+| L1 unit | `tests/unit/test_eydi_engine.py` | the floor and the cap, the progressive excess, property P-06 |
+| L1 unit | `tests/unit/test_employer_cost_engine.py` | the employer-cost identity, the Appendix A corrected total, the absent 26-day reserve |
+| L1 unit | `tests/unit/test_termination_engine.py` | the Art. 11 full-probation liability, the days-worked employee liability, the Art. 66/71 leave buyout |
+| L1 unit | `tests/unit/test_payroll_service.py` | the five provenance fields, the net and employer-cost identities, the dual posture, the calculation hash, property P-02 and P-10 |
+| L2 property | `tests/property/test_engine_properties.py` | properties P-02, P-03, P-04, P-05, P-06, P-07, P-08 and P-10 over 200 examples each |
+| L5 contract | `tests/api/test_payroll_simulation.py` | the response envelope, the fail-closed refusals, the error shape, the absence of a float in the response |
+| L5 contract | `frontend/src/routes/simulation-page.test.tsx` | the request, the envelope, both postures, the band breakdown, the termination block, the refusal path, the absence of a fractional amount |
+
+### Observed results
+
+| Command | Result |
+| :--- | :--- |
+| `cd backend && .venv\Scripts\python.exe -m pytest -q` | **PASS** — 548 passed, 104 skipped, 2 third-party deprecation warnings, 16.5 s |
+| `cd backend && .venv\Scripts\python.exe -m ruff check .` | **PASS** — `All checks passed!` |
+| `cd backend && .venv\Scripts\python.exe -m mypy --strict app tests` | **PASS** — `Success: no issues found in 62 source files` |
+| `cd frontend && node_modules\.bin\vitest.cmd run` | **PASS** — 110 passed, 13 files |
+| `cd frontend && node_modules\.bin\tsc.cmd --noEmit -p tsconfig.app.json` | **PASS** — exit 0 |
+| `cd frontend && node scripts\check-logical-utilities.mjs src` | **PASS** — 69 files, 0 violations |
+| `cd frontend && node_modules\.bin\vite.cmd build` | **PASS** — production bundle built |
+| `uvicorn app.main:app` + `GET /health/live` | **PASS** — 200 `{"status":"alive"}` |
+| Live `POST /api/v1/simulations/gross-to-net` (1404 reference package) | **PASS** — 200; welfare 46,390,968; *Mozd-e Saabet* 295,459,152; employee SSO 23,929,508; conservative tax 5,501,312; Sanavat 24,621,596; Eydi 25,977,420; employer cost 471,074,664 — each equal to the independently derived Appendix A value |
+| Live `POST` with `rule_year=1405` | **PASS** — 422 `STATUTORY_PARAMETER_UNAVAILABLE`, no fallback to 1404 |
+| Live `POST` with `rule_year=1403` | **PASS** — 422 `RULE_SET_NOT_ACTIVE` |
+| Live `POST` with a negative gross | **PASS** — 422 `PAYROLL_REQUEST_INVALID`, no amount echoed |
+| Live `POST` with an unknown field | **PASS** — 422 `PAYROLL_REQUEST_INVALID` (`extra_forbidden`) |
+| The 104 PostgreSQL integration tests | **NOT RUN** — the official container image cannot be pulled in this environment; the suites skip themselves and report the skip rather than passing silently |
+| `gh run list` | **NOT RUN** — the `gh` token is invalid; the workflow has never executed on GitHub |
+| Independent review of the monetary changes | **NOT RUN** — AGENTS.md §6 requires review by someone who did not write the change. Every monetary task in this session therefore stops at `READY_FOR_REVIEW` |
+
+### CI
+
+`.github/workflows/ci.yml` runs the backend lint, type and test gates and the
+frontend lint, type, test and build gates on push and pull request, with
+`contents: read` only. It holds no credential, deploys nothing, migrates nothing
+and activates no rule set. It implements DEC-F option (b) — hosted CI for the
+**development** repository — which is the option the decision page records as
+recommended; the owner confirmation is still open, and the air-gapped verification
+checklist (`SPEC-OPS-001` §12) remains the client's responsibility at pilot.
+
+### Task status after this pass
+
+`P1-T01`, `P1-T05`, `P1-T06`, `P1-T07`, `P1-T08`, `P1-T09`, `P1-T10`, `P1-T11`,
+`P1-T12`, `P1-T14`, `P1-T16` (engine properties) and `P1-T19` move from
+`NOT_STARTED` to `READY_FOR_REVIEW`: the implementation and the acceptance
+evidence exist and are verified locally, but AGENTS.md §6 requires independent
+review before any of them can be marked `APPROVED`. `P1-T02` and `P1-T15` remain
+`BLOCKED` on external signatures; `P1-T03` stays gated on `P1-T02`.
+
+No 1405 activation, seed change, legal sign-off, certified corpus, release gate
+or production-readiness claim is made.

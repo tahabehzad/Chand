@@ -114,6 +114,20 @@
 | **Recommendation** | **(b)** for the development repository, with the air-gapped verification checklist (`SPEC-OPS-001` §12) performed in the client's environment at pilot. |
 | **Blocked?** | Yes — `P0-T19`, and therefore the Phase 0 gate's Stage 5. |
 
+> **Implemented for the development repository (2026-11-16), owner confirmation
+> still open.** Option **(b)** has been implemented exactly as recommended:
+> `.github/workflows/ci.yml` runs hosted GitHub Actions for this repository
+> only — the backend lint, strict-type and test gates and the frontend lint,
+> type, test and build gates — with `contents: read` and no credential. It
+> deploys nothing, migrates nothing and activates no rule set, and it holds no
+> real candidate data. The air-gapped verification checklist
+> (`docs/specs/DEPLOYMENT.md` §12) remains the client's responsibility at
+> pilot, and the full 13-stage pipeline of `SPEC-QA-001` §15 is still
+> `P0-T19` work. Evidence: `docs/BOOTSTRAP_CHANGELOG.md` §23. The decision
+> itself is **not** marked resolved: it is implemented on the recommended
+> option, and the owner still confirms it. `gh` CLI authentication is
+> currently invalid, so the first workflow run has not been observed yet.
+
 ---
 
 ## DEC-G — Repository licence
