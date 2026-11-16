@@ -177,7 +177,7 @@ def test_roundtrip(db: dict[str, Any]) -> None:
     )
     command.upgrade(db["config"], "head")
     assert set(TABLES) <= names()
-    assert query(db, "SELECT version_num FROM alembic_version")[0]["version_num"] == "0001"
+    assert query(db, "SELECT version_num FROM alembic_version")[0]["version_num"] == "0002"
 
 
 def test_models_and_storage_match_database(db: dict[str, Any]) -> None:

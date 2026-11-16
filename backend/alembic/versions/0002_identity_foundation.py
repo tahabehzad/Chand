@@ -514,11 +514,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Restore the exact P0-T04 state: the temporary write gate returns.
-    op.execute("DROP FUNCTION IF EXISTS statutory_retention_guard()")
     for table, _events in _RETENTION_GUARD_EVENTS:
         op.execute(f"DROP TRIGGER IF EXISTS statutory_retention_guard ON {table}")
+    op.execute("DROP FUNCTION IF EXISTS statutory_retention_guard()")
     for table, column, name in _STATUTORY_ACTOR_FOREIGN_KEYS:
-        op.execute(f"DROP CONSTRAINT IF EXISTS {name} ON {table}")
+        op.execute(f"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS {name}")
     op.execute(_IDENTITY_WRITE_GATE_FUNCTION)
     for table in _GATED_TABLES:
         op.execute(

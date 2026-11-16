@@ -374,6 +374,31 @@ Library contract checked against the pinned release's [official AESGCM documenta
 
 ---
 
+### 8.6 P0-T07 blind-index implementation contract
+
+Scope: the ADR-003 blind index and the normalisation rule the corpus leaves open
+(Holy Bible §5.6, QB-10, HB-MR-011). This section publishes the rule; it does not
+settle pepper custody or rotation, which remain P0-T08.
+
+- Module: `backend/app/core/security/blind_index.py`; owner: Security Eng. The digest is lowercase hex and exactly 64 characters, so it fits ADR-003's `CHAR(64)` column and its unique B-Tree index on `(tenant_id, national_id_bindex)`.
+- Interface: `BlindIndexPepperRegistry.get_pepper() -> bytes` supplies the single isolated pepper (at least 32 bytes); `BlindIndexService.index(value, *, tenant_id, field) -> str` returns the digest; `normalise(value, *, field) -> str` publishes the canonical form. No registry, default pepper, cache or database-derived key is provided in this task.
+- Supported fields: `national_id`, `mobile`, `sheba`. Names, salaries and free text are **not** blind-indexed: exact-match lookup is a property of these three identifiers only (§7.3).
+- **Normalisation rule** (delivered here because HB-MR-011 requires it written down):
+
+| Field | Canonical form | Folding applied before validation |
+| :--- | :--- | :--- |
+| `national_id` | exactly 10 ASCII digits, leading zeros **kept** | Persian (U+06F0–06F9) and Arabic-Indic (U+0660–0669) digits folded to ASCII; NFKC; LRM/RLM, bidi embedding/isolate controls, BOM, space/NBSP, hyphen/en-dash, dot, underscore and ZWNJ removed |
+| `mobile` | `09` + 9 digits | the same folding, plus `+98`/`0098`/`98` international prefixes reduced to the national form |
+| `sheba` | `IR` + 24 digits, upper-cased | the same folding; grouping spaces and hyphens removed |
+
+- No padding, truncation or digit-count repair is performed. A value that does not validate is **refused**, never hashed: an index over a malformed identifier would create an undetectable false match.
+- Message layout: `b"pish:bindex:v1" + NUL + tenant UUID hex + NUL + field key + NUL + canonical value`, hashed with HMAC-SHA256 under the pepper. Binding the tenant into the message gives the separation §8.1 draws from a per-tenant salt while keeping the single platform pepper of §8.2; a digest is valid for exactly one tenant and one field.
+- Failure paths use fixed messages (`Blind-index pepper unavailable.`, `National ID is not ten digits.`, `Mobile number is not a national mobile.`, `Sheba number is not IR plus twenty-four digits.`, `Blind-index value must be text.`). No supplied identifier, key material or registry exception reaches a message, a log line or a traceback; the pepper is read per call and never cached.
+- Acceptance (verified): determinism within a tenant and field; different digest across tenants and fields; every documented spelling of one identifier collapses to one digest; leading zeros remain significant; malformed identifiers and unusable peppers fail closed with one registry call; no output on the success path.
+- **NOT RUN in this task**: the database-level evidence (the pepper absent from any database object, the unique B-Tree lookup under 1 ms), pepper rotation with full re-index, and independent security review. `P0-T07` is therefore `READY_FOR_REVIEW`, not `APPROVED`, and contributes to P0-T15 rather than completing it. Evidence: `BOOTSTRAP_CHANGELOG.md` §25.
+
+---
+
 ## 9. Administrative and Emergency Access
 
 ### 9.1 Platform administration **[PROPOSED — P3, P4]**
@@ -431,8 +456,8 @@ Procedure (two-person):
 | Task | Phase | Title | Status |
 | :--- | :--- | :--- | :--- |
 | `P0-T05` | 0 | Tenant identity schema: organizations, users, roles, permissions, memberships, sessions | NOT_STARTED |
-| `P0-T06` | 0 | ALEE encryption module (`PiiFieldTransformer`) | NOT_STARTED |
-| `P0-T07` | 0 | HMAC-SHA256 blind-index module | NOT_STARTED |
+| `P0-T06` | 0 | ALEE encryption module (`PiiFieldTransformer`) | READY_FOR_REVIEW (primitive verified, §8.5; production registry and independent review outstanding) |
+| `P0-T07` | 0 | HMAC-SHA256 blind-index module | READY_FOR_REVIEW (module and 45 tests verified, §8.6; pepper custody, DB-level evidence and independent review outstanding) |
 | `P0-T08` | 0 | Key management: Vault adapter, local KEK, rotation procedures | NOT_STARTED |
 | `P0-T09` | 0 | RLS policies + per-transaction tenant context helper | NOT_STARTED |
 | `P0-T10` | 0 | Append-only hash-chained audit ledger | NOT_STARTED |

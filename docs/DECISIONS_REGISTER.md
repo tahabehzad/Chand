@@ -423,6 +423,8 @@ The platform already computes under two tax postures and shows the full breakdow
 
 **Risks:** (i) the dual-posture output could itself be read as implicit advice — mitigate with a prominent disclaimer that the output is a statutory computation, not advice, and that the employer remains responsible for its own tax position; (ii) a client integrating the API into its own advisory workflow — mitigate with API documentation stating the platform's role.
 
+**Update (2026-11-16, ADR-009).** The compensation advisory module now proposes a salary **range** from a manager-entered profile. That is a recommendation, so the boundary question sharpens rather than closes. ADR-009 records the bounded reading actually implemented: the module is a neutral, published heuristic (`advisory: true`, `statutory: false`, weights echoed), the manager decides, the band comes from the manager, the statutory figures are the engine's, and **no tax or insurance optimisation is suggested**. This entry therefore stays `OPEN — NON-BLOCKING`: option (a) is implemented for the calculation surface, and any move to option (b) still needs an Iranian tax attorney's opinion and a defined advisory boundary.
+
 ---
 
 ## DEC-010 — Deployment Topology
@@ -604,6 +606,43 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 | An under-floor contract is processed without warning | Medium | `total_gross_below_minimum_wage` and `declared_child_allowance_below_floor` are published |
 | Applying floors later changes historical net figures | Medium | Rule-set version, engine version and calculation hash are stored; historical simulations are never recomputed (invariant 6) |
 
+## DEC-014 — Product scope for the requested "Batch 01" application modules (authentication, company management, accounting foundation, dashboard)
+
+| Field | Value |
+| :--- | :--- |
+| **Status** | `OPEN — BLOCKING` for the requested modules; does not block the engine, the security foundation or the documentation work |
+| **Question** | Must the product boundary be re-expanded from the ADR-008 statutory payroll engine to a multi-tenant accounting application — authentication/RBAC, company and organisation management, chart of accounts and journal entries, and a data-backed dashboard — and if so, under which superseding ADR and schema? |
+| **Responsible role** | Product Manager (scope); Security Architect (identity/session variant); Database Engineer (tenant schema) |
+| **Required approver** | Project Owner, recorded as a superseding ADR under `AGENTS.md` §3 |
+| **Blocking tasks** | Any implementation of those four modules. It does not block `P0-T07`, the engine, or documentation corrections |
+
+**Current evidence**
+
+- `AGENTS.md` §1 and ADR-008 (Accepted, 2026-11-15) fix the product boundary as the statutory payroll calculation engine: pure functions plus one minimal endpoint on the verified 1404 baseline, explicitly **"no frontend requirement"**. ADR-008 supersedes ADR-004's module list and implementation directives 2–3.
+- The 2026-11-16 batch instruction asks for Modules A–D (authentication and authorization, company/organisation management, accounting foundation with chart of accounts and journal entries, dashboard with navigation). Those are the superseded ADR-004 platform scope plus an accounting module that **no ADR has ever authorised**; the corpus contains no chart-of-accounts, journal-entry or fiscal-period specification to build against.
+- Implementing them would also encode decisions the register still holds open: the session variant and detailed session contract (`P0-T18`, DEC-004 resolved only for the opaque-session direction, not for timeouts/remember-me/recovery), the key hierarchy (`P0-T08`, DEC-004), and the RLS/tenant-context ordering (`P0-T09`, `P0-T05`). ADR-006/ADR-007 authorise the identity **schema**, not a running authentication feature.
+- The existing frontend is a bounded demo (BOOTSTRAP_CHANGELOG §20) whose dashboard cards render synthetic fixture data. Wiring "summary cards backed by real API data" for accounting figures would publish financial numbers no engine computed, breaching AGENTS.md §2 invariants 4, 6 and 9.
+
+**Available options**
+
+| Option | Description |
+| :--- | :--- |
+| **A** | Keep the ADR-008 boundary; complete the in-scope foundation (`P0-T07`, `P0-T15`, engine review) and leave Modules A–D unbuilt |
+| **B** | Expand scope formally: write the superseding ADR (boundary, roles/permissions, tenant schema, accounting model), then build A–D in dependency order with the open decisions recorded as assumptions |
+| **C** | Build A–D as an explicitly labelled prototype outside the product boundary, with synthetic data and no completion claims |
+
+**Partial update (2026-11-16).** The owner answered a different, narrower question: ADR-009 adds the **compensation advisory module** (manager-entered profile → band placement → statutory costing). That does **not** resolve this entry. Authentication/RBAC, company management, the accounting foundation and a data-backed dashboard all remain `NOT_STARTED` and blocked here.
+
+**Recommendation: A until the owner records B or C as an ADR.** Option A is the only choice that neither contradicts an accepted ADR nor invents an accounting model. Option B is legitimate but is a product decision with legal and security consequences, and it needs a specification before code. Option C is acceptable only if every screen and endpoint is labelled a prototype.
+
+**Risks**
+
+| Risk | Likelihood | Mitigation |
+| :--- | :--- | :--- |
+| Modules are built piecemeal and the boundary erodes silently | High | This entry; ADR-008's out-of-scope list; the WBS annotations |
+| An authentication feature ships ahead of `P0-T08`/`P0-T18` contracts | Medium | P0-T18 stays gated; the pepper registry stays an injected protocol with no production implementation |
+| A dashboard publishes hypothetical financial figures as real | Medium | No accounting API exists; the demo remains labelled synthetic (§20) |
+
 ---
 
 ## Engine review ambiguity ledger (B-series)
@@ -669,8 +708,9 @@ Owner must confirm (1) which statutory/provenance/signature/change tables are gl
 | DEC-011c | Art. 86 720-day insured-days threshold | OPEN — BLOCKING | Phase 2 | Legal Counsel |
 | DEC-012 | Statutory provenance ownership and user-FK ordering | RESOLVED — ADR-007 | P0-T04 | CTO/DBA + Security Architect |
 | DEC-013 | Apply allowance floors and seniority base to net | OPEN — NON-BLOCKING | v1 reference-only | Project Owner + Labour Counsel/Tax Accountant |
+| DEC-014 | Product scope for the requested Batch-01 application modules | OPEN — BLOCKING | Modules A–D; nothing in ADR-008 scope | Project Owner (superseding ADR) |
 
-**19 entries: 11 open (7 blocking, 4 non-blocking), 6 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope. The B-series ambiguity ledger above records the engine-review questions separately from the DEC numbering; only DEC-013 is a new owner decision in this pass.
+**20 entries: 12 open (8 blocking, 4 non-blocking), 6 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope. The B-series ambiguity ledger above records the engine-review questions separately from the DEC numbering; only DEC-013 is a new owner decision in the engine-remediation pass. **DEC-014 (2026-11-16)** records the Batch-01 scope conflict after ADR-008: authentication, company management, accounting foundation and the data-backed dashboard are outside the accepted product boundary and rest on decisions this register still holds open, so no implementation of them may proceed before the owner records an option as a superseding ADR.
 
 ---
 

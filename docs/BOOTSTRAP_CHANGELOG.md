@@ -1453,3 +1453,209 @@ Checks: the final `pytest -q` re-run passed (568/105), `ruff check .` and
 `mypy --strict app tests` (64 files) remained green, and a pipe-count/local-link
 check on the changed documents found no new defect. The uncommitted state is
 unchanged: no commit or push was made.
+
+## 25. P0-T07 blind index, and the Batch-01 scope conflict — 2026-11-16
+
+**Directive.** An autonomous "Batch 01" instruction asked for four application
+modules: authentication/authorization, company management, the accounting
+foundation (chart of accounts, periods, journal entries) and a data-backed
+dashboard.
+
+**Finding — the request contradicts an accepted decision.** `AGENTS.md` §1 and
+ADR-008 (Accepted) fix the product boundary as the statutory payroll engine
+plus one minimal endpoint, with *no frontend requirement*; ADR-004's module
+list is superseded. Modules A–D are that superseded platform scope plus an
+accounting module no ADR has ever authorised, and their implementation would
+also encode decisions the register still holds open (`P0-T08` key hierarchy,
+`P0-T18` session contract, `P0-T09` RLS/context ordering). Per `AGENTS.md` §11
+the affected work was stopped and the conflict was raised as **DEC-014**
+(`OPEN — BLOCKING`), rather than silently choosing an implementation. No
+authentication, company, accounting or dashboard code was written in this
+pass.
+
+**Work delivered instead — the in-scope, unblocked foundation gap.** `P0-T07`
+(the HMAC-SHA256 blind index required by `AGENTS.md` §2 invariant 13) did not
+exist in the tree. It is a prerequisite for any identity work and carries no
+open decision: the corpus explicitly assigns the normalisation rule to this
+task (Holy Bible §5.6, QB-10, HB-MR-011).
+
+| Artifact | Change |
+| :--- | :--- |
+| `backend/app/core/security/blind_index.py` | New. `BlindIndexPepperRegistry` (injected pepper, ≥ 32 bytes, no cache, no default, no database derivation), `BlindIndexService.index(value, *, tenant_id, field)` returning lowercase hex of 64 characters, `normalise(value, *, field)` publishing the canonical form, and the `national_id`/`mobile`/`sheba` rule. Message = `pish:bindex:v1` NUL tenant hex NUL field NUL canonical value, HMAC-SHA256. Fixed failure messages; no logging or I/O. |
+| `backend/tests/unit/test_blind_index.py` | New. 45 tests: determinism; every documented spelling of one identifier collapsing to one digest (Persian, Arabic-Indic, fullwidth, ZWNJ, separators, bidi controls, `+98`/`0098` mobile forms, Sheba grouping/case); leading zeros significant; tenant and field separation (with an independently spelled message in the test); malformed identifier refused with no value in the message or traceback; unusable/missing pepper fails closed with exactly one registry call; no output on the success path. |
+| `backend/ruff.toml` | `RUF001` added to the tests-only per-file ignores, because the fixtures are deliberately confusable numeral forms; the reason is recorded in the file. No product code exemption was added. |
+| `docs/specs/AUTH.md` | New §8.6 publishing the P0-T07 contract and the normalisation rule (HB-MR-011), including the §8.1-per-tenant-salt / §8.2-single-pepper reconciliation and the NOT-RUN list; §12 rows for P0-T06/P0-T07 corrected to their real status. |
+| `docs/EXECUTION_PLAN.md` §14.3 | `P0-T07` evidence column, blocking issues and status (`READY_FOR_REVIEW`). |
+| `docs/PROJECT_STATUS.md` | Tests row (613/105, 66 strict files), a new PII-lookup row, and the working-tree row corrected to commit `f31e01e`. |
+| `docs/DECISIONS_REGISTER.md` | New **DEC-014** and the census corrected to 20 entries (12 open, 8 blocking). |
+
+**Verification (observed in this pass).**
+
+| Command | Result |
+| :--- | :--- |
+| `./.venv/Scripts/python.exe -m pytest tests/unit/test_blind_index.py -q` | **PASS** — 45 passed |
+| `./.venv/Scripts/python.exe -m pytest -q` | **PASS** — 613 passed, 105 skipped, 9 third-party warnings, 32.37 s |
+| `./.venv/Scripts/python.exe -m ruff check .` | **PASS** — `All checks passed!` |
+| `./.venv/Scripts/python.exe -m ruff format --check` (new files) | **PASS** — no reformat needed after `ruff format` |
+| `./.venv/Scripts/python.exe -m mypy --strict app tests` | **PASS** — `Success: no issues found in 66 source files` |
+| PostgreSQL integration suites (104 tests + contract skips) | **NOT RUN** — Docker daemon unavailable; the suites self-skip. CR-05 database evidence and the < 1 ms B-tree are therefore unverified |
+| Frontend suite / build | **NOT RUN** — no frontend file changed in this pass |
+| Independent security review of the new module | **NOT RUN** — no second reviewer is available in this environment |
+
+**Status.** `P0-T07` is `READY_FOR_REVIEW`: implementation and local tests are
+verified; pepper custody/rotation (`P0-T08`), the database-level CR-05 evidence,
+the B-tree timing and independent review remain outstanding, so the task is not
+`APPROVED` and does not complete `P0-T15` or the Phase 0 gate. No commit or push
+was made; the working tree carries this pass, and `.obsidian/` plus
+`Project Knowledge/` remain untracked.
+
+## 26. Operational roadmap (advisory) — 2026-11-16
+
+**Directive.** Write a prioritised roadmap that separates in-domain work from
+work blocked by a legal/tax determination.
+
+**Artifact.** `docs/ROADMAP_OPERATIONAL_PAYROLL.md` (`DOC-ROADMAP-001`), listed
+in `docs/DOCUMENTATION_INDEX.md` §0 and §1.1.
+
+**Content.** Eight measurable conditions for operational usability (U1–U8,
+each marked met/not met against the tree); four tracks — A: in-domain and
+unblocked (`P0-T09`, `P0-T10`, `P0-T14`, `P0-T15`, `P0-T16`, `P0-T19`, plus the
+readiness probe and the money AST gate); B: blocked by a determination
+(DEC-001/002 with `P1-T02`/`P1-T03`, B-2…B-8, DEC-013, DEC-011c, and the
+**unregistered monthly-vs-annual-cumulative tax question**, which must be added
+to the register before any implementation); C: operational premises (Docker,
+CI execution, independent reviewer, external advisors); D: outside ADR-008
+(persistence of employees/runs/payslips, login as a feature, inverter, export).
+Six milestones with non-documentary exit criteria, a sequencing rationale, a
+WBS-only effort snapshot and a risk table.
+
+**Boundary respected.** The roadmap creates no task, resolves no decision,
+changes no status and authorises no scope. Track D is routed to DEC-014 and a
+superseding ADR, not to a backlog. The proposed monthly-vs-annual tax item is
+recorded as **not yet a register entry** rather than being invented as DEC-015.
+
+**Verification.** Documentation-only: every command, count and status cited was
+read from the tree or from §24/§25 evidence; no application test, migration or
+build was executed for this document, so no test result is claimed. No commit
+or push was made.
+
+## 27. ADR-009 compensation advisory module — 2026-11-16
+
+**Directive.** The owner asked for an engine that takes a person's information
+and, from that person's skills and experience, proposes a salary; the only user
+is the manager; the output must be a proposed range plus its statutory cost;
+the change is to be recorded as an ADR first.
+
+**Scope decision.** ADR-009 (Accepted, Project Owner) **extends** ADR-008 and
+removes nothing: the engine, the seed, the statutory figures and every
+invariant are untouched. Market benchmarking (DEC-007/DEC-008) stays rejected,
+document ingestion stays out, and pricing-without-a-band was refused as an
+option because any such number would be invented. DEC-014 (authentication,
+company, accounting, dashboard) is unaffected and remains open.
+
+| Artifact | Change |
+| :--- | :--- |
+| `docs/adr/ADR-009-compensation-advisory-module.md` | New. Boundary, the four considered options, the published model, the band rule, directives and consequences. |
+| `backend/app/engines/valuation.py` | New. `valuation-v1`: weighted score over total experience (÷120 months), relevant experience (÷84), skill level (÷5) and education (six bands); band placement and the `± 5 %` published range clamped to the band; typed refusals. Pure, Decimal, no float literal, no clock. |
+| `backend/app/engines/errors.py` | `ValuationError` and four subclasses with stable codes, inside the existing taxonomy. |
+| `backend/app/services/valuation_service.py` | Composition only: score → band → **existing** `compute_gross_to_net` at the lower bound, point and upper bound; advisory envelope; statutory floor published, never applied. |
+| `backend/app/schemas/valuation.py` | Request/response contracts: integer Rial, rates and scores as strings, `advisory`/`statutory` flags, `extra="forbid"`. |
+| `backend/app/api/v1/valuation.py`, `backend/app/main.py` | `POST /api/v1/valuations/compensation-proposal` registered; clock read at the boundary only; single error shape. |
+| `backend/tests/unit/test_valuation_engine.py`, `backend/tests/api/test_valuation_api.py` | New suites. |
+| `docs/ADR_INDEX.md` | ADR-009 row added; the missing **ADR-007** row was restored (it existed as a file but was absent from the register table). |
+| `docs/EXECUTION_PLAN.md` §14.3 | New "Phase 5 — Compensation advisory module" with `P5-T01`/`P5-T02` (`READY_FOR_REVIEW`). |
+| `docs/DECISIONS_REGISTER.md` | DEC-009 updated with ADR-009's bounded reading (stays open); DEC-014 updated to record that ADR-009 does not resolve it. |
+| `docs/PROJECT_STATUS.md`, `docs/ROADMAP_OPERATIONAL_PAYROLL.md` | Delivery row and test counts; the roadmap notes the module does not change U1–U8. |
+
+**Verification (observed in this pass).**
+
+| Command | Result |
+| :--- | :--- |
+| `pytest tests/unit/test_valuation_engine.py tests/api/test_valuation_api.py -q` | **PASS** — 65 passed |
+| `pytest -q` | **PASS** — 678 passed, 105 skipped, 9 third-party warnings, 34.07 s |
+| `ruff check .` | **PASS** — `All checks passed!` |
+| `ruff format` on the new/changed files | **PASS** — 4 reformatted, 3 unchanged (the wider repository is not format-clean and was deliberately not reformatted) |
+| `mypy --strict app tests` | **PASS** — `Success: no issues found in 72 source files` |
+| Cross-endpoint replay | **PASS** — the proposal's point costing reproduces `net_rial`, `income_tax_rial`, employer cost **and** `calculation_hash` through `POST /api/v1/simulations/gross-to-net` |
+| PostgreSQL integration suites | **NOT RUN** — Docker daemon unavailable |
+| Frontend suite / build | **NOT RUN** — no frontend file changed; the module has no UI |
+| Independent review, authentication, persistence | **NOT RUN / absent** — `P5-T01`/`P5-T02` stay `READY_FOR_REVIEW`; the endpoint is a trusted-operator surface until `P0-T18` lands |
+
+**Limits stated in the response itself.** Every proposal carries
+`advisory: true`, `statutory: false`, the model version, the weights and each
+weighted contribution; the statutory floor is published with
+`range_low_below_statutory_minimum` and never applied (DEC-013); no market,
+benchmark or actuarial data is used. The score is a policy heuristic, not a
+verdict about a person.
+
+**Version control.** No commit and no push. The working tree now carries the
+§25 and §27 sets plus this change.
+
+## 28. Minimal manager UI for the proposal engine — 2026-11-16
+
+**Directive.** Make the project previewable with a clean, fast frontend: a sign-in
+screen and a salary screen, minimal scope, finished quickly.
+
+| Artifact | Change |
+| :--- | :--- |
+| `frontend/src/routes/manager-login-page.tsx` | New. Persian RTL manager gate. **Presentation-only**: it stores a session-scoped name and states on the card that no credential is verified, because no identity endpoint exists (`P0-T18`). Mounted at `/login`, replacing the previously disabled sign-in screen. |
+| `frontend/src/routes/proposal-page.tsx` | New. One form (total/relevant experience, skill level, education, monthly band in Toman) → `POST /api/v1/valuations/compensation-proposal` → score, proposed range and a three-column table of gross, employee SSO, tax, net and employer cost. Every figure comes from the response; nothing is computed in the browser. |
+| `frontend/src/api/errors.ts` | The five valuation codes added to `ErrorCode` and the Persian catalogue, so a refusal keeps its meaning on screen instead of collapsing to `UNKNOWN`. |
+| `frontend/src/app/router.tsx` | `/login` now renders the manager gate; `/proposal` added as a top-level route. |
+
+**Verification (observed).** `tsc --noEmit` PASS; `vitest run` **115 passed / 13 files**;
+logical-utility lint **0 violations**; dev server on `127.0.0.1:5274` with
+`VITE_API_BASE_URL=http://127.0.0.1:8001` served the preview, the login navigated to the
+proposal screen, the submit issued `POST … → 200`, the table rendered five rows and the
+browser console was clean. A stale Vite child process was terminated with `taskkill` after
+its port was confirmed free; no other process was touched. The pre-existing listener on
+port 8000 was left alone, so the API for this preview runs on 8001 with an explicit
+`ALLOWED_ORIGINS` for 5274.
+
+**Scope statement.** The screens are a local preview of the advisory module. They are not
+`P3-T01…P3-T06` completion, not a security control, and not a deployment. No commit or push.
+
+## 29. Context and token optimization pass — 2026-11-16
+
+**Directive.** Optimize the project structure and development workflow to minimize AI
+token and context consumption while preserving project integrity, security and existing
+functionality. Documentation, ignore rules and regenerable caches only: no application
+code, migration, seed, database record or business rule was touched.
+
+### Documentation set (minimal)
+
+| Artifact | Change |
+| :--- | :--- |
+| `AGENTS.md` | New §0 (language), §12 (language and communication), §13 (context and token discipline, 11 rules), §14 (documentation set and single-owner rule), §15 (coding conventions), §16 (git safety); ADR-009 added to the accepted set in §1. Existing §§1–11 unchanged. |
+| `PROJECT_STATE.md` | New derived snapshot `DOC-STATE-001`. Holds no independent facts; names `PROJECT_STATUS`, `EXECUTION_PLAN §14.3`, `DECISIONS_REGISTER`/`adr/` and `BOOTSTRAP_CHANGELOG` as owners. |
+| `README.md` | Scope paragraph corrected from the superseded ADR-004 boundary to ADR-008; `PROJECT_STATE.md` added to the reading table and the repository layout; ADR-009 added to the accepted set. Test counts left to `BOOTSTRAP_CHANGELOG` instead of being duplicated here. |
+| `docs/DOCUMENTATION_INDEX.md` | §0 routing row and §1.1 note for `PROJECT_STATE.md`, explicitly ranked below every authority and marked non-authoritative. |
+| `PROJECT_HANDOFF_SUMMARY.md` | Marked as a historical snapshot superseded by `PROJECT_STATE.md`/`PROJECT_STATUS.md`; retained for traceability, not to be loaded for current state. |
+
+### Repository hygiene
+
+| Action | Detail |
+| :--- | :--- |
+| `.gitignore` | Added `.obsidian/` and `Project Knowledge/` (local editor/vault artifacts and a parallel non-authoritative knowledge layer). No tracked file became ignored. |
+| Cache removal | Removed root `.mypy_cache/` (66,197 KB), `backend/.mypy_cache/` (97,309 KB), `backend/.ruff_cache/`, `backend/.pytest_cache/`, `infra/postgres/.ruff_cache/` and 19 `__pycache__/` directories outside `.venv`/`node_modules`. All are regenerable and were git-ignored. |
+| Preserved | `.venv/`, `node_modules/`, `.hypothesis/`, `frontend/dist/`, `.freebuff/` statutory acquisition evidence, `.secrets/`, and every uncommitted source change. |
+| Local tool | Installed `ripgrep` 15.2.0 (winget, `BurntSushi.ripgrep.MSVC`) so the `rg` commands in `AGENTS.md` §13 and `DOCUMENTATION_INDEX` §0 resolve on this machine. No paid service, no project dependency. |
+
+### Verification (observed)
+
+| Result | Command / check | Evidence |
+| :--- | :--- | :--- |
+| PASS | relative-link resolution in `AGENTS.md`, `README.md`, `PROJECT_STATE.md`, `docs/DOCUMENTATION_INDEX.md` | every `](path)` target exists on disk; no dead link introduced |
+| PASS | `git check-ignore -v .obsidian/app.json "Project Knowledge/Project Home.md"` | matched `.gitignore:55` and `.gitignore:56` |
+| PASS | `git status --porcelain -uall` census | untracked entries dropped 32 → 13; modified 15 → 16 (`.gitignore`); no source file lost |
+| PASS | `rg --version`; `rg -l StatutoryParameterUnavailable backend/app backend/tests` | ripgrep 15.2.0; 5 files found, gitignore-respecting |
+| PASS | factual cross-check of snapshot claims against owners | ADR-009 Accepted, 0 of 5 phase gates, engine review-ready — all match `PROJECT_STATUS` §2 and `ADR_INDEX` |
+| NOT RUN | backend pytest / ruff / mypy, frontend vitest / tsc / build | documentation-and-ignore-only pass; no application code, dependency or schema changed. Not a fresh runtime check and does not revalidate §28. |
+
+### Scope statement
+
+No commit, no push, no amend, no reset. No deletion of a tracked file: the handoff summary
+was annotated rather than removed because removal would rewrite history and it is still a
+record of the phase-1 handoff. No change to application behaviour, business logic, database
+structure, financial calculation or architecture. This entry does not complete any WBS task
+and does not pass a phase gate.

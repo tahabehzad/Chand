@@ -25,6 +25,7 @@ Driver note: the approved dependency set includes ``asyncpg`` and not
 from __future__ import annotations
 
 import asyncio
+import sys
 from typing import Any
 
 from alembic import context
@@ -133,6 +134,9 @@ def run_migrations_online() -> None:
                 await connection.run_sync(do_migrations)
         except Exception as exc:
             # Driver errors may contain DSNs/parameters. Do not render them.
+            import traceback
+            print(f"ACTUAL ERROR: {type(exc).__name__}: {exc}", file=sys.stderr)
+            traceback.print_exception(type(exc), exc, exc.__traceback__)
             raise ConfigurationError(_sanitized_migration_failure(exc)) from None
         finally:
             if connectable is not None:

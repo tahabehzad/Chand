@@ -2,6 +2,10 @@
 
 Behaviour contract for every contributor and agent. Accepted ADRs and the Holy Bible govern product decisions; report conflicts rather than silently choosing an implementation.
 
+## 0. Language
+
+Persian (Farsi) for all user-facing prose; English for code, identifiers, paths, commands and API strings. See §12.
+
 ## 1. Start with the task
 
 The product is the **statutory payroll calculation engine** (ADR-008, accepted 2026-11-15): SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — pure functions plus one minimal API endpoint on the verified **1404 SH** baseline. The prior pre-employment platform scope (ADR-004's module list) is superseded; the five-phase/20-week roadmap table is retained for traceability. 1405 is transcribed, unverified and inactive.
@@ -9,8 +13,9 @@ The product is the **statutory payroll calculation engine** (ADR-008, accepted 2
 Read this file, then use **docs/DOCUMENTATION_INDEX.md §0** to select context. Before your first change, read the Holy Bible **§0.3, §13.1 and §13.8**, the relevant §3 requirements and the applicable primary sources. Read §0.4 only when source provenance is relevant; it is a historical inventory. Do not load the entire Holy Bible, WBS, changelog or research corpus by default.
 
 - Current delivery status: **docs/PROJECT_STATUS.md §2**; task dependencies/acceptance: **docs/EXECUTION_PLAN.md §14.3**.
-- Latest recorded application/collector evidence: **docs/BOOTSTRAP_CHANGELOG.md §16**; PostgreSQL runtime: §15; documentation maintenance: §13. Historical test results are not a fresh runtime check.
-- Decisions: **docs/DECISIONS_REGISTER.md** and **docs/ADR_INDEX.md**. ADR-006, ADR-007 and ADR-008 are accepted; ADR-005 remains proposed.
+- Derived snapshot (no independent facts): **PROJECT_STATE.md**. If it disagrees with an owner above, the owner wins and the snapshot is wrong.
+- Latest recorded application and UI evidence: **docs/BOOTSTRAP_CHANGELOG.md §28**; engine verification: §23–§24; PostgreSQL runtime: §15; documentation maintenance: §29. Historical test results are not a fresh runtime check.
+- Decisions: **docs/DECISIONS_REGISTER.md** and **docs/ADR_INDEX.md**. ADR-006, ADR-007, ADR-008 and ADR-009 are accepted; ADR-005 remains proposed.
 - Research Markdown/DOCX is historical and contains rejected recommendations. Consult only for a specific evidence question after checking the supersession index.
 
 ## 2. Non-negotiable invariants
@@ -91,3 +96,47 @@ Use statutory Persian terms in user-facing strings. For vocabulary, read Holy Bi
 - Legal conclusion: cite the instrument/article or label it UNVERIFIED.
 
 Changes to this file are recorded in **docs/BOOTSTRAP_CHANGELOG.md**.
+
+## 12. Language and communication
+- Answer in the shortest form that is correct: no preamble, no restating of the request, no summary of what the user already has in context.
+- Do not use Persian numerals inside code, commands, identifiers or test data; use them only in Persian UI text where the frontend policy requires it (SPEC-FE-001).
+
+## 13. Context and token discipline
+
+1. Never scan the whole repository for a small task; open only task-relevant files.
+2. Prefer targeted search (`rg`), `git diff` and explicit paths over directory listings or reading many files "to be safe".
+3. Never walk or dump `node_modules/`, `backend/.venv/`, `__pycache__/`, caches or build output.
+4. Read an unchanged file once per session; rely on the current context instead of rereading.
+5. Run the narrowest test/lint/type scope that answers the question; widen only when the result demands it.
+6. Do not repeat an identical command, and do not print full tracebacks, secrets or whole logs — filter to the relevant lines.
+7. Do not delegate to a subagent what you can do directly; one owner per task (§6).
+8. Do not create a document, table or summary that already has an owner; link to it (DOCUMENTATION_INDEX §1).
+9. Load a skill body or a specification only when the task matches, and read the referenced sections rather than whole large documents.
+10. Prefer deterministic local tools (`rg`, `ruff`, `mypy`, `pytest`, `tsc`, `git`) over model reasoning for search, formatting, static analysis and routine checks.
+11. Install no dependency or tool without a stated, task-specific need; no paid API or service (§8).
+
+## 14. Documentation set
+
+Only three documents carry standing instructions; everything else is owned elsewhere.
+
+| Path | Role |
+| :--- | :--- |
+| `AGENTS.md` | This file: operating rules and context discipline. |
+| `README.md` | Human entry point: scope, repository layout, run and verify commands. |
+| `PROJECT_STATE.md` | Derived snapshot. **No independent facts** — delivery state stays in `docs/PROJECT_STATUS.md`, tasks in `docs/EXECUTION_PLAN.md §14.3`, decisions in `docs/DECISIONS_REGISTER.md` and `docs/adr/`, verification in `docs/BOOTSTRAP_CHANGELOG.md`. |
+
+Do not add a top-level Markdown document, or duplicate an existing table, without owner approval. Corrections to an owned document go to that document, not into a new one.
+
+## 15. Coding conventions
+
+- **Python:** ruff (line length 100, target `py312`) and `mypy --strict`; type hints on every signature; `from __future__ import annotations` in new modules; module docstrings follow the existing **Authority / Related / Scope** header pattern; Decimal for money (§2 Financial).
+- **TypeScript/React:** function components, `import type` for types, existing Tailwind design tokens and `frontend/src/components/ui/*` primitives; no new UI or state library.
+- **Tests:** colocated `*.test.ts(x)` on the frontend, `backend/tests/{unit,api,property,integration}` on the backend; a money-path test failure is a defect (§11), never a skipped test.
+- **Money paths:** the rules in §2 (Financial) override any stylistic preference, including in tests and fixtures.
+
+## 16. Git safety
+
+- Do not commit, push, amend, reset, force-push, clean or rewrite history without an explicit owner instruction.
+- Never stage or commit secrets, `.env*` files, `.secrets/`, key material, National IDs, mobile numbers, Sheba numbers or real salary data.
+- Preserve existing uncommitted work; never overwrite or revert another contributor's changes.
+- Keep changes reviewable and scoped to the approved task; configuration and generated files are not a place to hide behaviour change.

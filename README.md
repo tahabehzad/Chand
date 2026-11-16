@@ -1,12 +1,13 @@
 # Pish Hesabdari (پیش‌حسابداری)
 
-Pre-employment compensation intelligence and evidentiary verification for Iran. The product supports verified-record hiring offers, statutory simulation, employer-cost modeling and document verification within the boundary of [ADR-004](docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md).
+Statutory Iranian payroll calculation: SSO insurance, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer cost and the Article 11 termination case, on the verified 1404 SH baseline. The product scope is the calculation engine of [ADR-008](docs/adr/ADR-008-product-scope-statutory-payroll-engine.md); the earlier pre-employment platform scope of ADR-004 is superseded.
 
 ## Start here
 
 | Need | Read |
 | :--- | :--- |
 | Starting an agent task | [AGENTS.md](AGENTS.md), then [Documentation Index §0](docs/DOCUMENTATION_INDEX.md#0-task-focused-reading) |
+| Snapshot of the current state | [PROJECT_STATE.md](PROJECT_STATE.md) (derived; owners hold the facts) |
 | Current delivery state and blockers | [PROJECT_STATUS §2](docs/PROJECT_STATUS.md#2-delivery-state); exact tasks in EXECUTION_PLAN §14.3 |
 | Product knowledge and requirements | Relevant sections of [Holy Bible](docs/PISH_HESABDARI_HOLY_BIBLE.md), then the authoritative source it cites |
 | Owner decisions | [DECISIONS_REGISTER](docs/DECISIONS_REGISTER.md) and [DECISION_REQUIRED_FROM_OWNER](docs/DECISION_REQUIRED_FROM_OWNER.md) |
@@ -19,11 +20,11 @@ Read sections relevant to the task. The full Holy Bible, complete WBS, execution
 
 **Product scope (ADR-008, accepted 2026-11-15): the statutory payroll calculation engine** — SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — delivered as pure functions plus one minimal API endpoint. The prior pre-employment platform scope is superseded; non-engine modules are out of product scope pending a future ADR.
 
-The **statutory payroll engine** is implemented and verified on the 1404 baseline: the fail-closed rule-set loader, the base decomposition, SSO, the progressive income tax with both Article 137 postures, overtime and night shift, Sanavat, Eydi, the employer cost identity and the Article 11 termination simulator, composed by one service and served by one endpoint. Fresh verification (changelog §23): **548 backend tests and 110 frontend tests pass**; ruff, strict mypy, the frontend typecheck, the logical-utility gate and the production build pass; a live request and a live 1405 refusal were observed. No real authentication, no integrated tenant-security foundation and no certified golden corpus are claimed. The 104 PostgreSQL integration tests skip themselves where the container image cannot be pulled.
+The **statutory payroll engine** is implemented and verified on the 1404 baseline: the fail-closed rule-set loader, the base decomposition, SSO, the progressive income tax with both Article 137 postures, overtime and night shift, Sanavat, Eydi, the employer cost identity and the Article 11 termination simulator, composed by one service and served by one endpoint. The compensation advisory module (ADR-009) extends it with band placement and costing of a proposed range. Exact test counts and the commands that produced them live in [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §28–§29 and are not duplicated here. No real authentication, no integrated tenant-security foundation and no certified golden corpus are claimed. The PostgreSQL integration tests skip themselves where the container image cannot be pulled.
 
 The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The five-phase/20-week roadmap table is retained for traceability. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
 
-Accepted ADRs are **001–004, 006, 007 and 008**; ADR-005 remains **Proposed**. ADR-008 supersedes ADR-004's Phase 1 module list and directives 2–3 (product scope refocus on the calculation engine). See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
+Accepted ADRs are **001–004, 006, 007, 008 and 009**; ADR-005 remains **Proposed**. ADR-008 supersedes ADR-004's Phase 1 module list and directives 2–3 (product scope refocus on the calculation engine); ADR-009 extends ADR-008 with the compensation advisory module. See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
 
 ## Repository layout
 
@@ -45,6 +46,7 @@ infra/
   compose/          development Compose configuration
   postgres/         local PostgreSQL scaffold, runbook and verifiers
 frontend/           partial React/Vite Persian RTL interface and typed API client
+PROJECT_STATE.md    derived snapshot of the current state (no independent facts)
 ```
 
 The frontend has a real health-status client and a working gross-to-net simulation screen; authentication screens are disabled and the business-module screens state their missing dependencies. See [frontend/README.md](frontend/README.md). Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.

@@ -1,5 +1,11 @@
 # Pish Hesabdari (پیش‌حسابداری) — Project Summary for Agent Handoff
 
+> **Historical snapshot — do not load for current state.** This file records the phase-1
+> agent handoff. Current state is owned by [`PROJECT_STATE.md`](PROJECT_STATE.md) (orientation),
+> [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) (delivery), [`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md)
+> §14.3 (tasks) and [`docs/BOOTSTRAP_CHANGELOG.md`](docs/BOOTSTRAP_CHANGELOG.md) (verification).
+> Retained for traceability only; where it disagrees with an owner, the owner is correct.
+
 ## Overview
 **Statutory Iranian Payroll Calculation Engine** — Pure functions + minimal FastAPI endpoint on verified 1404 SH baseline.
 - **Product scope (ADR-008):** SSO insurance, progressive income tax (Art. 137 dual posture), net pay, overtime/night-shift, Sanavat (severance), Eydi (annual bonus), employer CTC, Article 11 worst-case termination liability.

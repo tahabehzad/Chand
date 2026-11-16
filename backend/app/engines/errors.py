@@ -37,6 +37,11 @@ __all__ = (
     "StatutoryInvariantViolation",
     "StatutoryParameterUnavailable",
     "TaxableBaseNegative",
+    "ValuationBandInvalid",
+    "ValuationBandRequired",
+    "ValuationError",
+    "ValuationExperienceInvalid",
+    "ValuationProfileInvalid",
 )
 
 
@@ -122,3 +127,42 @@ class ProbationBeyondStatutoryMax(PayrollInputError):
     """The probation period exceeds the Art. 11 three-month maximum."""
 
     code = "PROBATION_BEYOND_STATUTORY_MAX"
+
+
+class ValuationError(PayrollEngineError):
+    """Base class for the advisory compensation module (ADR-009).
+
+    These refusals belong to the same taxonomy as every statutory refusal so
+    the API keeps one error contract, but they are **not** statutory: the
+    module is advisory (``statutory=False``) and never alters a legal figure.
+    """
+
+    code = "VALUATION_INVALID"
+
+
+class ValuationBandRequired(ValuationError):
+    """No monetary envelope was supplied, so no amount may be proposed.
+
+    The band is the only source of money in a proposal; without it any
+    figure would be invented (ADR-009; AGENTS.md invariant 4/6/9).
+    """
+
+    code = "VALUATION_BAND_REQUIRED"
+
+
+class ValuationBandInvalid(ValuationError):
+    """The supplied band is not a usable monotonic positive envelope."""
+
+    code = "VALUATION_BAND_INVALID"
+
+
+class ValuationProfileInvalid(ValuationError):
+    """The profile attributes are outside the documented model domain."""
+
+    code = "VALUATION_PROFILE_INVALID"
+
+
+class ValuationExperienceInvalid(ValuationError):
+    """Relevant experience exceeds total experience (AGENTS.md invariant 1)."""
+
+    code = "VALUATION_EXPERIENCE_INVALID"

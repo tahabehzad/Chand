@@ -32,6 +32,11 @@ export type ErrorCode =
   | 'RULE_SET_NOT_VERIFIED'
   | 'PAYROLL_REQUEST_INVALID'
   | 'PAYROLL_INPUT_INVALID'
+  | 'VALUATION_BAND_REQUIRED'
+  | 'VALUATION_BAND_INVALID'
+  | 'VALUATION_EXPERIENCE_INVALID'
+  | 'VALUATION_PROFILE_INVALID'
+  | 'VALUATION_INVALID'
   | 'SERVER_ERROR'
   | 'NETWORK_ERROR'
   | 'MALFORMED_RESPONSE'
@@ -58,6 +63,26 @@ const CATALOGUE: Record<ErrorCode, CatalogueEntry> = {
   },
   RULE_SET_NOT_ACTIVE: {
     messageFa: 'نسخه قوانین درخواستی بارگذاری نشد؛ محاسبه متوقف شد.',
+    sessionExpiry: false,
+  },
+  VALUATION_BAND_REQUIRED: {
+    messageFa: 'برای پیشنهاد مبلغ، کف و سقف بازهٔ حقوق لازم است.',
+    sessionExpiry: false,
+  },
+  VALUATION_BAND_INVALID: {
+    messageFa: 'بازهٔ واردشده معتبر نیست؛ سقف باید بزرگ‌تر از کف باشد.',
+    sessionExpiry: false,
+  },
+  VALUATION_EXPERIENCE_INVALID: {
+    messageFa: 'سابقهٔ مرتبط نمی‌تواند از سابقهٔ کل بیشتر باشد.',
+    sessionExpiry: false,
+  },
+  VALUATION_PROFILE_INVALID: {
+    messageFa: 'مشخصات واردشده خارج از محدودهٔ مدل است؛ مقادیر را بررسی کنید.',
+    sessionExpiry: false,
+  },
+  VALUATION_INVALID: {
+    messageFa: 'پیشنهاد حقوق محاسبه نشد؛ ورودی را بررسی کنید.',
     sessionExpiry: false,
   },
   PAYROLL_REQUEST_INVALID: {

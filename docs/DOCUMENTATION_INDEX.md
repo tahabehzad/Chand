@@ -14,7 +14,7 @@ Start with AGENTS.md; use this table to select the relevant source sections. Thi
 | Task | Required context |
 | :--- | :--- |
 | Any first change | Holy Bible §0.3 (authority), §13.1 (change control), §13.8 (agent constraints); relevant §3 requirements |
-| Current status / next task | PROJECT_STATUS §2; exact WBS row, dependencies, decisions and AC in EXECUTION_PLAN §14.3 |
+| Current status / next task | PROJECT_STATUS §2; exact WBS row, dependencies, decisions and AC in EXECUTION_PLAN §14.3; ROADMAP_OPERATIONAL_PAYROLL for what separates the delivered engine from operational use; PROJECT_STATE for one-screen orientation only (derived, non-authoritative) |
 | API / configuration | Applicable DEPLOYMENT and AUTH sections; relevant WBS/specification |
 | Encryption / database / tenancy | ADR-003 and ADR-006; AUTH security/schema sections; database-engineering and security-threat-model skills |
 | Financial / engine work | Relevant Holy Bible §2/§3/§10 and REMEDIATED module; STATUTORY_INGESTION; financial-data-integrity and iranian-payroll-engineering skills; unresolved decisions |
@@ -44,6 +44,9 @@ Keep the loaded document revision/section in the task handoff; reread when the s
 | [`docs/ADR_INDEX.md`](ADR_INDEX.md) | `DOC-ADRIDX-001` | The ADR register and the rejected-technology list | 4 |
 | [`docs/DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | `DOC-DOCIDX-001` | This document: the hierarchy and the supersession map | 4 |
 | [`docs/EXECUTION_DOCUMENTATION_AUDIT.md`](EXECUTION_DOCUMENTATION_AUDIT.md) | `DOC-AUDIT-001` | The self-audit of this package | 4 |
+| [`docs/ROADMAP_OPERATIONAL_PAYROLL.md`](ROADMAP_OPERATIONAL_PAYROLL.md) | `DOC-ROADMAP-001` | Derived roadmap from the delivered engine to operational use: in-domain, decision-blocked and out-of-scope tracks with milestones | 4 (derived; creates no task or scope authority) |
+
+**Derived snapshot (not an authority):** [`PROJECT_STATE.md`](../PROJECT_STATE.md) (`DOC-STATE-001`) is a short snapshot of the current state for a reader who needs orientation. It holds **no independent facts** and ranks below every row above: delivery state is owned by [`docs/PROJECT_STATUS.md`](PROJECT_STATUS.md), tasks by [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) §14.3, decisions by [`docs/DECISIONS_REGISTER.md`](DECISIONS_REGISTER.md) and [`docs/adr/`](adr/), verification by [`docs/BOOTSTRAP_CHANGELOG.md`](BOOTSTRAP_CHANGELOG.md). Where the snapshot disagrees with an owner, the owner is correct and the snapshot is stale. Load it instead of the owners only when a one-screen orientation is enough; load the owner for any decision, status change or verification claim.
 
 ### 1.2 Subordinate specifications
 

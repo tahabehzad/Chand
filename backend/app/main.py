@@ -34,6 +34,7 @@ from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
 from app.api.v1.payroll import router as payroll_router
+from app.api.v1.valuation import router as valuation_router
 from app.core.config import Settings, get_settings
 from app.core.logging import (
     configure_logging,
@@ -117,6 +118,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             reset_correlation_id(token)
 
     application.include_router(payroll_router)
+    application.include_router(valuation_router)
 
     @application.exception_handler(RequestValidationError)
     async def request_validation_error_handler(

@@ -51,7 +51,10 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-"tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811"]
+"tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811", "RUF001"]
+# RUF001 is waived for tests only: Persian/Arabic-Indic/fullwidth digit fixtures
+# are deliberate evidence that the blind-index normalisation folds them, so the
+# "ambiguous character" diagnostic flags the data under test, not a defect.
 "alembic/**" = ["ANN", "PLR2004", "I001"]
 "__init__.py" = ["F401"]
 # The domain error names are bound by the statutory error catalogue

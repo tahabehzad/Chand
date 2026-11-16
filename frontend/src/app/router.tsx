@@ -34,7 +34,8 @@ const RuleSetsPage = lazy(() =>
 const AuditPage = lazy(() =>
   import('@/routes/modules').then((module) => ({ default: module.AuditPage })),
 );
-const SignInPage = lazy(() => import('@/routes/auth/sign-in-page'));
+const ManagerLoginPage = lazy(() => import('@/routes/manager-login-page'));
+const ProposalPage = lazy(() => import('@/routes/proposal-page'));
 const MfaPage = lazy(() => import('@/routes/auth/mfa-page'));
 const SessionExpiredPage = lazy(() => import('@/routes/auth/session-expired-page'));
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'));
@@ -78,9 +79,13 @@ export const router = createBrowserRouter([
     children: appChildren,
   },
   {
+    path: '/proposal',
+    element: withSuspense(<ProposalPage />),
+  },
+  {
     element: <AuthLayout />,
     children: [
-      { path: '/login', element: withSuspense(<SignInPage />) },
+      { path: '/login', element: withSuspense(<ManagerLoginPage />) },
       { path: '/login/mfa', element: withSuspense(<MfaPage />) },
       { path: '/session-expired', element: withSuspense(<SessionExpiredPage />) },
     ],

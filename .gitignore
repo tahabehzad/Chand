@@ -49,6 +49,11 @@ vault-token.*
 # Local planning state of the other agent harnesses used on this workspace.
 .kilo/
 .zcode/
+# Local Obsidian vault settings and a parallel, non-authoritative knowledge
+# layer.  They are editor/agent artifacts, not project documentation; the
+# owned documentation set is AGENTS.md, README.md, PROJECT_STATE.md and docs/.
+.obsidian/
+Project Knowledge/
 # The behaviour contracts are tracked individually under .agents/skills/;
 # the archive is a local convenience copy.
 /.agents/skills.zip
