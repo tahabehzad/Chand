@@ -145,6 +145,7 @@ def _posture_view(
         "slab_breakdown": [
             {
                 "slab": line.slab,
+                "rate": str(line.rate),
                 "taxed_amount_rial": line.taxed_amount_rial,
                 "tax_rial": line.tax_rial,
             }

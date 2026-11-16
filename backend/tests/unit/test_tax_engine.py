@@ -115,6 +115,16 @@ def test_a_base_exactly_on_a_slab_edge_pays_that_band_in_full(
     assert breakdown[0].tax_rial == 6_000_000
 
 
+def test_each_band_reports_the_rate_that_was_applied(
+    rule_set: StatutoryRuleSet,
+) -> None:
+    """A reviewer must see the rate of every band, not infer it."""
+    ladder = rule_set.brackets_above(MONTHLY_EXEMPTION_RIAL)
+    _exact, _labels, breakdown = compute_progressive_tax(Decimal(200_000_000), ladder)
+    assert [line.slab for line in breakdown] == [2, 3, 4]
+    assert [str(line.rate) for line in breakdown] == ["0.10", "0.15", "0.20"]
+
+
 def test_one_rial_more_spills_into_the_next_band(rule_set: StatutoryRuleSet) -> None:
     ladder = rule_set.brackets_above(MONTHLY_EXEMPTION_RIAL)
     exact, _labels, breakdown = compute_progressive_tax(Decimal(60_000_001), ladder)

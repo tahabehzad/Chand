@@ -30,6 +30,8 @@ export interface GrossToNetRequest {
 
 export interface SlabLine {
   slab: number;
+  /** The band rate as a decimal string, e.g. "0.10" — never a float. */
+  rate: string;
   taxed_amount_rial: number;
   tax_rial: number;
 }

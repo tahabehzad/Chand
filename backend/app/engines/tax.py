@@ -71,6 +71,7 @@ class SlabTaxLine:
     """One taxed slab band, in whole Rial (rounded once from exact values)."""
 
     slab: int
+    rate: Decimal
     taxed_amount_rial: int
     tax_rial: int
 
@@ -170,6 +171,7 @@ def compute_progressive_tax(
             breakdown.append(
                 SlabTaxLine(
                     slab=bracket.slab,
+                    rate=bracket.rate,
                     taxed_amount_rial=round_half_up(band, field="slab_band"),
                     tax_rial=round_half_up(band_tax, field="slab_tax"),
                 )

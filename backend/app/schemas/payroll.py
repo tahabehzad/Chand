@@ -87,9 +87,14 @@ class SsoView(BaseModel):
 
 
 class SlabLine(BaseModel):
-    """One taxed slab band."""
+    """One taxed slab band.
+
+    ``rate`` is a **string** so a JavaScript client cannot coerce it into a
+    binary float (financial-data-integrity rule 26).
+    """
 
     slab: int
+    rate: str
     taxed_amount_rial: int
     tax_rial: int
 

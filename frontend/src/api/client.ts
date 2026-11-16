@@ -65,14 +65,27 @@ function defaultRequestId(): string {
 function readMachineCode(payload: unknown): string | undefined {
   if (typeof payload !== 'object' || payload === null) return undefined;
   const record = payload as Record<string, unknown>;
-  const candidate = record.code ?? record.error_code ?? record.error;
+  const nested = record.error;
+  if (typeof nested === 'object' && nested !== null) {
+    const code = (nested as Record<string, unknown>).code;
+    if (typeof code === 'string') return code;
+  }
+  const candidate =
+    record.code ?? record.error_code ?? (typeof nested === 'string' ? nested : undefined);
   return typeof candidate === 'string' ? candidate : undefined;
 }
 
 function readWarning(payload: unknown): string | undefined {
   if (typeof payload !== 'object' || payload === null) return undefined;
-  const warning = (payload as Record<string, unknown>).warning;
-  return typeof warning === 'string' ? warning : undefined;
+  const record = payload as Record<string, unknown>;
+  const warning = record.warning;
+  if (typeof warning === 'string') return warning;
+  const nested = record.error;
+  if (typeof nested === 'object' && nested !== null) {
+    const detail = (nested as Record<string, unknown>).detail;
+    if (typeof detail === 'string') return detail;
+  }
+  return undefined;
 }
 
 export function readApiBaseUrl(env: Record<string, string | undefined> = import.meta.env): string {
@@ -81,7 +94,6 @@ export function readApiBaseUrl(env: Record<string, string | undefined> = import.
 }
 
 export function createApiClient(options: ApiClientOptions): ApiClient {
-  const fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
   const requestIdFactory = options.requestIdFactory ?? defaultRequestId;
   const baseUrl = options.baseUrl.replace(/\/$/, '');
 
@@ -90,6 +102,11 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     async request<T>(requestOptions: RequestOptions): Promise<ApiResponse<T>> {
       const method = requestOptions.method ?? 'GET';
       const correlationId = requestIdFactory();
+      // The fetch implementation is resolved per request, not captured at
+      // construction time: a runtime polyfill, an instrumented transport or a
+      // test double installed after this module was imported must still be
+      // honoured.  An explicitly injected `fetchImpl` always wins.
+      const fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
 
       let response: Response;
       try {

@@ -113,6 +113,16 @@ def test_the_provenance_covers_the_statutory_lines(result: PayrollResult) -> Non
         assert figure in provenance
 
 
+def test_every_tax_band_reports_its_rate_as_a_string(
+    result: PayrollResult,
+) -> None:
+    """A rate is never a float in a JSON payload (financial-data-integrity 26)."""
+    for posture in result.payload["tax_postures"].values():
+        for line in posture["slab_breakdown"]:
+            assert isinstance(line["rate"], str)
+            assert line["rate"].count(".") == 1
+
+
 # ---------------------------------------------------------------------------
 # Property P-03 - the net identity
 # ---------------------------------------------------------------------------

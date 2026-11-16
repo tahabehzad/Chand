@@ -1,0 +1,95 @@
+# ==========================================================================
+# Pish Hesabdari — continuous integration (development repository only)
+#
+# Authority:
+#   docs/EXECUTION_PLAN.md §7 (the calculation integrity rules), §11
+#   (the tooling baseline) and §14.3 P0-T01 / P0-T19;
+#   docs/specs/TESTING.md §3 (tooling) and §15 (the pipeline stages);
+#   docs/specs/DEPLOYMENT.md §12 (the air-gapped verification checklist).
+# Decision:
+#   DEC-F option (b) — hosted CI for the *development* repository only.
+#   The air-gapped requirement applies to the deployed product, not to the
+#   development pipeline (DEC-F, "Consequence").
+#
+# SCOPE AND LIMITS
+#   * This pipeline runs the static-analysis and test gates only.  It does
+#     not deploy, does not migrate, does not activate a statutory rule set
+#     and holds no production credential.
+#   * The PostgreSQL integration suites need the official container image;
+#     where the runner cannot pull it they self-skip, and the skip is
+#     reported rather than hidden.
+#   * The full 13-stage pipeline of SPEC-QA-001 §15 is P0-T19 and is not
+#     built here.
+# ==========================================================================
+
+name: CI
+
+on:
+  push:
+    branches: ["main", "autonomous/project-completion"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — lint, types, tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the locked dependency set
+        run: uv sync --frozen --all-groups
+
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
+      - name: Type check (mypy --strict)
+        run: uv run mypy --strict app tests
+
+      - name: Test (pytest)
+        run: uv run pytest -q
+
+  frontend:
+    name: Frontend — lint, types, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install the locked dependency set
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (logical-utility gate)
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Test (vitest)
+        run: pnpm test
+
+      - name: Production build
+        run: pnpm build

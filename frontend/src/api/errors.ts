@@ -1,13 +1,14 @@
 /**
  * Frontend error model and catalogue mapping — WBS P3-T05.
  *
- * **Provisional.** The backend error catalogue is `backend/app/api/errors.py`
- * (`EXECUTION_PLAN` §7.1) and does not exist yet: `P0-T18`/`P1-T19` are not
- * delivered. The mapping below is therefore keyed on HTTP status and on the
- * conventional machine codes named by the specification
- * (Holy Bible M1/M8 error cases). When the real catalogue lands, this table is
- * replaced by it — it is not a second source of truth, and no endpoint is
- * invented to exercise it.
+ * The backend error catalogue **is delivered** for the gross-to-net endpoint
+ * (`backend/app/engines/errors.py` and the endpoint's error envelope
+ * `{"error": {"code", "detail"}}`, WBS `P1-T19`). The codes below are
+ * therefore the backend's own machine codes, not a second source of truth: a
+ * refusal keeps its categorical meaning all the way to the screen.
+ *
+ * The status-based fallbacks remain for the endpoints that are not delivered
+ * yet, and for any transport failure that carries no machine code.
  */
 
 export type ApiFailureKind =
@@ -27,7 +28,10 @@ export type ErrorCode =
   | 'VALIDATION_FAILED'
   | 'RATE_LIMITED'
   | 'STATUTORY_PARAMETER_UNAVAILABLE'
+  | 'RULE_SET_NOT_ACTIVE'
   | 'RULE_SET_NOT_VERIFIED'
+  | 'PAYROLL_REQUEST_INVALID'
+  | 'PAYROLL_INPUT_INVALID'
   | 'SERVER_ERROR'
   | 'NETWORK_ERROR'
   | 'MALFORMED_RESPONSE'
@@ -50,6 +54,18 @@ const CATALOGUE: Record<ErrorCode, CatalogueEntry> = {
   RATE_LIMITED: { messageFa: 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد تلاش کنید.', sessionExpiry: false },
   STATUTORY_PARAMETER_UNAVAILABLE: {
     messageFa: 'یک مقدار قانونی لازم در دسترس یا تأیید‌شده نیست؛ محاسبه متوقف شد.',
+    sessionExpiry: false,
+  },
+  RULE_SET_NOT_ACTIVE: {
+    messageFa: 'نسخه قوانین درخواستی بارگذاری نشد؛ محاسبه متوقف شد.',
+    sessionExpiry: false,
+  },
+  PAYROLL_REQUEST_INVALID: {
+    messageFa: 'درخواست ارسالی با قرارداد محاسبه نمی‌خواند؛ مقادیر را بررسی کنید.',
+    sessionExpiry: false,
+  },
+  PAYROLL_INPUT_INVALID: {
+    messageFa: 'ورودی محاسبه معتبر نیست؛ مبالغ یا مدت خدمت را بررسی کنید.',
     sessionExpiry: false,
   },
   RULE_SET_NOT_VERIFIED: {
