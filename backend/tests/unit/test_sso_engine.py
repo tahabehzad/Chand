@@ -15,7 +15,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.engines.errors import RuleSetNotActive
+from app.engines.errors import MonthLengthInvalid, PayrollInputError
 from app.engines.rules import StatutoryRuleSet, load_rule_set
 from app.engines.sso import compute_sso
 
@@ -125,12 +125,12 @@ def test_the_unemployment_insurance_is_employer_paid_only(
 
 
 def test_a_non_integer_earnings_value_is_refused(rule_set: StatutoryRuleSet) -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_sso(1.5, rule_set, 30)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_sso(True, rule_set, 30)
 
 
 def test_an_impossible_month_length_is_refused(rule_set: StatutoryRuleSet) -> None:
-    with pytest.raises(RuleSetNotActive):
+    with pytest.raises(MonthLengthInvalid):
         compute_sso(1_000_000, rule_set, 28)

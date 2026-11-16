@@ -16,6 +16,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
+from app.engines.errors import PayrollInputError
 from app.engines.severance import compute_monthly_severance_accrual
 
 
@@ -65,9 +66,9 @@ def test_the_seed_literal_is_never_used() -> None:
 
 
 def test_a_non_integer_base_is_refused() -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_monthly_severance_accrual(1.5)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_monthly_severance_accrual(True)
 
 

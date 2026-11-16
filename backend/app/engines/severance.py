@@ -21,6 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from app.engines.errors import PayrollInputError
 from app.engines.money import MONEY_PRECISION, round_half_up
 
 __all__ = ("SeveranceAccrual", "compute_monthly_severance_accrual")
@@ -39,9 +40,11 @@ class SeveranceAccrual:
 def compute_monthly_severance_accrual(mozd_e_saabet_rial: int) -> SeveranceAccrual:
     """Return ``Mozd-e Saabet ÷ 12`` rounded once to whole Rial."""
     if isinstance(mozd_e_saabet_rial, bool) or not isinstance(mozd_e_saabet_rial, int):
-        raise TypeError("mozd_e_saabet_rial must be an int number of Rial")
+        raise PayrollInputError(
+            "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be an int number of Rial"
+        )
     if mozd_e_saabet_rial < 0:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be a non-negative int"
         )
     with localcontext() as context:

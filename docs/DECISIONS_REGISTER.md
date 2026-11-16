@@ -569,6 +569,72 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 
 ---
 
+## DEC-013 — Apply statutory allowance floors and the seniority base to net pay
+
+| Field | Value |
+| :--- | :--- |
+| **Status** | `OPEN — NON-BLOCKING` for the delivered v1; **blocking** for any change that would apply the floors |
+| **Question** | Must the gross-to-net calculation enforce the 1404 minimum wage, the housing/grocery/marriage/child allowance floors and the daily base-seniority increment, changing `net_rial` — or may they be published as reference-only? |
+| **Responsible role** | Payroll Engineer (evidence); Certified Tax Accountant + Labour Counsel (legal meaning) |
+| **Required approver** | Project Owner, with Labour Counsel and Certified Tax Accountant advice |
+| **Blocking tasks** | None in the ADR-008 v1 scope (the engine publishes the values and does not apply them). Any future task that changes net pay is blocked until this entry is resolved. |
+
+**Current evidence**
+
+- The verified 1404 seed carries `monthly_housing_allowance_rial = 9,000,000`, `monthly_grocery_allowance_rial = 22,000,000`, `monthly_marriage_allowance_rial = 5,000,000`, `child_allowance_per_child_rial = 10,390,968` and `daily_seniority_base_rial = 94,000`.
+- ADR-008 authorises the gross-to-net calculation only. It does not decide whether the employer's declared gross already satisfies the floors, whether an under-floor package is unlawful, or whether the seniority increment is a statutory entitlement for every worker.
+- The engine therefore publishes `statutory_reference` with `applied_to_net = false`, the declared child allowance, a below-floor flag and the monthly seniority increment, and lists the floors as `reference_only` in `statutory_parameter_usage`.
+- Holy Bible §2.3 distinguishes `مزد مبنا`, `مزد ثابت`, `حقوق`, `سنوات` and `پایه سنوات`; merging them without a legal ruling would violate AGENTS.md §10.
+
+**Available options**
+
+| Option | Description |
+| :--- | :--- |
+| **A** | Apply every floor and the seniority base to net; refuse or uplift an under-floor package |
+| **B** | Keep them reference-only and disclose the comparison (current v1 behaviour) |
+| **C** | Apply only the minimum-wage floor; leave allowances and seniority reference-only |
+
+**Recommendation: B for the delivered v1**, with A or C considered only after a Labour Counsel/Tax Accountant ruling. The arithmetic is already published; the legal effect on a real contract is not established by the corpus, and inventing it would breach AGENTS.md §2 (unknown values stay unknown; no legal conclusion without a citation).
+
+**Risks**
+
+| Risk | Likelihood | Mitigation |
+| :--- | :--- | :--- |
+| A user treats the reference block as an entitlement and pays it | Medium | `applied_to_net=false` and `reference_only_reason` in the response; the UI labels the block as reference |
+| An under-floor contract is processed without warning | Medium | `total_gross_below_minimum_wage` and `declared_child_allowance_below_floor` are published |
+| Applying floors later changes historical net figures | Medium | Rule-set version, engine version and calculation hash are stored; historical simulations are never recomputed (invariant 6) |
+
+---
+
+## Engine review ambiguity ledger (B-series)
+
+These are statutory/product ambiguities raised by the independent engine
+review. None is a licence to invent a value: each records the assumption the
+current implementation makes and the authority that must resolve it. The
+numbering follows the review ledger; entries whose original text did not
+survive in the repository are marked accordingly and are **not** treated as
+decided.
+
+| ID | Ambiguity | Current implementation / assumption | Status |
+| :-- | :--- | :--- | :--- |
+| B-1 | The Holy Bible Appendix A worked example mixes a full Art. 137 deduction with taxable welfare allowances — a posture ADR-008's binding cannot produce | Appendix A is used only for ladder arithmetic (A.4/A.5 tax figures); end-to-end vectors are not asserted | `OPEN` — Tax Accountant; DEC-002 |
+| B-2 | Which Art. 137 reading has legal effect on a real payslip (the dual response publishes both, `conservative_inta` primary) | ADR-008/DEC-002a binding: both postures always computed, conservative primary | `OPEN` — Counsel; ADR-008 scope decision |
+| B-3 | The SSO insurable base: total gross vs fixed wage (QB-04) | Total gross capped at `7 × daily minimum wage × days`; published as `insurable_base` with the conflict reference | `OPEN` — SSO/Counsel |
+| B-4 | Whether overtime and night-shift premiums enter the Sanavat and Eydi bases | Excluded; `includes_overtime_premiums=false` is published in both blocks | `OPEN` — Labour Counsel |
+| B-5 | The Eydi cap basis and whether the cap applies before or after tax | Cap = `max_annual_eydi_rial` (90 daily minimum wages); tax on the capped amount | `OPEN` — Tax Accountant |
+| B-6 | Interaction between the annual Eydi tax exemption and the salary exemption | Eydi taxed progressively on the exempt excess through the same shifted ladder | `OPEN` — Tax Accountant |
+| B-7 | Art. 71 leave-buyout daily wage: divisor and whether welfare allowances participate | `Mozd-e Saabet / 30`; divisor published as `daily_wage_divisor_days` | `OPEN` — Labour Counsel; implementation records 30 from the seed's documented 30-day convention |
+| B-8 | Month-length convention for monthly statutory amounts (29/30/31 actual vs a fixed 30) | Monthly minimum/ceiling follow the actual month length; Art. 71 uses 30 | `OPEN` — Labour Counsel |
+| B-9 | Precedence between the seed's `is_verified_and_active` flag and the loader's year gate | Seed status is read and published (`rule_set_status_source`); the loader still refuses any year outside `{1404}` | `RESOLVED — engineering` (fail-closed behaviour verified) |
+| B-10 | Statutory parameters loaded but unused (allowance floors, child floor, seniority base, marriage allowance) | Published as `reference_only`; `applied_to_net=false`; see DEC-013 | `OPEN` — Project Owner; DEC-013 |
+| B-11 | Refusal taxonomy: stable machine codes vs historical bare `ValueError`/`TypeError` | One `PayrollEngineError` hierarchy with stable codes; the API reads `code`; `ValueError` catch retained | `RESOLVED — engineering` (A-9/A-13) |
+
+**No B-series item changes a statutory value or activates 1405.** B-1…B-8 and
+B-10 require a human legal/tax ruling; B-9 and B-11 are engineering
+resolutions and are recorded here for traceability only.
+
+---
+
 ## Summary
 
 ### DEC-012 — Statutory provenance ownership and identity-FK ordering
@@ -602,8 +668,9 @@ Owner must confirm (1) which statutory/provenance/signature/change tables are gl
 | DEC-011b | Human adjudication of flagged documents | OPEN — NON-BLOCKING | Phase 2 | Product + CISO |
 | DEC-011c | Art. 86 720-day insured-days threshold | OPEN — BLOCKING | Phase 2 | Legal Counsel |
 | DEC-012 | Statutory provenance ownership and user-FK ordering | RESOLVED — ADR-007 | P0-T04 | CTO/DBA + Security Architect |
+| DEC-013 | Apply allowance floors and seniority base to net | OPEN — NON-BLOCKING | v1 reference-only | Project Owner + Labour Counsel/Tax Accountant |
 
-**18 entries: 11 open (7 blocking, 4 non-blocking), 5 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope.
+**19 entries: 11 open (7 blocking, 4 non-blocking), 6 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope. The B-series ambiguity ledger above records the engine-review questions separately from the DEC numbering; only DEC-013 is a new owner decision in this pass.
 
 ---
 

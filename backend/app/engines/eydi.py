@@ -30,25 +30,33 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from app.engines.errors import PayrollInputError
 from app.engines.money import MONEY_PRECISION, round_half_up
 from app.engines.rules import StatutoryRuleSet, shift_brackets_by
 from app.engines.tax import TaxBracket, compute_progressive_tax
 
 __all__ = ("EydiResult", "compute_eydi")
 
-_TWO = Decimal(2)
+_THIRTY = Decimal(30)
 _TWELVE = Decimal(12)
 
 
 @dataclass(frozen=True, slots=True)
 class EydiResult:
-    """The annual *Eydi* and its monthly accrual with payout taxation."""
+    """The annual *Eydi* and its monthly accrual with payout taxation.
+
+    ``annual_tax_rial`` is the sum of the rounded slab lines, so the payout
+    breakdown reconciles with the published tax total; the signed difference
+    to the exact total is surfaced as ``tax_rounding_residual_rial``.
+    """
 
     annual_gross_exact: Decimal
     annual_gross_rial: int
     at_cap: bool
     monthly_accrual_rial: int
     annual_tax_rial: int
+    annual_tax_exact_rial: int
+    tax_rounding_residual_rial: int
     annual_net_rial: int
 
 
@@ -61,11 +69,20 @@ def compute_eydi(
 
     ``brackets`` defaults to the rule set's own salary slabs; the excess
     over the annual exemption is taxed across those same progressive bands.
+
+    The floor is expressed through the seed's ``eydi_min_days`` (60 days of
+    the daily *Mozd-e Saabet*, and the corpus's documented 30-day month
+    convention yields ``60 ÷ 30 = 2``), and the cap through the seed's
+    verified annual ``max_annual_eydi_rial`` (90 daily minimum wages).  No
+    magic factor is hard-coded, and the seed's rejected flat
+    ``eydi_tax_excess_rate`` is never read.
     """
     if isinstance(mozd_e_saabet_rial, bool) or not isinstance(mozd_e_saabet_rial, int):
-        raise TypeError("mozd_e_saabet_rial must be an int number of Rial")
+        raise PayrollInputError(
+            "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be an int number of Rial"
+        )
     if mozd_e_saabet_rial < 0:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be a non-negative int"
         )
     active_brackets = rule_set.tax_brackets if brackets is None else brackets
@@ -74,7 +91,7 @@ def compute_eydi(
         context.prec = MONEY_PRECISION
         context.rounding = ROUND_HALF_UP
         saabet = Decimal(mozd_e_saabet_rial)
-        floor_bound = saabet * _TWO
+        floor_bound = saabet * Decimal(rule_set.eydi_min_days) / _THIRTY
         cap = Decimal(rule_set.max_annual_eydi_rial)
         annual_exact = min(floor_bound, cap)
         monthly_exact = annual_exact / _TWELVE
@@ -88,13 +105,16 @@ def compute_eydi(
     if excess < 0:
         excess = Decimal(0)
     ladder = shift_brackets_by(active_brackets, rule_set.eydi_tax_exemption_rial)
-    tax_exact, _labels, _breakdown = compute_progressive_tax(excess, ladder)
-    tax_rial = round_half_up(tax_exact, field="eydi_tax")
+    tax_exact, _labels, breakdown = compute_progressive_tax(excess, ladder)
+    tax_rial = sum(line.tax_rial for line in breakdown)
+    tax_exact_rial = round_half_up(tax_exact, field="eydi_tax")
     return EydiResult(
         annual_gross_exact=annual_exact,
         annual_gross_rial=annual_rial,
         at_cap=at_cap,
         monthly_accrual_rial=monthly_rial,
         annual_tax_rial=tax_rial,
+        annual_tax_exact_rial=tax_exact_rial,
+        tax_rounding_residual_rial=tax_rial - tax_exact_rial,
         annual_net_rial=annual_rial - tax_rial,
     )

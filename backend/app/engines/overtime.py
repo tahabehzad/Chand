@@ -24,6 +24,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from app.engines.errors import PayrollInputError
 from app.engines.money import MONEY_PRECISION, round_half_up
 from app.engines.rules import StatutoryRuleSet
 
@@ -43,10 +44,12 @@ class OvertimeResult:
     premium_total_rial: int
 
 
-def _require_hours(value: int, field: str) -> int:
-    """Return *value* if it is a genuine non-negative ``int`` hour count."""
+def _require_non_negative_int(value: int, field: str) -> int:
+    """Return *value* if it is a genuine non-negative ``int``."""
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise ValueError(f"PAYROLL_INPUT_INVALID: {field} must be a non-negative int")
+        raise PayrollInputError(
+            f"PAYROLL_INPUT_INVALID: {field} must be a non-negative int"
+        )
     return value
 
 
@@ -63,9 +66,9 @@ def compute_overtime_premiums(
     already inside the contractual gross, exactly as the statutory
     multipliers describe the *extra* remuneration for the extra hours.
     """
-    saabet = _require_hours(mozd_e_saabet_rial, "mozd_e_saabet_rial")
-    overtime = _require_hours(overtime_hours, "overtime_hours")
-    night = _require_hours(night_hours, "night_hours")
+    saabet = _require_non_negative_int(mozd_e_saabet_rial, "mozd_e_saabet_rial")
+    overtime = _require_non_negative_int(overtime_hours, "overtime_hours")
+    night = _require_non_negative_int(night_hours, "night_hours")
 
     divisor = rule_set.overtime_divisor(days_in_month)
     with localcontext() as context:

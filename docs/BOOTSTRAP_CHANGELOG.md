@@ -1356,3 +1356,100 @@ review before any of them can be marked `APPROVED`. `P1-T02` and `P1-T15` remain
 
 No 1405 activation, seed change, legal sign-off, certified corpus, release gate
 or production-readiness claim is made.
+
+---
+
+## 24. Statutory-engine remediation pass (review findings A-1…A-13) — 2026-11-16
+
+Lead Backend Engineer (autonomous remediation). Scope: re-verify every finding
+of the independent monetary review against the current tree, fix only the
+verified defects, add a regression test for each, and correct the evidence
+record. No seed, ADR-001…008, product boundary or legal conclusion was changed;
+1405 stays unloadable and the certified corpus stays blocked. No commit or push
+was made in this pass.
+
+Read for this pass: `AGENTS.md`; Holy Bible §2.3/§2.5/Appendix A, §13.1 and
+§13.8; ADR-008; EXECUTION_PLAN §7.1–7.3/§14.3; TESTING §4.2/§4.3; the seeds
+(read only); every engine, service, schema and API module; the test tree.
+
+### 24.1 Defects fixed
+
+| ID | Verified defect | Correction | Regression evidence |
+| :-- | :--- | :--- | :--- |
+| A-1 | The signed residual compared `total_gross - net` with the same lines (always an identity), and the published tax total did not equal the sum of its slab lines | Residual = `sum(rounded deduction lines) - round(exact total)`; published tax = sum of rounded slab lines; exact total and signed residual published per posture | `test_the_tax_breakdown_sums_to_the_published_total`, `test_the_employee_deduction_residual_is_not_a_tautology`, API `test_the_response_tax_lines_reconcile` |
+| A-2 | Provenance covered seven block keys only | Field-level provenance keyed by JSON path for every derived monetary line (including both postures and every slab), block keys retained | `test_the_provenance_covers_every_field_level_path` |
+| A-3 | The termination total summed mutually exclusive probation lines with the separation lines | `TerminationScenario` (`probation_employer_initiated`, `probation_employee_initiated`, `ordinary_termination`); one applied line + separation = `total_liability_rial` | Termination scenario tests; API scenario tests |
+| A-4 | Leave buyout divided by the calendar month length | `STATUTORY_DAILY_WAGE_DIVISOR_DAYS = 30`, published as `daily_wage_divisor_days` | `test_the_leave_buyout_uses_the_statutory_thirty_day_divisor` |
+| A-5 | The Art. 137 “exact base” test could pass on either base (±1 tolerance against rounded+1) | A deliberately discriminating fixture (rounding the SSO share changes the deduction by 1 Rial) asserts the exact value | `test_the_article_137_deduction_uses_the_exact_sso_share` |
+| A-6 | Float `/ 12` and Python `round()` in Eydi/property tests | Decimal division and `ROUND_HALF_UP` | `test_the_monthly_accrual_is_the_annual_over_twelve`, P-05 property |
+| A-7 | R-01 compared a property with its defining expression | The seed's independent 30-day ceiling is loaded and compared; the invariant can now fail | `test_the_insurable_ceiling_invariant_is_independent` |
+| A-8 | A test named “true at the cap” asserted `False` | Renamed to the actual meaning; true-above-cap case added; behaviour unchanged (the flag means the cap truncated the accrual) | Eydi cap tests |
+| A-9 | `TaxableBaseNegative` was unreachable; engines raised bare `ValueError`/`TypeError`; the API collapsed the code | One taxonomy under `PayrollEngineError` (subclasses `ValueError` for historical compatibility) with a stable `code`; the API reads `code` | Tax/engine/API refusal tests |
+| A-10 | Loaded allowance floors, child floor and seniority base were never surfaced | `statutory_reference` + `statutory_parameter_usage`, `applied_to_net=false`, link to proposed DEC-013 | `test_the_statutory_reference_is_published_but_not_applied`, `test_the_rule_set_usage_is_published` |
+| A-11 | A stored result could not be re-verified against the exact parameter values | Optional injected rule set, `rule_set_fingerprint()` (SHA-256 of canonical parameters) published; injection must match the request year | `test_the_rule_set_fingerprint_is_published`, `test_an_injected_rule_set_is_used_and_must_match_the_year` |
+| A-12 | §23's evidence claims were broader than the implementation (residual, provenance, contract suite) | This section corrects the record; §23 is preserved as history | This table |
+| A-13 | The loader test mutated the lru-cached 1404 rule set; the contract test could not collect | `dataclasses.replace` copy plus a cache-intact assertion; contract test uses `force_schema_version="30"`, a path regex and skips contract-valid negative cases | `test_an_invariant_violation_fails_closed`; `tests/api/test_openapi_contract.py` |
+
+### 24.2 Published contract changes
+
+The response now carries `rule_set_status_source`, `rule_set_fingerprint`,
+`insurable_base`, `statutory_reference`, `statutory_parameter_usage`,
+`rounding_residual_scope`, per-posture exact tax/residual/clamp fields, a typed
+`severance_sanavat`/`eydi`/`employer_cost` block, and the reconciled
+termination block. The request accepts optional `termination_scenario` and
+`recognised_service_years`. `ENGINE_VERSION` is `0.3.0-payroll-engine`.
+Refusal codes are now specific (`BASE_DECOMPOSITION_NEGATIVE`,
+`PAYROLL_MONTH_LENGTH_INVALID`, `PROBATION_BEYOND_STATUTORY_MAX`,
+`TAXABLE_BASE_NEGATIVE`, …); the historical `ValueError` catch still works.
+
+### 24.3 Exact commands and observed results (PASS / FAIL / NOT RUN)
+
+| Command | Result |
+| :--- | :--- |
+| `cd backend; .\.venv\Scripts\python.exe -m pytest -q` (baseline, before fixes) | **FAIL** — collection error in `tests/api/test_openapi_contract.py` (schemathesis rejects OpenAPI 3.1.0) |
+| `cd backend; .\.venv\Scripts\python.exe -m pytest -q` (after fixes) | **PASS** — 568 passed, 105 skipped, 9 warnings, 18.69 s |
+| `cd backend; .\.venv\Scripts\python.exe -m ruff check .` | **PASS** — `All checks passed!` |
+| `cd backend; .\.venv\Scripts\python.exe -m mypy --strict app tests` | **PASS** — `Success: no issues found in 64 source files` |
+| PostgreSQL integration suites | **NOT RUN** — Docker daemon unavailable; 104 suites self-skip with an explicit NOT RUN reason |
+| `cd backend; .\.venv\Scripts\python.exe -m pytest -q` (final re-run after the documentation reconciliation) | **PASS** — 568 passed, 105 skipped, 9 third-party warnings |
+| Markdown table and local-link check on the changed documents | **PASS** — pipe counts consistent; no missing relative link. Pre-existing malformed tables in `ENVIRONMENT_INVENTORY.md` and the Holy Bible were left untouched |
+| Frontend test/typecheck/build | **NOT RUN in this pass** — no frontend file changed; last evidence remains §23 |
+| Independent review by a non-author | **NOT RUN** — unavailable; AGENTS.md §6 keeps every engine task at READY_FOR_REVIEW |
+
+### 24.4 Corrections to §23
+
+1. §23 reports “548 passed, 104 skipped”; the suite is now 568/105 because 20
+   regression/contract tests were added and the contract test now collects.
+2. §23's statement that “every figure carries provenance” was true only for
+   seven block keys; §24.1 A-2 records the actual coverage and the fix.
+3. §23's `rounding_residual_rial` claim (“signed residual surfaced”) did not
+   state that the old value was an identity; A-1 records the correction.
+4. §23's “Schemathesis + contract suite” evidence referred to a test file that
+   did not collect and was untracked; A-13 records the repair.
+5. No legal, seed or scope statement in §23 is changed.
+
+### 24.5 Task status after this pass
+
+No task moves to `COMPLETED` or `APPROVED`. `P1-T01`, `P1-T05`–`P1-T12`,
+`P1-T14`, `P1-T16` and `P1-T19` remain `READY_FOR_REVIEW` with stronger
+evidence; independent review and the PostgreSQL integration run are still
+required. `P1-T02`/`P1-T15` remain `BLOCKED`; `P1-T03` remains gated.
+
+### 24.6 Documentation reconciliation (2026-11-16)
+
+The delivery documents were re-read against the tree after the code fixes. The
+following factual corrections were made; no code, seed, ADR or legal statement
+changed in this documentation pass.
+
+| Document | Correction |
+| :--- | :--- |
+| `docs/PROJECT_STATUS.md` | §2 now cites §24, reports **568 passed / 105 skipped**, 64 strict-typed files and the new contract/fingerprint/provenance evidence; the engine is no longer described as absent. §3 records the uncommitted remediation set; §6 arithmetic reconciled to 19 register entries; §7 records the written/verified migration and the never-executed CI; §9 replaces the pre-engine statements with the enforced loader, the non-consumed flat Eydi rate and the local (not certified) evidence posture; §10 states the ADR-008 v1 boundary correctly |
+| `docs/EXECUTION_PLAN.md` §14.3 | `P1-T01` (R-01 independence, R-11 divisor, fingerprint, cache-mutation test), `P1-T04` (tautological residual replaced), `P1-T05` (slab-total reconciliation), `P1-T09` (cap-test meaning, Decimal accrual), `P1-T12` (scenario model + 30-day divisor), `P1-T14`, `P1-T16` (Decimal P-05) and `P1-T19` (collecting contract suite, per-field provenance, reconciled residual) cite §24; no status or dependency changed |
+| `docs/DECISIONS_REGISTER.md` | Summary arithmetic corrected: the 19 listed rows are **11 open (7 blocking, 4 non-blocking), 6 resolved and 2 rejected**, not “12 open / 5 resolved”. DEC-013 and the B-1…B-11 ledger are unchanged in substance |
+| `docs/DECISION_REQUIRED_FROM_OWNER.md` | The register summary now says 19 entries / 11 open / 6 resolved / 2 rejected and surfaces proposed DEC-013 as a non-blocking owner question; v1 keeps the floors and seniority base reference-only |
+| `docs/IMPLEMENTATION_READINESS.md` | Census refreshed to **1 COMPLETED / 6 IN_PROGRESS / 17 READY_FOR_REVIEW / 58 NOT_STARTED / 4 BLOCKED / 0 APPROVED**, the “financial engines do not exist” statement removed, and a malformed 5-column table header corrected to 4; the verdict remains **NOT implementation-ready** because 11 decisions, external acquisitions and a phase-gate evidence pack are still absent |
+
+Checks: the final `pytest -q` re-run passed (568/105), `ruff check .` and
+`mypy --strict app tests` (64 files) remained green, and a pipe-count/local-link
+check on the changed documents found no new defect. The uncommitted state is
+unchanged: no commit or push was made.

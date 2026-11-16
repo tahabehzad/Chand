@@ -202,7 +202,7 @@ These are **engineering** decisions already tracked in `docs/DECISIONS_REGISTER.
 | DEC-J | The three highest-leverage actions | **Blocking** | **Yes** |
 | DEC-K | Product scope refocus on the payroll calculation engine | **RESOLVED 2026-11-15 — ADR-008** | No — unblocks the v1 engine arithmetic (DEC-002a resolved) |
 
-**11 queue entries:** DEC-A/B/G/H are resolved authorizations/corrections; DEC-I and DEC-K are resolved decision pointers (ADR-006, ADR-008); DEC-C/D remain non-blocking; DEC-F blocks CI; DEC-E blocks external acquisitions; DEC-J is an action-summary pointer. The engineering register has 18 entries: 5 resolved by owner approval (ADR-006/007/008), 2 rejected out of scope (ADR-008) and 11 open. No queue, legal-year activation or deployment decision was approved by the four-choice confirmation.
+**11 queue entries:** DEC-A/B/G/H are resolved authorizations/corrections; DEC-I and DEC-K are resolved decision pointers (ADR-006, ADR-008); DEC-C/D remain non-blocking; DEC-F blocks CI; DEC-E blocks external acquisitions; DEC-J is an action-summary pointer. The engineering register has 19 entries: 6 resolved by owner approval (ADR-006/007/008), 2 rejected out of scope (ADR-008) and 11 open (7 blocking, 4 non-blocking). DEC-013 (apply the statutory allowance floors and seniority base to net) is one of the non-blocking entries; the v1 engine publishes them as reference-only until the owner and Labour Counsel/Tax Accountant decide. No queue, legal-year activation or deployment decision was approved by the four-choice confirmation.
 
 ---
 

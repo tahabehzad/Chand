@@ -25,15 +25,25 @@ from pydantic import BaseModel, ConfigDict, Field
 
 __all__ = (
     "AllowancesInput",
+    "EmployerCostView",
     "ErrorResponse",
+    "EydiView",
     "GrossToNetRequest",
+    "InsurableBaseView",
     "PayrollResponse",
     "ProvenanceEntry",
+    "SeveranceView",
     "SsoView",
+    "StatutoryReferenceView",
     "TaxPostureValue",
 )
 
 TaxPostureValue = Literal["conservative_inta", "court_precedent"]
+TerminationScenarioValue = Literal[
+    "probation_employer_initiated",
+    "probation_employee_initiated",
+    "ordinary_termination",
+]
 
 
 class AllowancesInput(BaseModel):
@@ -65,6 +75,18 @@ class GrossToNetRequest(BaseModel):
     tenure_months: int | None = Field(default=None, ge=0)
     accumulated_unused_leave_days: int | None = Field(default=None, ge=0)
     probation_days_worked: int | None = Field(default=None, ge=0)
+    termination_scenario: TerminationScenarioValue | None = Field(
+        default=None,
+        description=(
+            "Which Art. 11 line applies when probation data is supplied. "
+            "Defaults to employer-initiated for backward compatibility."
+        ),
+    )
+    recognised_service_years: int | None = Field(
+        default=None,
+        ge=0,
+        description="Whole recognised service years used for the reference seniority block.",
+    )
 
 
 class ProvenanceEntry(BaseModel):
@@ -106,10 +128,75 @@ class PostureTaxView(BaseModel):
     art137_deduction_rial: int
     welfare_allowances_taxable: bool
     taxable_income_rial: int
+    taxable_base_clamped: bool
     income_tax_rial: int
+    income_tax_exact_total_rial: int
+    tax_rounding_residual_rial: int
     tax_slabs_applied: list[str]
     slab_breakdown: list[SlabLine]
     net_rial: int
+
+
+class InsurableBaseView(BaseModel):
+    """The audited SSO base note (B-3 conflict is published, not resolved)."""
+
+    basis: str
+    conflict_ref: str
+
+
+class SeveranceView(BaseModel):
+    """The monthly Sanavat accrual block."""
+
+    base_rial: int
+    accrual_basis: str
+    includes_overtime_premiums: bool
+    conflict_ref: str
+    monthly_accrual_rial: int
+
+
+class EydiView(BaseModel):
+    """The annual Eydi block and its tax reconciliation."""
+
+    annual_gross_rial: int
+    at_cap: bool
+    cap_basis: str
+    excess_tax_method: str
+    includes_overtime_premiums: bool
+    monthly_accrual_rial: int
+    annual_tax_rial: int
+    annual_tax_exact_total_rial: int
+    tax_rounding_residual_rial: int
+    annual_net_rial: int
+    conflict_refs: str
+
+
+class EmployerCostView(BaseModel):
+    """The monthly and annual total cost to employer (CTC)."""
+
+    total_monthly_employer_cost_rial: int
+    annual_ctc_12month_rial: int
+    includes_26day_leave_reserve: bool
+
+
+class StatutoryReferenceView(BaseModel):
+    """Reference-only statutory floors and seniority (not applied to net)."""
+
+    monthly_minimum_wage_rial: int
+    daily_minimum_wage_rial: int
+    housing_allowance_floor_rial: int
+    grocery_allowance_floor_rial: int
+    marriage_allowance_floor_rial: int
+    child_allowance_per_child_rial: int
+    allowance_floor_excluding_child_rial: int
+    declared_child_allowance_rial: int
+    declared_child_allowance_below_floor: bool
+    total_gross_below_minimum_wage: bool
+    daily_seniority_base_rial: int
+    monthly_seniority_base_rial: int
+    recognised_service_years: int
+    monthly_seniority_increment_rial: int
+    applied_to_net: bool
+    reference_only_reason: str
 
 
 class PayrollResponse(BaseModel):
@@ -121,6 +208,8 @@ class PayrollResponse(BaseModel):
 
     statutory_version: str
     rule_set_status: str
+    rule_set_status_source: str
+    rule_set_fingerprint: str
     is_verified: bool
     engine_version: str
     calculation_hash: str
@@ -131,14 +220,18 @@ class PayrollResponse(BaseModel):
     inputs: dict[str, object]
     bases: dict[str, object]
     sso: SsoView
+    insurable_base: InsurableBaseView
     tax_postures: dict[str, PostureTaxView]
     net_rial: int
     alternate_posture_net_rial: int
     employee_deductions: dict[str, int]
-    severance_sanavat: dict[str, int]
-    eydi: dict[str, object]
-    employer_cost: dict[str, object]
+    severance_sanavat: SeveranceView
+    eydi: EydiView
+    employer_cost: EmployerCostView
+    statutory_reference: StatutoryReferenceView
+    statutory_parameter_usage: dict[str, str]
     rounding_residual_rial: int
+    rounding_residual_scope: str
     provenance: dict[str, ProvenanceEntry]
     termination_liability: dict[str, object] | None = None
 

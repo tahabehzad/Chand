@@ -24,6 +24,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 
+from app.engines.errors import PayrollInputError
 from app.engines.money import MONEY_PRECISION, round_half_up
 from app.engines.rules import StatutoryRuleSet
 
@@ -57,9 +58,11 @@ def compute_sso(
     not on a rounded line (iranian-payroll-engineering rule 15).
     """
     if isinstance(total_earnings_rial, bool) or not isinstance(total_earnings_rial, int):
-        raise TypeError("total_earnings_rial must be an int number of Rial")
+        raise PayrollInputError(
+            "PAYROLL_INPUT_INVALID: total_earnings_rial must be an int number of Rial"
+        )
     if total_earnings_rial < 0:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: total_earnings_rial must be a non-negative int"
         )
     ceiling = rule_set.insurable_ceiling_rial(days_in_month)

@@ -26,7 +26,12 @@ from fastapi.responses import JSONResponse
 
 from app.engines.bases import Allowances
 from app.engines.errors import PayrollEngineError, PayrollInputError
-from app.schemas.payroll import AllowancesInput, GrossToNetRequest, PayrollResponse
+from app.schemas.payroll import (
+    AllowancesInput,
+    ErrorResponse,
+    GrossToNetRequest,
+    PayrollResponse,
+)
 from app.services.payroll_service import PayrollInput, compute_gross_to_net
 
 router = APIRouter(prefix="/api/v1/simulations", tags=["simulations"])
@@ -63,6 +68,8 @@ def _to_payroll_input(payload: GrossToNetRequest) -> PayrollInput:
         tenure_months=payload.tenure_months,
         accumulated_unused_leave_days=payload.accumulated_unused_leave_days,
         probation_days_worked=payload.probation_days_worked,
+        termination_scenario=payload.termination_scenario,
+        recognised_service_years=payload.recognised_service_years,
     )
 
 
@@ -70,6 +77,16 @@ def _to_payroll_input(payload: GrossToNetRequest) -> PayrollInput:
     "/gross-to-net",
     response_model=PayrollResponse,
     summary="Gross-to-net payroll simulation (1404 verified baseline)",
+    responses={
+        # The endpoint's documented refusal shape. Declaring it here replaces
+        # FastAPI's default 422 body, so the OpenAPI contract and the real
+        # response agree: a request-validation refusal returns the same
+        # `{"error": {"code", "detail"}}` envelope as every domain refusal.
+        422: {
+            "model": ErrorResponse,
+            "description": "The request or the calculation was refused.",
+        }
+    },
 )
 async def gross_to_net(payload: GrossToNetRequest) -> PayrollResponse | JSONResponse:
     """Run the statutory gross-to-net calculation for one month.

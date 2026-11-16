@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-READY-001`
 - **Status:** Active — re-evaluated at every phase gate
-- **Date:** 2026-11-14 (23 Aban 1405 SH)
+- **Date:** 2026-11-14 (23 Aban 1405 SH); delivery census and evidence refreshed 2026-11-16 (BOOTSTRAP_CHANGELOG §24)
 - **Related:** [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) · [`docs/DECISIONS_REGISTER.md`](DECISIONS_REGISTER.md) · [`docs/specs/TESTING.md`](specs/TESTING.md)
 
 ---
@@ -11,7 +11,7 @@
 
 > **The project is NOT implementation-ready.**
 
-The *architecture* is decided — four Accepted ADRs, a coherent technology stack and a coherent domain model. The *planning* is now complete — an 86-task WBS with dependencies, acceptance criteria and verification methods, against the unchanged 20-week roadmap.
+The *architecture* is decided — seven Accepted ADRs (ADR-001…004, 006, 007, 008; ADR-005 remains proposed), a coherent technology stack and a coherent domain model. The *planning* is now complete — an 86-task WBS with dependencies, acceptance criteria and verification methods, against the unchanged 20-week roadmap.
 
 What is missing is not architectural. It is:
 
@@ -36,7 +36,7 @@ A phase is classified `READY` only when **all four** of the following are satisf
 
 If any condition fails but the failure is bounded and recoverable, the phase is `READY_WITH_CONDITIONS` and the conditions are listed. If a failure is unbounded — a required external artefact that does not exist, or a decision with no owner — the phase is `BLOCKED`.
 
-**Documentation readiness is not implementation completion.** Current WBS: 1 `COMPLETED`, 1 `IN_PROGRESS` (P0-T01 CI clause unmet), 2 `READY_FOR_REVIEW` (P0-T03 local PostgreSQL and P0-T06 isolated encryption), 78 `NOT_STARTED`, 4 `BLOCKED`. P0-T03 official pull/build and real hardening verifier PASS on 2026-11-15; CI dependency remains. Financial engines and integrated tenant-security foundation do not exist. Four owner decisions are accepted in ADR-006; other details remain open. Verification: BOOTSTRAP_CHANGELOG §15 (DB runtime), §12 (last full application suite). No accountant, labour counsel or licensed/consented datasets are available.
+**Documentation readiness is not implementation completion.** Current WBS: 1 `COMPLETED`, 6 `IN_PROGRESS`, 17 `READY_FOR_REVIEW`, 58 `NOT_STARTED`, 4 `BLOCKED`; 0 `APPROVED`. The ADR-008 statutory engine and its minimal endpoint are implemented and locally verified (§23, §24), but no engine task is `APPROVED`: independent review by a non-author and the PostgreSQL integration run remain outstanding. CI exists but has never executed on GitHub; the integrated tenant-security foundation and real authentication do not exist. ADR-006/007/008 resolve six register entries; 11 remain open (7 blocking, 4 non-blocking) and DEC-013 is proposed. Verification: BOOTSTRAP_CHANGELOG §24 (engine/application suite), §21 (isolated DB), §15 (recorded DB runtime). No accountant, labour counsel or licensed/consented datasets are available.
 
 **Execution boundary.** Descriptions below of work with documented assumptions permit planning and proposals only when a decision is open. They do not authorize choosing authentication, key hierarchy or schema variants, or writing migrations that encode an unresolved decision. Obtain the recorded approvers' decision first; `AGENTS.md` §3 governs that boundary.
 
@@ -48,9 +48,9 @@ If any condition fails but the failure is bounded and recoverable, the phase is 
 
 **Classification: `READY_WITH_CONDITIONS`**
 
-| Condition | Condition | Verification | Verification | Deadline |
-| :--: | :--- | :--- | :--- | :--: |
-| 1 | **DEC-004 and DEC-005 ratified** by the CISO/CTO and the CTO/DBA respectively | The register entries move to `RESOLVED` with a named approver | End of Week 1 |
+| # | Condition | Verification | Deadline |
+| :--: | :--- | :--- | :--: |
+| 1 | **DEC-004 and DEC-005 ratified** by the CISO/CTO and the CTO/DBA respectively | The register entries move to `RESOLVED` with a named approver (both are now resolved under ADR-006) | End of Week 1 |
 | 2 | `P0-T05`, `P0-T12` and `P0-T18` proceed against the **proposed** schema in `SPEC-AUTH-001` §2 and the corrections in `EXECUTION_PLAN.md` §6.2, with the assumption recorded in each task's *Blocking issues* field | The assumption is visible in the task record and re-checked at the Phase 0 gate | On creation of each task |
 | 3 | **Three external commissions started in Week 1**: the Certified Tax Accountant (`P1-T15`), the Labour Counsel (`P1-T02`, `P4-T07`), and the penetration-test vendor (`P4-T06`) | Engagement letters or recorded requests exist | End of Week 1 |
 | 4 | `P0-T02` → `P0-T19` proceed without further decisions | — | — |

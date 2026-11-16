@@ -15,12 +15,17 @@ Related:
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
 
-from app.engines.errors import RuleSetNotActive, StatutoryParameterUnavailable
+from app.engines.errors import (
+    MonthLengthInvalid,
+    RuleSetNotActive,
+    StatutoryParameterUnavailable,
+)
 from app.engines.rules import (
     ACTIVE_STATUTORY_YEARS,
     StatutoryRuleSet,
@@ -136,23 +141,41 @@ def test_the_1405_seed_file_exists_but_is_inert() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Invariants R-01 ... R-10
+# Invariants R-01 ... R-11
 # ---------------------------------------------------------------------------
 
 
 def test_every_offline_invariant_holds(rule_set: StatutoryRuleSet) -> None:
     results = validate_invariants(rule_set)
-    assert set(results) == {f"R-{index:02d}" for index in range(1, 11)}
+    assert set(results) == {f"R-{index:02d}" for index in range(1, 12)}
     assert all(results.values()), [name for name, ok in results.items() if not ok]
 
 
+def test_the_insurable_ceiling_invariant_is_independent() -> None:
+    """R-01 must compare the derived ceiling with an independent seed value.
+
+    Regression for remediation A-7: the former invariant compared the derived
+    property with the expression that defined it, so it could never fail and
+    a wrong seed ceiling passed silently.
+    """
+    broken = replace(load_rule_set(1404), seed_max_monthly_insurable_wage_30days_rial=1)
+    with pytest.raises(StatutoryParameterUnavailable):
+        validate_invariants(broken)
+
+
 def test_an_invariant_violation_fails_closed() -> None:
-    """A broken rule set must raise, never load with a silent repair."""
-    broken = load_rule_set(1404)
-    object.__setattr__(broken, "monthly_tax_exemption_rial", 1)
+    """A broken rule set must raise, never load with a silent repair.
+
+    ``dataclasses.replace`` builds an isolated copy, so the lru-cached 1404
+    rule set is never mutated (test-isolation defect fixed during remediation).
+    """
+    broken = replace(load_rule_set(1404), monthly_tax_exemption_rial=1)
     with pytest.raises(StatutoryParameterUnavailable) as caught:
         validate_invariants(broken)
     assert "STATUTORY_INVARIANT_VIOLATION" in str(caught.value)
+    # The cached rule set is untouched and still valid.
+    assert validate_invariants(load_rule_set(1404))
+    assert load_rule_set(1404).monthly_tax_exemption_rial == MONTHLY_TAX_EXEMPTION_RIAL
 
 
 # ---------------------------------------------------------------------------
@@ -169,9 +192,10 @@ def test_the_monthly_minimum_wage_depends_on_the_month_length(
 
 
 def test_an_impossible_month_length_is_refused(rule_set: StatutoryRuleSet) -> None:
-    with pytest.raises(RuleSetNotActive):
+    with pytest.raises(MonthLengthInvalid) as caught:
         rule_set.monthly_minimum_wage_rial(28)
-    with pytest.raises(RuleSetNotActive):
+    assert caught.value.code == "PAYROLL_MONTH_LENGTH_INVALID"
+    with pytest.raises(MonthLengthInvalid):
         rule_set.monthly_minimum_wage_rial(32)
 
 

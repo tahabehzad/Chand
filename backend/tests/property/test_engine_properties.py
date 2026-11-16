@@ -97,7 +97,8 @@ def test_p05_the_sanavat_accrual_is_one_twelfth_of_the_base(
         return
     saabet = gross - welfare
     result = compute_monthly_severance_accrual(saabet)
-    assert abs(result.monthly_accrual_rial - saabet / 12) <= 1
+    assert result.monthly_accrual_exact == Decimal(saabet) / Decimal(12)
+    assert abs(Decimal(result.monthly_accrual_rial) - result.monthly_accrual_exact) <= 1
 
 
 @SETTINGS

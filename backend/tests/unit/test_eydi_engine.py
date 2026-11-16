@@ -16,10 +16,11 @@ Related:
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
+from app.engines.errors import PayrollInputError
 from app.engines.eydi import compute_eydi
 from app.engines.rules import StatutoryRuleSet, load_rule_set
 
@@ -57,9 +58,16 @@ def test_the_cap_flag_is_false_below_the_cap(rule_set: StatutoryRuleSet) -> None
     assert result.annual_gross_rial == 200_000_000
 
 
-def test_the_cap_flag_is_true_at_the_cap(rule_set: StatutoryRuleSet) -> None:
+def test_the_cap_flag_is_false_exactly_at_the_cap(rule_set: StatutoryRuleSet) -> None:
+    """``at_cap`` means "the cap truncated the accrual", not "reached it"."""
     result = compute_eydi(155_864_520, rule_set)
     assert result.at_cap is False  # exactly on the cap is not "above" it
+    assert result.annual_gross_rial == MAX_ANNUAL_EYDRI_RIAL
+
+
+def test_the_cap_flag_is_true_above_the_cap(rule_set: StatutoryRuleSet) -> None:
+    result = compute_eydi(155_864_521, rule_set)
+    assert result.at_cap is True
     assert result.annual_gross_rial == MAX_ANNUAL_EYDRI_RIAL
 
 
@@ -68,9 +76,10 @@ def test_the_monthly_accrual_is_the_annual_over_twelve(
 ) -> None:
     result = compute_eydi(100_000_000, rule_set)
     assert result.monthly_accrual_rial == 16_666_667
-    assert result.monthly_accrual_rial == round(
-        result.annual_gross_rial / 12
+    expected = (Decimal(result.annual_gross_rial) / Decimal(12)).quantize(
+        Decimal("1"), rounding=ROUND_HALF_UP
     )
+    assert Decimal(result.monthly_accrual_rial) == expected
 
 
 def test_the_excess_is_taxed_progressively_not_at_a_flat_rate(
@@ -96,9 +105,9 @@ def test_the_net_is_the_annual_less_the_tax(rule_set: StatutoryRuleSet) -> None:
 
 
 def test_a_non_integer_base_is_refused(rule_set: StatutoryRuleSet) -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_eydi(1.5, rule_set)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
+    with pytest.raises(PayrollInputError):
         compute_eydi(True, rule_set)
 
 

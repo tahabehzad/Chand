@@ -28,6 +28,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.engines.errors import PayrollInputError
+
 __all__ = ("EmployerCostResult", "compute_employer_cost")
 
 
@@ -66,7 +68,9 @@ def compute_employer_cost(
     )
     for name, value in fields:
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-            raise ValueError(f"PAYROLL_INPUT_INVALID: {name} must be a non-negative int")
+            raise PayrollInputError(
+                f"PAYROLL_INPUT_INVALID: {name} must be a non-negative int"
+            )
     monthly = total_gross_rial + employer_sso_rial + unemployment_rial + (
         severance_accrual_rial + eydi_accrual_rial
     )

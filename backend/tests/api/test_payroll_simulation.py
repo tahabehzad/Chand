@@ -131,6 +131,52 @@ def test_the_termination_block_appears_when_probation_is_supplied(
     )
 
 
+def test_the_termination_scenario_is_selected_explicitly(client: TestClient) -> None:
+    """Regression A-3/A-4: one probation line applies, and the total reconciles."""
+    payload = dict(VALID_REQUEST)
+    payload["probation_months"] = 3
+    payload["tenure_months"] = 0
+    payload["accumulated_unused_leave_days"] = 0
+    payload["probation_days_worked"] = 15
+    payload["termination_scenario"] = "probation_employee_initiated"
+    block = client.post(ENDPOINT, json=payload).json()["termination_liability"]
+    assert block["termination_scenario"] == "probation_employee_initiated"
+    assert block["applied_probation_liability_rial"] == 170_925_060
+    assert block["total_liability_rial"] == block["applied_probation_liability_rial"]
+
+
+def test_an_ordinary_termination_carries_no_probation_line(client: TestClient) -> None:
+    payload = dict(VALID_REQUEST)
+    payload["tenure_months"] = 24
+    payload["accumulated_unused_leave_days"] = 12
+    payload["termination_scenario"] = "ordinary_termination"
+    block = client.post(ENDPOINT, json=payload).json()["termination_liability"]
+    assert block["termination_scenario"] == "ordinary_termination"
+    assert block["applied_probation_liability_rial"] == 0
+    assert block["total_liability_rial"] == block["total_separation_rial"]
+
+
+def test_the_response_publishes_the_rule_set_fingerprint_and_reference(
+    client: TestClient,
+) -> None:
+    """Regression A-10/A-11: reproducibility and reference-only floors."""
+    body = client.post(ENDPOINT, json=VALID_REQUEST).json()
+    assert len(body["rule_set_fingerprint"]) == 64
+    assert body["statutory_parameter_usage"]["daily_minimum_wage_rial"] == "consumed"
+    reference = body["statutory_reference"]
+    assert reference["applied_to_net"] is False
+    assert reference["housing_allowance_floor_rial"] == 9_000_000
+
+
+def test_the_response_tax_lines_reconcile(client: TestClient) -> None:
+    """Regression A-1: the published tax total is the sum of its slab lines."""
+    body = client.post(ENDPOINT, json=VALID_REQUEST).json()
+    for posture in body["tax_postures"].values():
+        assert sum(line["tax_rial"] for line in posture["slab_breakdown"]) == (
+            posture["income_tax_rial"]
+        )
+
+
 # ---------------------------------------------------------------------------
 # The fail-closed paths
 # ---------------------------------------------------------------------------
@@ -209,7 +255,7 @@ def test_a_gross_that_does_not_cover_the_allowances_is_refused(
     payload["gross_monthly_rial"] = 1_000_000
     response = client.post(ENDPOINT, json=payload)
     assert response.status_code == 422
-    assert response.json()["error"]["code"] == "PAYROLL_INPUT_INVALID"
+    assert response.json()["error"]["code"] == "BASE_DECOMPOSITION_NEGATIVE"
 
 
 def test_no_error_response_carries_a_monetary_amount(client: TestClient) -> None:

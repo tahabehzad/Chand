@@ -36,6 +36,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal, localcontext
 from typing import Literal
 
+from app.engines.errors import PayrollInputError, TaxableBaseNegative
 from app.engines.money import MONEY_PRECISION, round_half_up
 from app.engines.rules import StatutoryRuleSet, TaxBracket
 
@@ -78,7 +79,14 @@ class SlabTaxLine:
 
 @dataclass(frozen=True, slots=True)
 class PostureTaxResult:
-    """The tax result for one Article 137 posture."""
+    """The tax result for one Article 137 posture.
+
+    ``tax_rial`` is the **published** tax total: the sum of the individually
+    rounded slab lines, so the published breakdown reconciles with the total
+    exactly.  ``tax_exact_rial`` is the exact total rounded once and
+    ``rounding_residual_rial`` is their signed difference
+    (``sum(lines) - round(exact)``), surfaced per TESTING §4.2(2).
+    """
 
     posture: TaxPosture
     art137_deduction_exact: Decimal
@@ -86,8 +94,11 @@ class PostureTaxResult:
     welfare_taxable: bool
     taxable_income_exact: Decimal
     taxable_income_rial: int
+    taxable_base_clamped: bool
     tax_exact: Decimal
     tax_rial: int
+    tax_exact_rial: int
+    rounding_residual_rial: int
     slab_labels: tuple[str, ...]
     slab_breakdown: tuple[SlabTaxLine, ...]
 
@@ -95,7 +106,7 @@ class PostureTaxResult:
 def validate_posture(posture: str) -> TaxPosture:
     """Return *posture* if it is one of the two named readings."""
     if posture not in _POSTURES:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: tax_posture must be "
             "'conservative_inta' or 'court_precedent'"
         )
@@ -144,7 +155,9 @@ def compute_progressive_tax(
     boundary is exact to 1 Rial.
     """
     if base_after_exemption_exact < 0:
-        raise ValueError("TAXABLE_BASE_NEGATIVE: the post-exemption base is negative")
+        raise TaxableBaseNegative(
+            "TAXABLE_BASE_NEGATIVE: the post-exemption base is negative"
+        )
     with localcontext() as context:
         context.prec = MONEY_PRECISION
         context.rounding = ROUND_HALF_UP
@@ -197,13 +210,15 @@ def compute_tax_for_posture(
     exempt); the welfare treatment is bound to the posture by DEC-002a.
     """
     if isinstance(total_gross_rial, bool) or not isinstance(total_gross_rial, int):
-        raise TypeError("total_gross_rial must be an int number of Rial")
+        raise PayrollInputError(
+            "PAYROLL_INPUT_INVALID: total_gross_rial must be an int number of Rial"
+        )
     if total_gross_rial < 0:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: total_gross_rial must be a non-negative int"
         )
     if welfare_total_rial < 0 or non_welfare_exempt_rial < 0:
-        raise ValueError(
+        raise PayrollInputError(
             "PAYROLL_INPUT_INVALID: the exempt amounts must be non-negative ints"
         )
     deduction_exact = art137_deduction_exact(employee_sso_exact, posture)
@@ -211,16 +226,32 @@ def compute_tax_for_posture(
     exempt_total = Decimal(welfare_total_rial if not welfare_taxable else 0) + Decimal(
         non_welfare_exempt_rial
     )
-    taxable_exact = (
-        Decimal(total_gross_rial) - deduction_exact - exempt_total
-    )
+    taxable_exact = Decimal(total_gross_rial) - deduction_exact - exempt_total
+    taxable_base_clamped = False
     if taxable_exact < 0:
+        # A negative *taxable income* is a legitimate outcome of deductions
+        # larger than the gross; it is clamped to zero (no negative tax) and
+        # the clamp is published.  A negative *post-exemption base* reaching
+        # the ladder is a defect and is refused with TaxableBaseNegative.
         taxable_exact = Decimal(0)
+        taxable_base_clamped = True
     base_exact = taxable_exact - Decimal(rule_set.monthly_tax_exemption_rial)
     if base_exact < 0:
         base_exact = Decimal(0)
+        taxable_base_clamped = True
     ladder = rule_set.brackets_above(rule_set.monthly_tax_exemption_rial)
     tax_exact, labels, breakdown = compute_progressive_tax(base_exact, ladder)
+    # The published total is the sum of the rounded slab lines, so the
+    # breakdown reconciles with the total by construction (A-1).  The
+    # difference to the exact total is surfaced, signed and bounded.
+    tax_rial = sum(line.tax_rial for line in breakdown)
+    tax_exact_rial = round_half_up(tax_exact, field="income_tax")
+    rounding_residual_rial = tax_rial - tax_exact_rial
+    if abs(rounding_residual_rial) > len(breakdown):
+        raise TaxableBaseNegative(
+            "TAXABLE_BASE_NEGATIVE: the slab reconciliation residual exceeds "
+            "one Rial per line"
+        )
     return PostureTaxResult(
         posture=posture,
         art137_deduction_exact=deduction_exact,
@@ -230,8 +261,11 @@ def compute_tax_for_posture(
         welfare_taxable=welfare_taxable,
         taxable_income_exact=taxable_exact,
         taxable_income_rial=round_half_up(taxable_exact, field="taxable_income"),
+        taxable_base_clamped=taxable_base_clamped,
         tax_exact=tax_exact,
-        tax_rial=round_half_up(tax_exact, field="income_tax"),
+        tax_rial=tax_rial,
+        tax_exact_rial=tax_exact_rial,
+        rounding_residual_rial=rounding_residual_rial,
         slab_labels=labels,
         slab_breakdown=breakdown,
     )

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.engines.errors import PayrollInputError
+from app.engines.errors import BaseDecompositionNegative, PayrollInputError
 
 __all__ = ("Allowances", "MozdDecomposition", "decompose_bases")
 
@@ -101,7 +101,7 @@ def decompose_bases(gross_monthly_rial: int, allowances: Allowances) -> MozdDeco
     )
     mozd_e_saabet = gross - welfare_excluded
     if mozd_e_saabet < 0:
-        raise PayrollInputError(
+        raise BaseDecompositionNegative(
             "BASE_DECOMPOSITION_NEGATIVE: gross does not cover the welfare allowances"
         )
     return MozdDecomposition(

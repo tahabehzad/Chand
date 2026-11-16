@@ -22,6 +22,7 @@ import pytest
 
 from app.engines.bases import Allowances
 from app.engines.errors import PayrollInputError, RuleSetNotActive, StatutoryParameterUnavailable
+from app.engines.money import round_half_up
 from app.engines.rules import load_rule_set
 from app.engines.tax import POSTURE_CONSERVATIVE_INTA, POSTURE_COURT_PRECEDENT
 from app.services.payroll_service import (
@@ -150,6 +151,94 @@ def test_the_employer_cost_identity_holds_exactly(result: PayrollResult) -> None
 
 def test_the_rounding_residual_never_exceeds_one_rial(result: PayrollResult) -> None:
     assert abs(result.payload["rounding_residual_rial"]) <= 1
+
+
+def test_the_tax_breakdown_sums_to_the_published_total(result: PayrollResult) -> None:
+    """Regression A-1: the slab lines must reconcile with the published tax."""
+    for posture in (POSTURE_CONSERVATIVE_INTA, POSTURE_COURT_PRECEDENT):
+        view = result.payload["tax_postures"][posture]
+        assert sum(line["tax_rial"] for line in view["slab_breakdown"]) == (
+            view["income_tax_rial"]
+        )
+        assert (
+            view["income_tax_rial"] - view["income_tax_exact_total_rial"]
+            == view["tax_rounding_residual_rial"]
+        )
+
+
+def test_the_employee_deduction_residual_is_not_a_tautology(
+    result: PayrollResult,
+) -> None:
+    """Regression A-1: the residual compares exact totals, not ``gross - net``."""
+    payload = result.payload
+    sso_view = payload["sso"]
+    exact_sso = Decimal(sso_view["insurable_wage_rial"]) * Decimal("0.07")
+    primary = payload["tax_postures"][payload["primary_tax_posture"]]
+    exact_total = exact_sso + Decimal(primary["income_tax_exact_total_rial"])
+    rounded_total = round_half_up(exact_total, field="employee_deduction_total")
+    expected = (
+        sso_view["employee_share_7pct_rial"]
+        + primary["income_tax_rial"]
+        - rounded_total
+    )
+    assert payload["rounding_residual_rial"] == expected
+
+
+def test_the_provenance_covers_every_field_level_path(result: PayrollResult) -> None:
+    """Regression A-2: provenance is per figure, not only seven block keys."""
+    provenance = result.payload["provenance"]
+    required = {
+        "bases.total_gross_rial",
+        "sso.insurable_wage_rial",
+        "sso.employee_share_7pct_rial",
+        "employee_deductions.income_tax_rial",
+        "tax_postures.conservative_inta.income_tax_rial",
+        "tax_postures.conservative_inta.slab_breakdown[0].tax_rial",
+        "tax_postures.court_precedent.art137_deduction_rial",
+        "severance_sanavat.monthly_accrual_rial",
+        "eydi.annual_tax_rial",
+        "employer_cost.total_monthly_employer_cost_rial",
+        "statutory_reference.monthly_minimum_wage_rial",
+    }
+    assert required <= set(provenance)
+    assert len(provenance) > 30
+
+
+def test_the_statutory_reference_is_published_but_not_applied(
+    result: PayrollResult,
+) -> None:
+    """Regression A-10: floors and seniority are audit references, not net terms."""
+    reference = result.payload["statutory_reference"]
+    assert reference["applied_to_net"] is False
+    assert reference["housing_allowance_floor_rial"] == 9_000_000
+    assert reference["grocery_allowance_floor_rial"] == 22_000_000
+    assert reference["marriage_allowance_floor_rial"] == 5_000_000
+    assert reference["daily_seniority_base_rial"] == 94_000
+    assert reference["monthly_seniority_increment_rial"] == 0
+    assert "DEC-013" in reference["reference_only_reason"]
+
+
+def test_the_rule_set_usage_is_published(result: PayrollResult) -> None:
+    usage = result.payload["statutory_parameter_usage"]
+    assert usage["daily_minimum_wage_rial"] == "consumed"
+    assert usage["monthly_housing_allowance_rial"] == "reference_only"
+    assert usage["daily_seniority_base_rial"] == "reference_only"
+
+
+def test_the_rule_set_fingerprint_is_published(result: PayrollResult) -> None:
+    """Regression A-11: a stored result names the exact parameter snapshot."""
+    rule_set = load_rule_set(1404)
+    assert result.payload["rule_set_fingerprint"] == rule_set.fingerprint()
+    assert len(result.payload["rule_set_fingerprint"]) == 64
+
+
+def test_an_injected_rule_set_is_used_and_must_match_the_year() -> None:
+    rule_set = load_rule_set(1404)
+    first = compute_gross_to_net(_inputs(), rule_set=rule_set)
+    second = compute_gross_to_net(_inputs())
+    assert first.calculation_hash == second.calculation_hash
+    with pytest.raises(PayrollInputError, match="does not match rule_year"):
+        compute_gross_to_net(_inputs(rule_year=1403), rule_set=rule_set)
 
 
 def test_no_emitted_monetary_value_is_a_float(result: PayrollResult) -> None:
@@ -369,10 +458,27 @@ def test_the_rule_set_used_is_the_verified_one() -> None:
     assert calculation.payload["rule_year_shamsi"] == rule_set.rule_year_shamsi
 
 
-def test_the_exact_decimal_base_is_used_for_the_article_137_deduction() -> None:
-    """The deduction is computed on the exact, unrounded employee share."""
-    calculation = compute_gross_to_net(_inputs())
+def test_the_article_137_deduction_uses_the_exact_sso_share() -> None:
+    """The deduction is computed on the exact, unrounded employee share.
+
+    Regression for remediation A-5: the former test compared the published
+    line with a value derived from ``rounded_share + 1`` under a ±1 Rial
+    tolerance, so it could pass whichever base the engine used.  This fixture
+    is deliberately discriminating: rounding the SSO share first changes the
+    two-sevenths deduction by one Rial.
+    """
+    gross = 341_800_022
+    calculation = compute_gross_to_net(PayrollInput(gross_monthly_rial=gross))
     sso = calculation.payload["sso"]
+    exact_share = Decimal(gross) * Decimal("0.07")
+    exact_deduction = round_half_up(exact_share * Decimal(2) / Decimal(7))
+    rounded_base_deduction = round_half_up(
+        Decimal(sso["employee_share_7pct_rial"]) * Decimal(2) / Decimal(7)
+    )
+    assert exact_deduction != rounded_base_deduction, (
+        "the fixture must distinguish the exact base from the rounded line"
+    )
     conservative = calculation.payload["tax_postures"][POSTURE_CONSERVATIVE_INTA]
-    expected = Decimal(sso["employee_share_7pct_rial"] + 1) * Decimal(2) / Decimal(7)
-    assert abs(Decimal(conservative["art137_deduction_rial"]) - expected) <= 1
+    court = calculation.payload["tax_postures"][POSTURE_COURT_PRECEDENT]
+    assert conservative["art137_deduction_rial"] == exact_deduction
+    assert court["art137_deduction_rial"] == round_half_up(exact_share)

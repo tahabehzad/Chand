@@ -181,6 +181,107 @@ def test_the_total_separation_is_the_severance_plus_the_buyout() -> None:
     )
 
 
+def test_the_employer_scenario_applies_only_the_employer_line() -> None:
+    """Regression A-3: the two probation lines are alternatives, not a sum."""
+    result = compute_termination_liability(
+        SAABET,
+        GROSS,
+        days_in_month=30,
+        probation_months=3,
+        tenure_months=0,
+        accumulated_unused_leave_days=0,
+        probation_days_worked=15,
+        termination_scenario="probation_employer_initiated",
+    )
+    assert result.termination_scenario == "probation_employer_initiated"
+    assert result.applied_probation_liability_rial == 300_000_000
+    assert result.total_liability_rial == 300_000_000
+    assert result.total_liability_rial != (
+        result.employer_initiated_probation_liability_rial
+        + (result.employee_initiated_probation_liability_rial or 0)
+    )
+
+
+def test_the_employee_scenario_applies_only_the_days_worked_line() -> None:
+    result = compute_termination_liability(
+        SAABET,
+        GROSS,
+        days_in_month=30,
+        probation_months=3,
+        tenure_months=0,
+        accumulated_unused_leave_days=0,
+        probation_days_worked=15,
+        termination_scenario="probation_employee_initiated",
+    )
+    assert result.termination_scenario == "probation_employee_initiated"
+    assert result.applied_probation_liability_rial == 50_000_000
+    assert result.total_liability_rial == 50_000_000
+
+
+def test_an_ordinary_termination_applies_no_probation_line() -> None:
+    result = compute_termination_liability(
+        SAABET,
+        GROSS,
+        days_in_month=30,
+        tenure_months=24,
+        accumulated_unused_leave_days=12,
+        termination_scenario="ordinary_termination",
+    )
+    assert result.termination_scenario == "ordinary_termination"
+    assert result.probation_months is None
+    assert result.applied_probation_liability_rial == 0
+    assert result.total_liability_rial == result.total_separation_rial
+
+
+def test_an_employee_scenario_requires_the_days_worked() -> None:
+    with pytest.raises(ValueError, match="PAYROLL_INPUT_INVALID"):
+        compute_termination_liability(
+            SAABET,
+            GROSS,
+            days_in_month=30,
+            probation_months=3,
+            tenure_months=0,
+            accumulated_unused_leave_days=0,
+            termination_scenario="probation_employee_initiated",
+        )
+
+
+def test_an_unknown_scenario_is_refused() -> None:
+    with pytest.raises(ValueError, match="PAYROLL_INPUT_INVALID"):
+        compute_termination_liability(
+            SAABET,
+            GROSS,
+            days_in_month=30,
+            probation_months=3,
+            tenure_months=0,
+            accumulated_unused_leave_days=0,
+            termination_scenario="some_other_scenario",
+        )
+
+
+def test_the_leave_buyout_uses_the_statutory_thirty_day_divisor() -> None:
+    """Regression A-4: Art. 71 divides by 30, never by the calendar length."""
+    result_30 = compute_termination_liability(
+        SAABET,
+        GROSS,
+        days_in_month=30,
+        probation_months=1,
+        tenure_months=24,
+        accumulated_unused_leave_days=12,
+    )
+    result_31 = compute_termination_liability(
+        SAABET,
+        GROSS,
+        days_in_month=31,
+        probation_months=1,
+        tenure_months=24,
+        accumulated_unused_leave_days=12,
+    )
+    assert result_30.daily_wage_divisor_days == 30
+    assert result_31.daily_wage_divisor_days == 30
+    assert result_31.leave_buyout_rial == result_30.leave_buyout_rial == 40_000_000
+
+
 def test_a_zero_tenure_yields_no_exit_severance() -> None:
     result = compute_termination_liability(
         SAABET,

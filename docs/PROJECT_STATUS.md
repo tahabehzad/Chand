@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-STATUS-001`
 - **Status:** Active — re-verified at every phase gate
-- **As at:** 2026-11-16 — autonomous completion mission: the statutory engine audited, two critical defects corrected, the engine test suite and the CI workflow delivered, fresh local verification (§23); historical records retained
+- **As at:** 2026-11-16 — autonomous completion mission: the statutory engine audited, two critical defects corrected, the engine test suite and the CI workflow delivered (§23); the independent monetary review (A-1…A-13) then re-verified and remediated with regression tests and reconciled documentation (§24). Historical records retained.
 - **Verification basis:** direct inspection of the workspace and execution of the tooling, not the documentation's own claims
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` (authority) · `docs/EXECUTION_PLAN.md` (WBS) · `docs/IMPLEMENTATION_READINESS.md` (readiness) · `docs/ENVIRONMENT_INVENTORY.md` (tools)
 
@@ -16,20 +16,20 @@
 
 ## 2. Delivery state
 
-**Current evidence, BOOTSTRAP_CHANGELOG §23:** P1-T04 and P0-T11 passed independent bounded code review after immutable-report, safe-error and UTF-8 corrections; both remain READY_FOR_REVIEW because CI/live acceptance is incomplete. Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is now READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18.
+**Current evidence, BOOTSTRAP_CHANGELOG §24:** the independent monetary review's findings A-1…A-13 were re-verified against the tree and remediated. The signed residual was an identity (`total_gross − net` against the same deduction lines), provenance covered seven block keys only, the termination total added mutually exclusive probation lines, and the leave-buyout day value followed the calendar month. Each verified defect now has a regression test. The published contract carries the SHA-256 rule-set fingerprint, per-field provenance, a reference-only statutory block, per-posture exact tax and residual, and a reconciled termination block; the OpenAPI contract suite collects and passes. Engine tasks remain READY_FOR_REVIEW: independent review by a non-author and the PostgreSQL integration run are still outstanding. P1-T04 and P0-T11 passed independent bounded review after immutable-report, safe-error and UTF-8 corrections (§23). Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18 and §23.
 
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
-| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter, the **complete statutory payroll engine** (rule-set loader, base decomposition, SSO, progressive tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost, termination liability) and the Persian simulation screen | §23 fresh verification; the engine reproduces the Holy Bible Appendix A reference vectors; collector stages remain UNVERIFIED local evidence; no authenticated workflow |
-| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 17 READY_FOR_REVIEW, 58 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | The twelve ADR-008 engine tasks (`P1-T01`, `P1-T05`–`P1-T12`, `P1-T14`, `P1-T16`, `P1-T19`) became review-ready with verified evidence (§23); independent review is still outstanding, so none is APPROVED; no dependency waived |
+| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter, the **complete statutory payroll engine** (rule-set loader, base decomposition, SSO, progressive tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost, scenario-based termination liability) and the Persian simulation screen | §24 fresh verification; the engine reproduces the Holy Bible Appendix A reference vectors; collector stages remain UNVERIFIED local evidence; no authenticated workflow |
+| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 17 READY_FOR_REVIEW, 58 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | The twelve ADR-008 engine tasks (`P1-T01`, `P1-T05`–`P1-T12`, `P1-T14`, `P1-T16`, `P1-T19`) became review-ready with verified evidence (§23), strengthened by the §24 remediation; independent review is still outstanding, so none is APPROVED; no dependency waived |
 | Phase gates passed | **0 of 5** | No gate evidence pack exists |
-| Engine code | Decimal conversion, half-up Rial rounding, signed reconciliation and exact largest-remainder allocation, plus the full statutory engine: fail-closed rule-set loader, base decomposition, SSO, progressive tax with the dual Article 137 posture, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator | §23: the Appendix A reference vectors reproduce to the Rial; a critical ladder-offset defect was found and corrected; the net-to-gross inverter stays out of scope (ADR-008) |
+| Engine code | Decimal conversion, half-up Rial rounding, genuine reconciliation and exact largest-remainder allocation, plus the full statutory engine `0.3.0-payroll-engine`: fail-closed rule-set loader with published SHA-256 fingerprint, base decomposition, SSO, progressive tax with the dual Article 137 posture, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator with an explicit scenario model | §24: the residual is `sum(rounded deduction lines) − round(exact total)` rather than a tautology; per-field provenance covers every derived path; the termination probation/separation lines reconcile; the Art. 71 day value uses the statutory 30-day divisor; the Appendix A reference vectors still reproduce to the Rial; the net-to-gross inverter stays out of scope (ADR-008) |
 | Migrations | P0-T04 five-table baseline adopted under ADR-007; global FORCE RLS, restricted reader/reviewer, all-write identity gate | Real isolated PostgreSQL upgrade/downgrade/re-upgrade and 101 integration tests PASS; users FKs remain P0-T05; CI/production acceptance pending (§21) |
-| Tests | **548 backend (342 unit/API + 102 new engine unit/API + 104 property, of which the 104 PostgreSQL integration tests skip without the container image) and 110 frontend tests PASS**; strict backend types on 62 files; frontend typecheck/build PASS | Final backend rerun: 548 PASS, 104 skipped, 2 third-party deprecation warnings, 16.5s; local HTTP startup and a live endpoint request PASS (§23). CI has never executed on GitHub and the phase gates remain pending |
+| Tests | **568 backend PASS and 105 skipped** (unit/API/property; the skipped set is the PostgreSQL/Docker integration suites plus one contract-valid negative case) **and 110 frontend tests PASS**; strict backend types on 64 files; frontend typecheck/build PASS | Final backend rerun: 568 PASS, 105 skipped, 9 warnings, 18.69 s; `ruff check .` and `mypy --strict app tests` PASS (§24). CI has never executed on GitHub and the phase gates remain pending |
 | CI/CD | **GitHub Actions for the development repository** — `.github/workflows/ci.yml` runs the backend lint/type/test gates and the frontend lint/type/test/build gates | DEC-F option (b) implemented as recorded; `contents: read` only, no credential, no deployment, no migration; the workflow has not yet run on GitHub (the `gh` token is invalid) |
 | Frontend | React/Vite/TypeScript RTL shell, Vazirmatn, number/currency helpers, typed client, disabled presentation-only auth screens and the **gross-to-net simulation screen** | §23: the screen's submission was broken by two HTML5 constraint violations and is now fixed and covered by 8 tests; the gross-to-net endpoint is a delivered backend contract; no visual/axe/auth acceptance |
 | Containers | Last recorded PostgreSQL 16.16 + pgAudit runtime passed at `127.0.0.1:55432` | BOOTSTRAP_CHANGELOG §15; container/DB state not re-verified in §19 |
-| OpenAPI contract | **Minimal but complete for the ADR-008 scope** — the liveness endpoint and `POST /api/v1/simulations/gross-to-net`. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1; the endpoint contract is covered by `tests/api/test_payroll_simulation.py` (§23) |
+| OpenAPI contract | **Minimal but complete for the ADR-008 scope** — the liveness endpoint and `POST /api/v1/simulations/gross-to-net`. `/health/ready` is deliberately absent. | `docs/specs/DEPLOYMENT.md` §7.1; the endpoint contract is covered by `tests/api/test_payroll_simulation.py` and `tests/api/test_openapi_contract.py`, which now collects and passes (§24); PostgreSQL-backed contract cases skip without Docker |
 | Benchmark data | **None.** No licensed corpus, no `salary_observations` rows. | DEC-007 open |
 
 **Local MVP 0.1 supplement (2026-11-15):** the owner explicitly requested a
@@ -51,7 +51,7 @@ The WBS census and outstanding dependencies above are unchanged.
 | Remote | Owner supplied `https://github.com/tahabehzad/pish-hesabdari`; `origin` configured and fetched. Remote initial commit `898388c` is preserved; no force-push authorized. |
 | Branch | `autonomous/project-completion` — every commit of the autonomous mission was pushed to that branch; `origin/main` was never touched and no force-push was used (§23). The earlier `codex/foundation-hardening` publication outcome stays in §19. |
 | Files git ignores | **`backend/.venv`, the tool caches, `__pycache__`, and `.freebuff/*`** — everything the local toolchain produces |
-| Working tree | The statutory engine, the frontend SPA and the documentation set are committed on `autonomous/project-completion`. The unaccepted migration/model/integration drafts are committed as reviewed drafts and remain outside the accepted scope. |
+| Working tree | The statutory engine, the frontend SPA and the documentation set are committed on `autonomous/project-completion` through `db27ed3`. The §24 remediation (engine, schema, service, tests and documentation) is **uncommitted**: modified `backend/app/**`, `backend/tests/**`, `docs/BOOTSTRAP_CHANGELOG.md`, `docs/DECISIONS_REGISTER.md`, `AUTONOMOUS_PROGRESS.md` and untracked `statutory_reference.py`/`test_openapi_contract.py`. The unaccepted migration/model/integration drafts remain committed reviewed drafts outside the accepted scope. |
 | Rollback | Revert only the milestone commits after review; preserve uncommitted drafts and both histories. Never reset or remove `.git` as routine rollback. |
 
 ## 4. Statutory baseline
@@ -80,11 +80,11 @@ The WBS census and outstanding dependencies above are unchanged.
 The original Holy Bible inventory predates bootstrap. Current factual corrections are reflected in v1.0.1 and the verification record in `docs/BOOTSTRAP_CHANGELOG.md` §10; the original audit remains historical evidence.
 
 | # | Holy Bible says | The workspace actually is | Impact | Action |
-| --: | :--- | :--- | :--- | :--: | :--- |
-| 1 | Original §11.1: no backend source/tests/tooling/Git | FastAPI main/config/logging modules, unit/API tests, tooling and a Git commit exist | Bootstrap is real; domain implementation remains absent | Corrected in Holy Bible v1.0.1 and `AGENTS.md`; no task status inferred from documentation |
+| --: | :--- | :--- | :--- | :--: |
+| 1 | Original §11.1: no backend source/tests/tooling/Git | FastAPI main/config/logging modules, unit/API tests, tooling, a Git commit and the ADR-008 statutory engine exist | Bootstrap is real; the v1 engine is implemented and tested locally (§24) | Corrected in Holy Bible v1.0.1 and `AGENTS.md`; no task status inferred from documentation |
 | 2 | §0.4: *"39 files"* | **40** | None — the 40th is the Holy Bible itself | Already noted in the Holy Bible's Appendix F changelog |
 
-Additional discrepancies: task-count arithmetic; false attribution of a Celery mandate; dangling `P4-T15` dependencies; and the initial misdiagnosis of sandbox-denied Python access. See changelog §10. Current owner approval: ADR-006 is Accepted, resolving DEC-004/004a/004b/005; the 17-entry engineering register has 4 resolved and 13 open entries. ADR-001…004 originals, ADR-005 PROPOSED status and the five-phase/20-week roadmap are preserved. No accountant, labour counsel or licensed/consented datasets are available; external gates stay blocked.
+Additional discrepancies: task-count arithmetic; false attribution of a Celery mandate; dangling `P4-T15` dependencies; and the initial misdiagnosis of sandbox-denied Python access. See changelog §10. Current owner approval: ADR-006 is Accepted, resolving DEC-004/004a/004b/005; the register now holds 19 entries — 11 open (7 blocking, 4 non-blocking), 6 resolved (ADR-006/007/008) and 2 rejected as out of product scope, plus the B-1…B-11 ambiguity ledger and proposed DEC-013. ADR-001…004 originals, ADR-005 PROPOSED status and the five-phase/20-week roadmap are preserved. No accountant, labour counsel or licensed/consented datasets are available; external gates stay blocked.
 
 ## 7. Phase 0 — what can start, and what cannot
 
@@ -92,23 +92,23 @@ Additional discrepancies: task-count arithmetic; false attribution of a Celery m
 
 | Task | Title | Owner | Note |
 | :--- | :--- | :--- | :--- |
-| `P0-T01` | Repository and tooling baseline | Lead Backend Eng | **Verified in session 2.** `uv sync --frozen --all-groups` ✓, `ruff check .` ✓, `mypy --strict` ✓. The one unmet clause is *CI runs both*, which needs DEC-F. |
+| `P0-T01` | Repository and tooling baseline | Lead Backend Eng | **Verified locally.** `uv sync --frozen --all-groups` ✓, `ruff check .` ✓, `mypy --strict` ✓. The CI workflow now exists (DEC-F option b), but the clause *CI runs both* remains unmet because the workflow has never executed on GitHub. |
 | `P0-T02` | FastAPI skeleton and configuration | Lead Backend Eng | **`COMPLETED` in session 2** — see §8. The application boots and `/health/live` answers 200. |
 | `P0-T03` | PostgreSQL 16 provisioning and hardening | Codex /root | **READY_FOR_REVIEW**: official image/build, healthy local DB and actual hardening assertions PASS; P0-T01 CI still pending (§15) |
 | `P0-T06` | ALEE encryption module | Codex implementation + independent reviewer | **READY_FOR_REVIEW**: isolated primitive tested and reviewed; CI/production key registry and integration evidence still pending |
-| `P0-T07` | HMAC-SHA256 blind-index module | Security Eng | No open decision. Depends on `P0-T06`, `P0-T08`. Both are startable. |
+| `P0-T07` | HMAC-SHA256 blind-index module | Security Eng | No open decision. `P0-T06` is READY_FOR_REVIEW; `P0-T08`'s key-hierarchy/rotation choice is still unresolved. |
 | `P0-T11` | Object-storage adapter (S3 / GOVERNANCE) | Backend Eng | No open decision. Requires a local S3-compatible endpoint. |
 | `P0-T13` | Reference-data seed | Data Analyst | **Blocked in substance** by DEC-007 (no licensed benchmark source). The *cities and taxonomy* part is unblocked. |
 | `P0-T14` | RLS penetration test suite | QA Eng + Security Eng | No open decision. Requires PostgreSQL. |
 | `P0-T15` | Encryption and blind-index test suite | QA Eng | Only the harness exists. Crypto acceptance depends on `P0-T06`, `P0-T07`, `P0-T08`; logging/configuration tests do not satisfy those criteria. |
 | `P0-T16` | Backup and restore baseline | Database Eng + DevOps Lead | No open decision. Requires PostgreSQL. |
-| `P0-T19` | CI pipeline for the Phase 0 gates | DevOps Lead | Bootstrap commit exists. **Requires DEC-F and the real isolation/crypto suites.** |
+| `P0-T19` | CI pipeline for the Phase 0 gates | DevOps Lead | Workflow committed (DEC-F option b, `contents: read`); it has never run on GitHub, and the real isolation/crypto suites still gate a Phase 0 pass. |
 
 ### Remaining sequencing and detailed-contract gates
 
 | Task | Gated by | What may proceed meanwhile |
 | :--- | :--- | :--- |
-| `P0-T04` | P0-T03/database and detailed statutory-provenance contract | DEC-005 is resolved; no migration has been written or verified yet |
+| `P0-T04` | P0-T03/database and detailed statutory-provenance contract | DEC-005/012 are resolved; the five-table baseline is written and verified on an isolated PostgreSQL instance (§21); no production/pish_dev migration and no CI execution |
 | `P0-T05` | P0-T04 and complete identity/isolation schema review | DEC-004/005 resolved; all tenant-owned tables still require same-migration FORCE RLS |
 | `P0-T08` | Unresolved key-hierarchy/rotation details | Four-choice approval did not select a Vault/local KEK variant; P0-T06 depends only on an explicit registry protocol |
 | `P0-T09` | P0-T04/P0-T05 | Approved schema direction does not create or verify policies |
@@ -161,18 +161,18 @@ Additional discrepancies: task-count arithmetic; false attribution of a Celery m
 
 | Protection | Where | State |
 | :--- | :--- | :--: |
-| 1405 cannot be activated | `backend/data/seeds/statutory_rules_1405.yaml` — all values `null`, `is_verified_and_active: false` | **Enforced by the seed itself.** The engine's fail-closed loader is `P1-T01` — not yet written. |
-| The 1404 seed is immutable | Hash recorded: `CA16C455…FABE821` | **Recorded, but not yet enforced.** Invariant `R-10` requires a CI hash pin; there is no CI. → `P0-T19` |
-| No defective financial value enters code | The published §5.1 example and the `SPEC-QA-001` §6.2 vector are both defective (100 % effective tax rate; severance on the wrong base) | **Recorded and quarantined.** No engine code exists, so nothing defective has been implemented. `P1-T20` must publish the corrected example. |
-| The flat-10 % Eydi rule in the active 1404 seed | `eydi_tax_excess_rate: 0.10` conflicts with `FIND-LEG-04` | **Known, not yet corrected.** The file is immutable, so the correction is a new `1404.2` revision (HB-GAP-005, QB-11). |
-| No synthetic data presented as acceptance evidence | `DF-01`, the Phase 1 gate and the Phase 2 gate | **Stated in `AGENTS.md` and the Holy Bible.** Enforced by the CI golden gate once `P1-T15` exists. |
-| No candidate data leaves the premises | `SPEC-OPS-001` §12 — no outbound connection | Not yet enforceable (no runtime). **CONF-03** records that the Gemini OCR fallback in `REMEDIATED` §3.1 contradicts this. |
+| 1405 cannot be activated | `backend/data/seeds/statutory_rules_1405.yaml` — all values `null`, `is_verified_and_active: false`; loader refuses any year outside `ACTIVE_STATUTORY_YEARS = {1404}` | **Enforced by the seed and the fail-closed loader** (`P1-T01`); a 1405 request raises `StatutoryParameterUnavailable` |
+| The 1404 seed is immutable | Hash recorded: `CA16C455…FABE821`; the loader publishes a SHA-256 fingerprint of the canonical parameters | **Recorded; a CI hash pin is still absent.** Invariant `R-10` needs the CI gate, and the workflow has never run on GitHub. → `P0-T19` |
+| No defective financial value enters code | The published §5.1 example and the `SPEC-QA-001` §6.2 vector are both defective (100 % effective tax rate; severance on the wrong base) | **Recorded and quarantined**; `P1-T20` is out of ADR-008 scope. The engine reproduces the Holy Bible Appendix A vectors, not the defective example. |
+| The flat-10 % Eydi rule in the active 1404 seed | `eydi_tax_excess_rate: 0.10` conflicts with `FIND-LEG-04` | **Known, not consumed.** The Eydi engine applies progressive taxation to the excess and never reads the flat rate (HB-GAP-005, QB-11); the seed stays immutable. |
+| No synthetic data presented as acceptance evidence | `DF-01`, the Phase 1 gate and the Phase 2 gate | **Stated in `AGENTS.md` and the Holy Bible.** No CI golden gate exists (`P1-T15` is blocked and out of ADR-008 scope); the §24 results are labelled local tests, not statutory certification. |
+| No candidate data leaves the premises | `SPEC-OPS-001` §12 — no outbound connection | Not yet enforceable (no deployment or authenticated workflow). **CONF-03** records that the Gemini OCR fallback in `REMEDIATED` §3.1 contradicts this. |
 
 ## 10. What is genuinely ready to build
 
-**The foundation is now real.** The toolchain is installed and verified (`P0-T01`, one clause short), the FastAPI skeleton boots and answers its liveness probe (`P0-T02`), and the security primitives (`P0-T06`, `P0-T07`) remain startable — none of which touches an unresolved decision or a statutory value.
+**The foundation and the ADR-008 v1 engine are now real.** The toolchain is installed and verified (`P0-T01`, one clause short), the FastAPI skeleton boots and answers its liveness probe (`P0-T02`), `P0-T06` is READY_FOR_REVIEW, and the full statutory engine runs on the verified 1404.1 baseline with one minimal endpoint and a passing contract suite (§24).
 
-Everything downstream of `P0-T04`/`P0-T05` is gated on DEC-004 and DEC-005, and everything financial is additionally gated on the 1405 verification and the certified golden corpus.
+Under ADR-008, the v1 financial path is **not** gated on 1405 verification or a certified golden corpus; both remain out of product scope (DEC-001/002 stay open only for a future revival). Production and tenant work downstream of `P0-T04`/`P0-T05` still depends on the identity schema, a CI execution and PostgreSQL-backed evidence. No phase gate is passed.
 
 ---
 

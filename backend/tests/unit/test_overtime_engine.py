@@ -13,7 +13,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
-from app.engines.errors import RuleSetNotActive
+from app.engines.errors import MonthLengthInvalid
 from app.engines.overtime import compute_overtime_premiums
 from app.engines.rules import StatutoryRuleSet, load_rule_set
 
@@ -129,5 +129,5 @@ def test_an_invalid_base_is_refused(rule_set: StatutoryRuleSet) -> None:
 
 
 def test_an_impossible_month_length_is_refused(rule_set: StatutoryRuleSet) -> None:
-    with pytest.raises(RuleSetNotActive):
+    with pytest.raises(MonthLengthInvalid):
         compute_overtime_premiums(APPENDIX_A_SAABET, 0, 0, rule_set, 28)
