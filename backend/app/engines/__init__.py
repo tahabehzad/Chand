@@ -77,7 +77,7 @@ from app.engines.termination import (
 
 #: Engine identity carried by every response; also re-exported from the
 #: composition service.  Bumped only with a changelog entry.
-ENGINE_VERSION = "0.2.0-payroll-engine"
+ENGINE_VERSION = "0.4.0-payroll-engine"
 
 __all__ = (
     "ACTIVE_STATUTORY_YEARS",

@@ -73,6 +73,8 @@ Keep the loaded document revision/section in the task handoff; reread when the s
 
 ### 1.4 Upstream sources — outside `docs/`, unmodified by this workstream
 
+Night-work correction authority (2026-11-17): [ADR-011](adr/ADR-011-night-work-supplement.md), Accepted on the owner's explicit correction instruction; narrowly supersedes ADR-008's night multiplier application. The statutory seed remains immutable.
+
 | Path | Role | Rank |
 | :--- | :--- | :--: |
 | `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` | The authoritative product & technical specification | 2 |

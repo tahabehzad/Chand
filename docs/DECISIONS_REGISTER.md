@@ -610,7 +610,7 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | `OPEN — BLOCKING` for the requested modules; does not block the engine, the security foundation or the documentation work |
+| **Status** | `OPEN — BLOCKING` for **Modules B–C only**; Modules **A (authentication)** and **D (dashboard)** are resolved for the manager prototype per ADR-010 (approved by the Project Owner, effective 2026-11-17). Does not block the engine, the security foundation or the documentation work |
 | **Question** | Must the product boundary be re-expanded from the ADR-008 statutory payroll engine to a multi-tenant accounting application — authentication/RBAC, company and organisation management, chart of accounts and journal entries, and a data-backed dashboard — and if so, under which superseding ADR and schema? |
 | **Responsible role** | Product Manager (scope); Security Architect (identity/session variant); Database Engineer (tenant schema) |
 | **Required approver** | Project Owner, recorded as a superseding ADR under `AGENTS.md` §3 |
@@ -633,6 +633,8 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 
 **Partial update (2026-11-16).** The owner answered a different, narrower question: ADR-009 adds the **compensation advisory module** (manager-entered profile → band placement → statutory costing). That does **not** resolve this entry. Authentication/RBAC, company management, the accounting foundation and a data-backed dashboard all remain `NOT_STARTED` and blocked here.
 
+**Resolution of Modules A and D (2026-11-17, ADR-010).** The Project Owner approved [ADR-010](adr/ADR-010-manager-mvp-product-scope.md) v2 **as written, prospectively, effective 2026-11-17**: the manager-only evaluation and compensation-advisory **prototype** — single manager sign-in (Argon2id, opaque session token) and the data-backed manager dashboard — is authorized as the current approved product direction, under a **preserved prototype boundary** (not production-ready; backend integration explicitly incomplete; loopback/dev-only; no production/pilot claim). `P0-T18` remains the completion gate for production-grade authentication; `P0-T10` the audit-hash-chain gate. **Modules B (company/organisation management beyond the one organisation bound at sign-in) and C (the accounting foundation) remain `OPEN — BLOCKING` in this entry** — no specification and no approved schema exists for them, and ADR-010 explicitly does not authorize them. PB-D03 (real criteria/weights), PB-D04 and PB-D05 remain `OPEN`. The original analysis above is retained unchanged.
+
 **Recommendation: A until the owner records B or C as an ADR.** Option A is the only choice that neither contradicts an accepted ADR nor invents an accounting model. Option B is legitimate but is a product decision with legal and security consequences, and it needs a specification before code. Option C is acceptable only if every screen and endpoint is labelled a prototype.
 
 **Risks**
@@ -646,6 +648,10 @@ The rule as stated is legally significant — enforcing it wrongly causes either
 ---
 
 ## Engine review ambiguity ledger (B-series)
+
+**2026-11-17 — Night-work correction authorized and implemented:** [ADR-011](adr/ADR-011-night-work-supplement.md), Accepted on the owner's explicit instruction, supersedes ADR-008's night-factor application only: the additional non-shift night-work payment uses the loaded total multiplier minus one, giving 0.35 on the immutable 1404 seed. Engine `0.3.1-payroll-engine`, independent financial engineering review and numerical regression evidence are recorded in BOOTSTRAP_CHANGELOG §39. This resolves the implementation/decision conflict below prospectively; the historical observation is retained. No external legal certification, historic recomputation, rule-year activation or resolution of other B-series questions is implied.
+
+**2026-11-17 — UI legal-source check, OPEN — BLOCKING for acceptance of night-work results:** the primary Labour Law text, Art. 58 ([reproduced instrument](https://shenasname.ir/wp-content/uploads/2025/02/قانون-کار-با-اصلاحات-بعدی.pdf), page 10), describes a 35% supplement for non-shift night work. `backend/app/engines/overtime.py` currently multiplies by the configured `night_shift_multiplier` (1.35) and adds that whole amount to contractual gross. This raises a potential duplicate ordinary-wage component when that wage is already in gross. The payroll skill/specification also prescribes 1.35. No formula, seed or accepted decision was changed during the UI task; the affected arithmetic is not certified. Owner / Labour Counsel / Payroll Engineering must resolve the interpretation and approve the required specification change, followed by independent monetary review and regression evidence. The form now discloses this limitation; zero-night-hour demo verification does not verify the affected path.
 
 These are statutory/product ambiguities raised by the independent engine
 review. None is a licence to invent a value: each records the assumption the
@@ -708,9 +714,9 @@ Owner must confirm (1) which statutory/provenance/signature/change tables are gl
 | DEC-011c | Art. 86 720-day insured-days threshold | OPEN — BLOCKING | Phase 2 | Legal Counsel |
 | DEC-012 | Statutory provenance ownership and user-FK ordering | RESOLVED — ADR-007 | P0-T04 | CTO/DBA + Security Architect |
 | DEC-013 | Apply allowance floors and seniority base to net | OPEN — NON-BLOCKING | v1 reference-only | Project Owner + Labour Counsel/Tax Accountant |
-| DEC-014 | Product scope for the requested Batch-01 application modules | OPEN — BLOCKING | Modules A–D; nothing in ADR-008 scope | Project Owner (superseding ADR) |
+| DEC-014 | Product scope for the requested Batch-01 application modules | OPEN — BLOCKING (Modules B–C only; A/D resolved by ADR-010, 2026-11-17) | Modules B–C; nothing in ADR-008 scope | Project Owner (Modules B–C: superseding ADR) |
 
-**20 entries: 12 open (8 blocking, 4 non-blocking), 6 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope. The B-series ambiguity ledger above records the engine-review questions separately from the DEC numbering; only DEC-013 is a new owner decision in the engine-remediation pass. **DEC-014 (2026-11-16)** records the Batch-01 scope conflict after ADR-008: authentication, company management, accounting foundation and the data-backed dashboard are outside the accepted product boundary and rest on decisions this register still holds open, so no implementation of them may proceed before the owner records an option as a superseding ADR.
+**20 entries: 12 open (8 blocking, 4 non-blocking), 6 resolved by owner approval (ADR-006/007/008), 2 rejected as out of product scope (ADR-008).** ADR-005 remains separately `PROPOSED`; no queue was approved. Notes (2026-11-15, ADR-008): DEC-001 and DEC-002 no longer gate the v1 engine path — the engine runs on the verified 1404.1 baseline only; they remain open for any future 1405 activation and external corpus certification, both of which are out of ADR-008 product scope. The B-series ambiguity ledger above records the engine-review questions separately from the DEC numbering; only DEC-013 is a new owner decision in the engine-remediation pass. **DEC-014 (2026-11-16)** records the Batch-01 scope conflict after ADR-008: authentication, company management, accounting foundation and the data-backed dashboard are outside the accepted product boundary and rest on decisions this register still holds open, so no implementation of them may proceed before the owner records an option as a superseding ADR. **ADR-010 (2026-11-17)** resolved Modules A and D for the manager prototype only; Modules B and C stay blocked here.
 
 ---
 

@@ -61,6 +61,20 @@ class PayrollEngineError(ValueError):
     code: str = "PAYROLL_ENGINE_ERROR"
 
 
+class CodedDomainError(PayrollEngineError):
+    """A domain refusal carrying a per-instance stable code.
+
+    The API surface needs one stable ``{"error": {"code", "detail"}}`` shape
+    per refusal site; a class hierarchy with a fixed class attribute cannot
+    express that without one subclass per code.  The message is the
+    manager-facing Persian detail and never contains an amount.
+    """
+
+    def __init__(self, code: str, detail: str) -> None:
+        super().__init__(detail)
+        self.code = code
+
+
 class StatutoryParameterUnavailable(PayrollEngineError):
     """A required statutory parameter is null, missing or unverified.
 

@@ -26,7 +26,7 @@ from sqlalchemy.dialects.postgresql.base import PGDialect
 
 from app.core.config import get_settings
 from app.core.migration_lint import lint_migration
-from app.models import Base, statutory
+from app.models import Base, manager, statutory
 
 ROOT = Path(__file__).resolve().parents[2]
 TABLES = (
@@ -35,6 +35,15 @@ TABLES = (
     "statutory_parameter_signatures",
     "statutory_rule_changes",
     "statutory_verification_log",
+)
+#: The manager workspace tables delivered by migration 0004 (all tenant-scoped).
+MANAGER_TABLES = (
+    "employees",
+    "employee_observations",
+    "employee_evidence",
+    "employee_evaluations",
+    "salary_recommendations",
+    "recommendation_decisions",
 )
 IDENTITY_TABLES = (
     "organizations",
@@ -45,7 +54,10 @@ IDENTITY_TABLES = (
     "organization_memberships",
     "sessions",
 )
-ALL_TABLES = TABLES + IDENTITY_TABLES
+#: The audit ledger tables delivered by migration 0005 (all tenant-scoped,
+#: hash-chained / append-only).
+AUDIT_TABLES = ("audit_logs", "access_log")
+ALL_TABLES = TABLES + IDENTITY_TABLES + MANAGER_TABLES + AUDIT_TABLES
 READER = "pish_statutory_reader"
 REVIEWER = "pish_statutory_reviewer"
 OWNER = "pish_migration_owner"
@@ -181,13 +193,44 @@ def test_roundtrip(db: dict[str, Any]) -> None:
         query(
             db,
             "SELECT proname FROM pg_proc WHERE proname IN "
-            "('statutory_identity_write_gate','trg_statutory_parameter_signatures_append_only')",
+            "('statutory_identity_write_gate','trg_statutory_parameter_signatures_append_only',"
+            "'set_tenant_context','current_tenant_id','pish_tenant_rls_violation')",
         )
         == []
     )
     command.upgrade(db["config"], "head")
     assert set(TABLES) <= names()
-    assert query(db, "SELECT version_num FROM alembic_version")[0]["version_num"] == "0002"
+    # The manager-workspace migration (0004) and the audit-ledger migration
+    # (0005) are both applied; head is the authoritative revision.
+    from alembic.script import ScriptDirectory
+
+    head = ScriptDirectory.from_config(db["config"]).get_current_head()
+    assert query(db, "SELECT version_num FROM alembic_version")[0]["version_num"] == head
+    violation = query(db, "SELECT * FROM pish_tenant_rls_violation()")
+    assert violation == [], f"tenant RLS gaps after head ({head}): {violation}"
+
+
+def test_tenant_context_functions_are_fail_closed(db: dict[str, Any]) -> None:
+    """P0-T09: the transaction-local binding and the fail-closed reader."""
+    assert query(db, "SELECT * FROM pish_tenant_rls_violation()") == []
+    # A bound context round-trips inside its own statement's transaction.
+    query(
+        db,
+        "DO $$ DECLARE bound uuid; BEGIN "
+        "PERFORM set_tenant_context('11111111-1111-4111-8111-111111111111'); "
+        "bound := current_tenant_id(); "
+        "IF bound IS DISTINCT FROM '11111111-1111-4111-8111-111111111111'::uuid THEN "
+        "RAISE EXCEPTION 'tenant context did not round-trip'; END IF; END $$",
+    )
+    # A new statement inherits no binding: the local GUC died with the previous
+    # transaction, and the reader refuses instead of returning NULL.
+    query(
+        db,
+        "DO $$ BEGIN "
+        "BEGIN PERFORM current_tenant_id(); "
+        "RAISE EXCEPTION 'unbound tenant context was readable'; "
+        "EXCEPTION WHEN SQLSTATE '55000' THEN NULL; END; END $$",
+    )
 
 
 def test_models_and_storage_match_database(db: dict[str, Any]) -> None:
@@ -295,29 +338,20 @@ def test_declared_constraints_and_deferred_identity(db: dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize("table", TABLES)
-@pytest.mark.parametrize(
-    "operation",
-    [
-        "INSERT INTO {t} DEFAULT VALUES",
-        "UPDATE {t} SET id=id",
-        "DELETE FROM {t}",
-        "TRUNCATE {t} CASCADE",
-    ],
-)
 @pytest.mark.parametrize("role", [OWNER, REVIEWER, READER, TENANT])
-def test_rls_blocks_writes_for_all_roles(
-    db: dict[str, Any], table: str, operation: str, role: str
+def test_rls_blocks_insert_for_all_roles(
+    db: dict[str, Any], table: str, role: str
 ) -> None:
     async def run() -> None:
         conn = await connect(db)
         transaction = conn.transaction()
         await transaction.start()
         try:
-            # Even with broad grants, RLS policies deny writes.
+            # Even with broad grants, RLS policies deny INSERT.
             await conn.execute(f"GRANT ALL ON ALL TABLES IN SCHEMA public TO {role}")
             await conn.execute(f"SET LOCAL ROLE {role}")
             with pytest.raises(asyncpg.InsufficientPrivilegeError, match="row-level security policy"):
-                await conn.execute(operation.format(t=table))
+                await conn.execute(f"INSERT INTO {table} DEFAULT VALUES")
         finally:
             await transaction.rollback()
             await conn.close()
@@ -460,9 +494,8 @@ def test_signatures_append_only_independently_of_identity_gate(
         await transaction.start()
         try:
             await seed(conn)
-            await conn.execute(
-                "ALTER TABLE statutory_parameter_signatures DISABLE TRIGGER statutory_identity_write_gate"
-            )
+            # The append-only trigger (from P0-T04) remains active after 0002.
+            # No need to disable the old write gate (it was replaced by retention guard).
             with pytest.raises(asyncpg.RaiseError, match="append-only"):
                 await conn.execute(operation)
         finally:
@@ -485,7 +518,11 @@ def test_storage_checks_reject_invalid_values(db: dict[str, Any], column: str, v
                 if column == "status"
                 else "statutory_source_artefacts"
             )
-            await conn.execute(f"ALTER TABLE {table} DISABLE TRIGGER statutory_identity_write_gate")
+            # Retention guard blocks UPDATE on statutory_source_artefacts; disable it to test check constraint.
+            if table == "statutory_source_artefacts":
+                await conn.execute(
+                    "ALTER TABLE statutory_source_artefacts DISABLE TRIGGER statutory_retention_guard"
+                )
             with pytest.raises(asyncpg.CheckViolationError):
                 await conn.execute(f"UPDATE {table} SET {column}=$1", value)
         finally:

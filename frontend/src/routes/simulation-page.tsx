@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,9 @@ import { formatMoney, formatPercentFromRate } from '@/lib/money';
 import { toPersianDigits } from '@/lib/numerals';
 import { isApiError } from '@/api/errors';
 import type { GrossToNetRequest, PayrollResponse, TaxPosture } from '@/api/payroll-types';
+import { WorkProfileFields } from './work-profile-fields';
+import { calculateWorkProfile, type WorkResult } from './work-profile-api';
+import { isPrototypeError } from '@/prototype/api';
 
 /**
  * The optional liability inputs are genuinely optional: an empty field means
@@ -57,7 +61,7 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
       <CardHeader className='flex-row items-center justify-between border-0 pb-2'>
         <CardTitle className='text-lg'>{title}</CardTitle>
         <Badge tone={isConservative ? 'info' : 'neutral'}>
-          {isConservative ? 'محافظه‌کارانه (INTA)' : 'مرجع دیوان'}
+          {isConservative ? 'سناریوی محافظه‌کارانه' : 'سناریوی رویه قضایی'}
         </Badge>
       </CardHeader>
       <CardContent className='space-y-3'>
@@ -71,18 +75,18 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
             <p className='text-xl font-semibold tabular-nums text-destructive'>{rialAmount(taxRial)} <span className='text-sm font-normal text-ink-muted'>ریال</span></p>
           </div>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
-            <p className='text-xs text-ink-muted'>کسر ماده ۱۳۷</p>
+            <p className='text-xs text-ink-muted'>کسور از درآمد مشمول مالیات (ماده ۱۳۷)</p>
             <p className='text-xl font-semibold tabular-nums'>{rialAmount(deductionRial)} <span className='text-sm font-normal text-ink-muted'>ریال</span></p>
           </div>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
-            <p className='text-xs text-ink-muted'>حقوق رفاهی مشمول مالیات</p>
+            <p className='text-xs text-ink-muted'>شمول مالیات مزایای رفاهی در این سناریو</p>
             <Badge tone={welfareTaxable ? 'danger' : 'neutral'} className='text-base'>
               {welfareTaxable ? 'بله' : 'خیر'}
             </Badge>
           </div>
         </div>
         <div className='rounded-lg border border-border-subtle bg-surface p-3'>
-          <p className='mb-2 text-xs font-medium text-ink-muted'>ردیف‌های مالیات (اسلاب‌ها)</p>
+          <p className='mb-2 text-xs font-medium text-ink-muted'>جزئیات پلکان‌های مالیات حقوق</p>
           <div className='overflow-x-auto'>
             <table className='w-full text-sm text-start'>
               <thead>
@@ -110,6 +114,10 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
 }
 
 export function SimulationPage() {
+  const [search, setSearch] = useSearchParams();
+  const employeeId = search.get('employee') ?? '';
+  const [workDirty, setWorkDirty] = useState(false);
+  const [workContext, setWorkContext] = useState<WorkResult['work_context'] | null>(null);
   const [formData, setFormData] = useState<GrossToNetRequest>({
     /*
      * The seeded example is illustrative, not a market claim: it is chosen so
@@ -139,9 +147,24 @@ export function SimulationPage() {
 
   const [result, setResult] = useState<PayrollResponse | null>(null);
   const [error, setError] = useState<{ message: string; code: string } | null>(null);
+  const restoreWork = useCallback((saved: WorkResult | null) => {
+    if (saved?.full_time_inputs) setFormData(saved.full_time_inputs);
+    setResult(saved?.payroll ?? null);
+    setWorkContext(saved?.work_context ?? null);
+    setError(null);
+  }, []);
+  const selectEmployee = useCallback((id: string) => {
+    setSearch(id ? { employee: id } : {}, { replace: true });
+    setResult(null); setWorkContext(null);
+  }, [setSearch]);
 
   const mutation = useMutation({
     mutationFn: async (data: GrossToNetRequest) => {
+      if (employeeId) {
+        const saved = await calculateWorkProfile(employeeId, data);
+        setWorkContext(saved.work_context);
+        return saved.payroll;
+      }
       const response = await apiClient.request<PayrollResponse>({
         method: 'POST',
         path: CONTRACTS.grossToNet.path,
@@ -158,7 +181,9 @@ export function SimulationPage() {
       // explains it and the machine code is shown so the refusal can be
       // traced to the statutory rule that stopped the calculation.
       setError(
-        isApiError(err)
+        isPrototypeError(err)
+          ? { message: err.message, code: err.code }
+          : isApiError(err)
           ? { message: err.messageFa, code: err.code }
           : { message: 'خطای غیرمنتظره در ارتباط با سرویس محاسبه رخ داد.', code: 'UNKNOWN' },
       );
@@ -172,6 +197,7 @@ export function SimulationPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setResult(null); setWorkContext(null);
     const { name, value, type } = e.target;
     let parsedValue: string | number | boolean | null = value;
 
@@ -209,18 +235,25 @@ export function SimulationPage() {
 
   return (
     <div className='space-y-6'>
+      <header className='flex flex-wrap items-start justify-between gap-4'>
+        <div>
+          <h1 className='text-2xl font-bold text-ink sm:text-3xl'>محاسبه حقوق و دستمزد</h1>
+        </div>
+      </header>
+      <WorkProfileFields employeeId={employeeId} onSelect={selectEmployee} onDirtyChange={setWorkDirty} onRestored={restoreWork} locked={mutation.isPending} />
       <form onSubmit={handleSubmit} className='space-y-4'>
+        <fieldset disabled={mutation.isPending} className='min-w-0 space-y-4'>
         <Card>
-          <CardHeader>
-            <CardTitle>ورودی‌های محاسبه</CardTitle>
-            <CardDescription>مقادیر را وارد کنید و شبیه‌سازی را اجرا نمایید</CardDescription>
+          <CardHeader className='bg-surface/50'>
+            <CardTitle>حقوق ماهانه</CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
               <Input
                 name='gross_monthly_rial'
                 type='number'
-                label='حقوق ناخالص ماهانه (ریال) *'
+                label={employeeId ? 'حقوق ناخالص ماهانه تمام‌وقت، بدون پایه سنوات (ریال)' : 'حقوق ناخالص ماهانه با مزایا (ریال)'}
+                hint={`${rialAmount(formData.gross_monthly_rial)} ریال`}
                 value={formData.gross_monthly_rial}
                 onChange={handleChange}
                 inputMode='numeric'
@@ -230,27 +263,14 @@ export function SimulationPage() {
                 className='tabular-nums'
               />
 
-              <Input
-                name='rule_year'
-                type='number'
-                label='سال قانونی'
-                value={formData.rule_year}
-                onChange={handleChange}
-                inputMode='numeric'
-                min={1404}
-                max={1404}
-                dir='ltr'
-                className='tabular-nums'
-              />
-
               <div>
-                <label htmlFor='days_in_month' className='text-sm font-medium text-ink mb-2 block'>روزهای ماه</label>
+                <label htmlFor='days_in_month' className='text-sm font-medium text-ink mb-2 block'>تعداد روزهای ماه</label>
                 <select
                   id='days_in_month'
                   name='days_in_month'
                   value={formData.days_in_month}
                   onChange={handleChange}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dir-ltr'
+                  className='min-h-11 w-full rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm text-ink'
                 >
                   <option value={29}>۲۹</option>
                   <option value={30}>۳۰</option>
@@ -259,23 +279,23 @@ export function SimulationPage() {
               </div>
 
               <div>
-                <label htmlFor='tax_posture' className='text-sm font-medium text-ink mb-2 block'>حالت ماده ۱۳۷</label>
+                <label htmlFor='tax_posture' className='text-sm font-medium text-ink mb-2 block'>سناریوی اصلی مالیات</label>
                 <select
                   id='tax_posture'
                   name='tax_posture'
                   value={formData.tax_posture}
                   onChange={handleChange}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-sm dir-ltr'
+                  className='min-h-11 w-full rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm text-ink'
                 >
-                  <option value='conservative_inta'>محافظه‌کارانه (INTA)</option>
-                  <option value='court_precedent'>مرجع دیوان</option>
+                  <option value='conservative_inta'>سناریوی محافظه‌کارانه</option>
+                  <option value='court_precedent'>سناریوی رویه قضایی</option>
                 </select>
               </div>
 
               <Input
                 name='overtime_hours'
                 type='number'
-                label='ساعت اضافه‌کاری'
+                label='اضافه‌کاری ماهانه (ساعت)'
                 value={formData.overtime_hours}
                 onChange={handleChange}
                 inputMode='numeric'
@@ -287,7 +307,7 @@ export function SimulationPage() {
               <Input
                 name='night_hours'
                 type='number'
-                label='ساعت شب‌کاری'
+                label='شب‌کاری غیرنوبتی (ساعت)'
                 value={formData.night_hours}
                 onChange={handleChange}
                 inputMode='numeric'
@@ -297,15 +317,15 @@ export function SimulationPage() {
               />
             </div>
 
-            <div className='border-t border-border-subtle pt-4'>
-              <h3 className='mb-3 font-medium'>حقوق و مزایا (ریال)</h3>
+            <div className='border-t border-border-subtle pt-6'>
+              <h3 className='mb-4 font-semibold'>مزایای منظورشده در ناخالص (ریال)</h3>
               <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                 {[
                   { key: 'housing', label: 'حق مسکن' },
-                  { key: 'grocery', label: 'بن خواربار' },
-                  { key: 'marriage', label: 'حق تاهل' },
-                  { key: 'child', label: 'حق اولاد' },
-                  { key: 'continuous_attraction', label: 'فوق‌العاده جذب' },
+                  { key: 'grocery', label: 'بن کارگری' },
+                  { key: 'marriage', label: 'حق تأهل' },
+                  { key: 'child', label: 'حق اولاد (جمع)' },
+                  { key: 'continuous_attraction', label: 'فوق‌العاده جذب ثابت و مستمر' },
                 ].map(({ key, label }) => (
                   <Input
                     key={key}
@@ -324,9 +344,9 @@ export function SimulationPage() {
               </div>
             </div>
 
-            <div className='border-t border-border-subtle pt-4'>
-              <h3 className='mb-3 font-medium'>تنظیمات پیشرفته (اختیاری)</h3>
-              <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            {!employeeId && <details className='rounded-xl border border-border-subtle bg-surface/50 p-4'>
+              <summary className='cursor-pointer text-sm font-semibold text-ink'>تنظیمات تکمیلی و برآورد پایان همکاری (اختیاری)</summary>
+              <div className='mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
                 <div className='flex items-center gap-2'>
                   <input
                     type='checkbox'
@@ -337,13 +357,13 @@ export function SimulationPage() {
                     className='h-4 w-4 rounded border-input'
                   />
                   <label htmlFor='continuous_attraction_taxable' className='text-sm cursor-pointer'>
-                    جذب مشمول مالیات
+                    فوق‌العاده جذب در محاسبه مالیات منظور شود
                   </label>
                 </div>
                 <Input
                   name='probation_months'
                   type='number'
-                  label='ماه‌های آزمایشی'
+                  label='دوره آزمایشی ـ فسخ کارفرما (ماه)'
                   value={formData.probation_months ?? ''}
                   onChange={handleChange}
                   inputMode='numeric'
@@ -356,7 +376,7 @@ export function SimulationPage() {
                 <Input
                   name='tenure_months'
                   type='number'
-                  label='مُدّت خدمت (ماه)'
+                  label='سابقه نزد کارفرمای فعلی (ماه)'
                   value={formData.tenure_months ?? ''}
                   onChange={handleChange}
                   inputMode='numeric'
@@ -368,7 +388,7 @@ export function SimulationPage() {
                 <Input
                   name='accumulated_unused_leave_days'
                   type='number'
-                  label='مرخصی انباشته'
+                  label='مانده مرخصی استفاده‌نشده (روز)'
                   value={formData.accumulated_unused_leave_days ?? ''}
                   onChange={handleChange}
                   inputMode='numeric'
@@ -378,10 +398,10 @@ export function SimulationPage() {
                   placeholder='۰'
                 />
               </div>
-            </div>
+            </details>}
 
-            <div className='flex justify-end pt-2'>
-              <Button type='submit' disabled={mutation.isPending} className='min-w-[160px]'>
+            <div className='flex flex-col items-start justify-between gap-4 border-t border-border-subtle pt-5 sm:flex-row sm:items-center'>
+              <Button type='submit' disabled={mutation.isPending || workDirty} size='lg' className='w-full sm:w-auto sm:min-w-48'>
                 {mutation.isPending ? (
                   <>
                     <Icon name='spinner' className='me-2 h-4 w-4 animate-spin' />
@@ -390,7 +410,7 @@ export function SimulationPage() {
                 ) : (
                   <>
                     <Icon name='simulation' className='me-2 h-4 w-4' />
-                    اجرای شبیه‌سازی
+                    محاسبه حقوق
                   </>
                 )}
               </Button>
@@ -405,18 +425,27 @@ export function SimulationPage() {
             <p className='mt-1 text-xs font-mono' dir='ltr'>{error.code}</p>
           </div>
         )}
+        </fieldset>
       </form>
 
       {result && (
         <section aria-label='نتایج شبیه‌سازی' className='space-y-6'>
-          <div className='flex items-center justify-between'>
+          {workContext && <Card><CardContent className='grid gap-4 sm:grid-cols-3'>
+            <div><p className='text-xs text-ink-muted'>نسبت کارکرد</p><p className='mt-2 font-semibold'>{formatPercentFromRate(workContext.ratio) ?? '—'}</p></div>
+            <div><p className='text-xs text-ink-muted'>ناخالص متناسب با کارکرد</p><p className='mt-2 font-semibold'>{rialAmount(workContext.gross_rial)} ریال</p></div>
+            <div><p className='text-xs text-ink-muted'>پایه سنوات این ماه</p><p className='mt-2 font-semibold'>{rialAmount(workContext.seniority_rial)} ریال</p></div>
+          </CardContent></Card>}
+          <div className='flex flex-wrap items-center justify-between gap-3'>
             <h2 className='text-xl font-semibold'>نتایج محاسبه</h2>
-            <div className='flex items-center gap-2 text-sm text-ink-muted'>
+            <details className='text-xs text-ink-muted'>
+              <summary className='cursor-pointer'>شناسه محاسبه</summary>
+              <div className='mt-2 flex flex-wrap items-center gap-2'>
               <Icon name='check' className='h-4 w-4' />
               <span>نسخه قوانین: {result.statutory_version} ({result.rule_set_status})</span>
               <span className='mx-1'>·</span>
               <span>هش محاسبه: {result.calculation_hash.slice(0, 16)}…</span>
-            </div>
+              </div>
+            </details>
           </div>
 
           <div className='grid gap-4 lg:grid-cols-2'>
@@ -525,12 +554,11 @@ export function SimulationPage() {
             </CardContent>
           </Card>
 
+          <details className='space-y-3 rounded-xl border border-border-subtle bg-surface-raised p-4'>
+            <summary className='cursor-pointer text-sm font-medium'>جزئیات مبالغ و بیمه</summary>
           <Card>
             <CardHeader>
               <CardTitle>مبانی حقوقی و بیمه</CardTitle>
-              <CardDescription>
-                مبانی استخراج‌شده از حقوق ناخالص و سهم بیمهٔ تأمین اجتماعی؛ هر رقم بالا از همین مبانی محاسبه شده است.
-              </CardDescription>
             </CardHeader>
             <CardContent className='space-y-3'>
               <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
@@ -588,12 +616,12 @@ export function SimulationPage() {
             </CardContent>
           </Card>
 
+          </details>
+          <details className='space-y-3 rounded-xl border border-border-subtle bg-surface-raised p-4'>
+            <summary className='cursor-pointer text-sm font-medium'>منشأ ارقام</summary>
           <Card>
             <CardHeader>
               <CardTitle>منشأ هر رقم</CardTitle>
-              <CardDescription>
-                قاعدهٔ قانونی و فرمول هر رقم صادرشده؛ شناسهٔ قاعده و سال قانونی مستقیماً از پاسخ سرویس خوانده شده است.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className='overflow-x-auto'>
@@ -620,6 +648,7 @@ export function SimulationPage() {
               </div>
             </CardContent>
           </Card>
+          </details>
         </section>
       )}
     </div>

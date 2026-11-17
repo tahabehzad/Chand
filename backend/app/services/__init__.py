@@ -4,8 +4,8 @@
 """
 from __future__ import annotations
 
+from app.engines import ENGINE_VERSION
 from app.services.payroll_service import (
-    ENGINE_VERSION,
     PayrollInput,
     PayrollResult,
     compute_gross_to_net,

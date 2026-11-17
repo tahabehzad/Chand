@@ -6,7 +6,7 @@ import { AppShell } from './app-shell';
 import { NAV_ITEMS, PRIMARY_NAV_ITEMS } from './navigation';
 import { useUiStore } from '@/state/ui-store';
 
-function renderShell(path = '/') {
+function renderShell(path = '/system') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
@@ -76,18 +76,24 @@ describe('AppShell', () => {
   });
 
   it('marks the active module with aria-current', () => {
-    renderShell('/simulation');
+    renderShell('/system');
     const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
-    const link = within(nav).getByRole('link', { name: /شبیه‌سازی حقوق/ });
+    const link = within(nav).getByRole('link', { name: /وضعیت سامانه/ });
     expect(link).toHaveAttribute('aria-current', 'page');
   });
 
+  it.each(['/', '/simulation'])('hides navigation and its toggle on calculator %s', (path) => {
+    renderShell(path);
+    expect(screen.queryByRole('navigation', { name: 'ناوبری اصلی' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'باز کردن منو' })).not.toBeInTheDocument();
+  });
+
   it('labels the statutory screen with its baseline and the demo with its notice', () => {
-    const { unmount } = renderShell('/simulation');
+    const { unmount } = renderShell('/');
     expect(screen.getByRole('banner')).toHaveTextContent('پایه قانونی ۱۴۰۴');
     expect(screen.getByRole('banner')).not.toHaveTextContent('داده‌های نمایشی');
     unmount();
-    renderShell('/');
+    renderShell('/transactions');
     expect(screen.getByRole('banner')).toHaveTextContent('داده‌های نمایشی');
   });
 

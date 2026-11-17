@@ -64,6 +64,8 @@ def compute_eydi(
     mozd_e_saabet_rial: int,
     rule_set: StatutoryRuleSet,
     brackets: tuple[TaxBracket, ...] | None = None,
+    *,
+    employment_ratio: Decimal = Decimal(1),
 ) -> EydiResult:
     """Compute the annual *Eydi*, the monthly accrual and the payout tax.
 
@@ -86,13 +88,16 @@ def compute_eydi(
             "PAYROLL_INPUT_INVALID: mozd_e_saabet_rial must be a non-negative int"
         )
     active_brackets = rule_set.tax_brackets if brackets is None else brackets
+    if (not isinstance(employment_ratio, Decimal) or not employment_ratio.is_finite()
+            or employment_ratio <= 0 or employment_ratio > 1):
+        raise PayrollInputError("EMPLOYMENT_RATIO_INVALID")
 
     with localcontext() as context:
         context.prec = MONEY_PRECISION
         context.rounding = ROUND_HALF_UP
         saabet = Decimal(mozd_e_saabet_rial)
         floor_bound = saabet * Decimal(rule_set.eydi_min_days) / _THIRTY
-        cap = Decimal(rule_set.max_annual_eydi_rial)
+        cap = Decimal(rule_set.max_annual_eydi_rial) * employment_ratio
         annual_exact = min(floor_bound, cap)
         monthly_exact = annual_exact / _TWELVE
 

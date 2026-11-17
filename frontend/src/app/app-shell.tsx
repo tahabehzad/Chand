@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '@/components/icon';
 import { Badge } from '@/components/ui/badge';
 import { StatutoryBaselineNotice } from '@/components/layout/statutory-baseline-notice';
 import { UnitToggle } from '@/components/layout/unit-toggle';
 import { NAV_ITEMS, PRIMARY_NAV_ITEMS, type NavItem } from '@/app/navigation';
 import { SessionBridge } from '@/app/session-bridge';
+import { logout } from '@/prototype/api';
+import { readSession } from '@/prototype/session';
 import { useUiStore } from '@/state/ui-store';
 import { cn } from '@/lib/cn';
 
@@ -53,9 +55,24 @@ function NavItems({ onNavigate, items = NAV_ITEMS }: { onNavigate?: () => void; 
  */
 export function AppShell() {
   const { pathname } = useLocation();
-  const isDemoPage = ['/', '/transactions', '/settings'].includes(pathname);
+  const navigate = useNavigate();
+  const isPrototypePage = pathname.startsWith('/prototype');
+  const isCalculatorPage = pathname === '/' || pathname === '/simulation';
+  const isDemoPage = ['/transactions', '/settings'].includes(pathname);
   const mobileNavOpen = useUiStore((state) => state.mobileNavOpen);
   const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
+  const session = readSession();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function onSignOut(): Promise<void> {
+    setSigningOut(true);
+    try {
+      await logout();
+    } finally {
+      setSigningOut(false);
+      navigate('/login', { replace: true });
+    }
+  }
 
   useEffect(() => {
     if (!mobileNavOpen) return undefined;
@@ -78,7 +95,7 @@ export function AppShell() {
 
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface-raised">
         <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-          <button
+          {!isCalculatorPage && <button
             type="button"
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
             aria-expanded={mobileNavOpen}
@@ -87,7 +104,7 @@ export function AppShell() {
             className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-border-subtle text-ink-muted lg:hidden"
           >
             <Icon name={mobileNavOpen ? 'close' : 'menu'} />
-          </button>
+          </button>}
 
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-base font-semibold text-ink">پیش‌حسابداری</span>
@@ -97,9 +114,29 @@ export function AppShell() {
           </div>
 
           <div className="ms-auto flex items-center gap-3">
-            <Badge tone={isDemoPage ? 'info' : 'success'}>
-              {isDemoPage ? 'داده‌های نمایشی' : 'پایه قانونی ۱۴۰۴'}
+            {session !== null ? (
+              <span className="hidden flex-col text-end text-xs text-ink-muted sm:flex">
+                <span className="font-medium text-ink">{session.manager.displayName}</span>
+                <span>{session.organization.nameFa}</span>
+              </span>
+            ) : null}
+            <Badge tone={isPrototypePage ? 'warning' : isDemoPage ? 'info' : 'success'}>
+              {isPrototypePage
+                ? 'ارزیابی — مدل پیش‌نویس'
+                : isDemoPage
+                  ? 'داده‌های نمایشی'
+                  : 'پایه قانونی ۱۴۰۴'}
             </Badge>
+            {session !== null ? (
+              <button
+                type="button"
+                onClick={() => void onSignOut()}
+                disabled={signingOut}
+                className="rounded-lg border border-border-subtle px-2.5 py-1 text-xs text-ink-muted hover:text-ink disabled:opacity-60"
+              >
+                {signingOut ? 'در حال خروج…' : 'خروج'}
+              </button>
+            ) : null}
             <div className="hidden sm:block">
               <UnitToggle />
             </div>
@@ -108,7 +145,7 @@ export function AppShell() {
       </header>
 
       <div className="flex flex-1 flex-col lg:flex-row">
-        <aside
+        {!isCalculatorPage && <aside
           id="primary-navigation"
           className={cn(
             'border-border-subtle bg-surface-raised p-4 lg:block lg:w-60 lg:shrink-0 lg:border-e',
@@ -130,7 +167,7 @@ export function AppShell() {
               </div>
             </div>
           </nav>
-        </aside>
+        </aside>}
 
         <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -141,10 +178,14 @@ export function AppShell() {
 
       <footer className="border-t border-border-subtle bg-surface-raised px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2">
-          {isDemoPage ? (
+          {isCalculatorPage ? (
+            <p className="text-xs text-ink-muted">نسخه آزمایشی · مبنای ۱۴۰۴ · قواعد ۱۴۰۵ تأییدنشده و غیرفعال</p>
+          ) : isPrototypePage ? (
+            <p className="text-xs text-ink-muted">ارزیابی کارکنان · دادهٔ ساختگی است · ذخیره‌سازی در پایگاه‌داده با جداسازی سازمان · تصمیم مدیر ثبت و تغییرناپذیر است · وزن‌های مدل و موتور قانونی ۱۴۰۴ پیش‌نویس/در حال بازبینی‌اند و نتیجه مشورتی است.</p>
+          ) : isDemoPage ? (
             <p className="text-xs text-ink-muted">پیش‌حسابداری · نسخه نمایشی ۰٫۱ · مبالغ ساختگی هستند و به قواعد قانونی متصل نیستند. مبنای قانونی بخش اصلی پروژه ۱۴۰۴ است؛ قواعد ۱۴۰۵ تأییدنشده و غیرفعال‌اند.</p>
           ) : <StatutoryBaselineNotice />}
-          {!isDemoPage && <p className="text-xs text-ink-muted">
+          {!isDemoPage && !isCalculatorPage && <p className="text-xs text-ink-muted">
             این نسخه فقط لایه رابط کاربری است؛ محاسبات مالی در سرویس‌های بک‌اند انجام
             می‌شود و رابط هیچ محاسبه‌ای را بازتولید نمی‌کند.
           </p>}

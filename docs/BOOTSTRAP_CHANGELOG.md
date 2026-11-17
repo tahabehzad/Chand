@@ -1659,3 +1659,303 @@ was annotated rather than removed because removal would rewrite history and it i
 record of the phase-1 handoff. No change to application behaviour, business logic, database
 structure, financial calculation or architecture. This entry does not complete any WBS task
 and does not pass a phase gate.
+
+## 30. P0-T09 first slice: tenant context helpers — 2026-11-16
+
+**Task.** `P0-T09` (RLS policies and the per-transaction tenant context), WBS §14.3. Dependencies `P0-T04` and `P0-T05` are READY_FOR_REVIEW, not APPROVED; work started on the same precedent the corpus already applied when `P0-T05` was built on a review-ready `P0-T04`.
+**Authority.** `AGENTS.md` §2 invariant 12; `docs/specs/AUTH.md` §6 (ISO-03, ISO-06, ISO-07); ADR-006 (DEC-005), ADR-007; Holy Bible §5.5, §5.9. No new decision was taken and no accepted decision was altered.
+
+### What was delivered
+
+| Artifact | Change |
+| :--- | :--- |
+| `backend/app/core/security/tenant_context.py` | New. In-process `ContextVar` tenant binding (`tenant_context`, `require_tenant_id`, `peek_tenant_id`) and the database binding (`apply_tenant_context`) that issues `SELECT set_tenant_context(:tenant_id)`. Unbound or malformed input raises `TenantContextError`; the message carries no identifier. |
+| `backend/alembic/versions/0003_tenant_context.py` | New. `set_tenant_context(uuid)` binds `app.tenant_id` with `is_local = true` (dies at commit/rollback, so a pooled connection cannot inherit a tenant); `current_tenant_id()` reads it and raises SQLSTATE `55000` when unbound instead of returning `NULL`; `pish_tenant_rls_violation()` returns every table with a `tenant_id` column that lacks enabled, forced RLS or a policy. `SECURITY INVOKER`, no role provisioned, `search_path = pg_catalog`. |
+| `backend/tests/unit/test_tenant_context.py` | New. 9 tests: unbound refusal, bind/restore, string validation, malformed refusal, nested restore, leak-free failure, GUC name parity, statement and parameter shape, no statement on a bad value. |
+| `backend/tests/integration/test_statutory_migrations.py` | Targeted edits inside an already-modified file: expected head revision `0002` → `0003`, the three new functions added to the "absent after downgrade to base" assertion, and a new `test_tenant_context_functions_are_fail_closed` proving the bound round-trip and the `55000` refusal on a real server. No other contributor's change was reverted. |
+
+### What this does not do
+
+No tenant data table exists yet, so no RLS policy was attached: the identity tables of `0002` are the tenancy model itself and the statutory tables stay global under ADR-007. Every future tenant table must add `tenant_id`, its policy and `FORCE ROW LEVEL SECURITY` in its own migration (invariant 12), and `pish_tenant_rls_violation()` now makes a violation visible. No runtime application role (P0-T18), no penetration suite (P0-T14), no audit ledger (P0-T10), no key custody (P0-T08).
+
+### Verification (observed, this session)
+
+| Result | Command | Evidence |
+| :--- | :--- | :--- |
+| PASS | `.venv/Scripts/python.exe -m ruff check .` | `All checks passed!` |
+| PASS | `.venv/Scripts/python.exe -m mypy --strict app tests` | `Success: no issues found in 74 source files` |
+| PASS | `.venv/Scripts/python.exe -m pytest tests/unit/test_tenant_context.py tests/unit/test_migration_lint.py -q` | `22 passed` |
+| PASS | `.venv/Scripts/python.exe -m pytest tests/integration/test_statutory_migrations.py -q` | `42 passed` on a disposable PostgreSQL 16 container: upgrade → downgrade to base → re-upgrade to `0003`, survivor functions, fail-closed reader |
+| PASS | `.venv/Scripts/python.exe -m pytest -q` | `732 passed, 1 skipped` in 22.61 s (the skipped case is the documented contract-valid negative) |
+| NOT RUN | frontend `vitest`/`tsc`/`build`; live CI on GitHub | no frontend file and no workflow was touched |
+
+**Status.** `P0-T09` is `IN_PROGRESS`, not `COMPLETED`: the AC sentence "no context → zero rows **and** an exception" cannot be exercised for tenant tables that do not exist, independent review by a non-author is outstanding, and the penetration suite is `P0-T14`. No phase gate is passed and no task status was advanced beyond the evidence.
+
+## 31. P0-T16 backup/restore baseline, and one flaky assertion — 2026-11-16
+
+**Tasks.** `P0-T16` (backup/restore baseline and retention configuration), WBS §14.3. Dependencies `P0-T03` and `P0-T04` are READY_FOR_REVIEW, not APPROVED.
+**Authority.** `docs/specs/DEPLOYMENT.md` §5 (10-year retention for tax/labour audit); `AGENTS.md` §8 and §9. No new decision was taken.
+
+### What was delivered
+
+| Artifact | Change |
+| :--- | :--- |
+| `infra/postgres/backup/backup.sh` | New. `pg_dump -Fc` inside the container, copy of the dump to a per-run host directory, SHA-256 of the dump, catalogue fingerprint, `manifest.txt`, and retention pruning to the newest N sets. Refuses to declare a backup when the fingerprint is empty. No credential is read or echoed. |
+| `infra/postgres/backup/restore.sh` | New. Restores one set into an already-running disposable target: drops and recreates only the named database, `pg_restore --exit-on-error`, then prints the restored catalogue fingerprint. Refuses to restore onto the set's own source container (exit 3). |
+| `infra/postgres/backup/schema_fingerprint.sql` | New. Deterministic MD5 over tables, columns, nullability, types, constraints, indexes, RLS flags, policies, non-internal triggers and function bodies — the "schema-identical" comparator. |
+| `backend/tests/integration/test_backup_restore.py` | New. Three tests against two disposable PostgreSQL 16 containers: schema-identical restore plus row survival and forced-RLS survival; retention keeps only the newest N; the restore guard refuses its own source. Windows `bash` on `PATH` can be the WSL relay, so the Git-for-Windows shell is resolved by executing it, not by name. |
+
+### Defect found and fixed during verification
+
+| Item | Detail |
+| :--- | :--- |
+| `schema_fingerprint.sql` | `polcmd || '|'` failed with *operator is not unique* because `polcmd` is `"char"`; `psql` still exited 0, so the empty fingerprint was silent. Fixed with `polcmd::text`, and both scripts now pass `-v ON_ERROR_STOP=1`, with `backup.sh` refusing an empty fingerprint (exit 4). |
+| `backup.sh` digest | A Windows host path made `sha256sum` escape the digest line; the hash is now computed from stdin. |
+| `tests/api/test_valuation_api.py` | Pre-existing flake, unrelated to this task: `test_the_proposal_hash_is_deterministic_across_calls` required two calls to have different `generated_at` values, which fails on a host whose clock resolution is coarser than two consecutive requests (reproduced in a full-suite run, passes in isolation). The hash determinism assertion is unchanged; the timestamp assertion now checks the `+00:00` form and non-decreasing order. Not a money-path change and no assertion on money was relaxed. |
+
+### Verification (observed, this session)
+
+| Result | Command | Evidence |
+| :--- | :--- | :--- |
+| PASS | `.venv/Scripts/python.exe -m pytest tests/integration/test_backup_restore.py -q` | `3 passed` in 15.16 s: fingerprint equality, restored row, forced-RLS flags, retention to 2 sets, guard exit 3 |
+| PASS | `.venv/Scripts/python.exe -m ruff check .` | `All checks passed!` |
+| PASS | `.venv/Scripts/python.exe -m mypy --strict app tests` | `Success: no issues found in 75 source files` |
+| PASS | `.venv/Scripts/python.exe -m pytest -q` | `735 passed, 1 skipped` in 39.08 s |
+| NOT RUN | WAL archiving/PITR, encrypted off-site copy, restore drill with RTO/RPO | deployment topology (`DEC-010`) and `P4-T03`; the logical baseline and its restore are what this task verifies |
+
+**Status.** `P0-T16` is `IN_PROGRESS`: the AC is verified locally, but the WBS deliverable also names WAL archiving, which is a topology item, and independent review is outstanding.
+
+## 32. Manager MVP wired to the real backend — 2026-11-17
+
+**Tasks.** The vertical manager slice of `docs/MVP_WBS.md` MVP-01…MVP-12: employee records, observations and CSV import, evidence metadata, `perf-v1` evaluation, statutory recommendation, and the append-only manager decision. No task status was advanced beyond `READY_FOR_REVIEW`; there is no independent non-author review.
+
+**Authority.** `docs/MVP_SCOPE.md` AC-01…AC-10; ADR-009; `AGENTS.md` §2 (financial, security), §9 (verification). The evaluation weights remain the owner brief's provisional 40/30/20/10; the payroll figures remain the 1404 `READY_FOR_REVIEW` engine output.
+
+### What was delivered
+
+| Area | Change |
+| :--- | :--- |
+| Authentication | Real `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, `POST /api/v1/auth/logout`; Argon2id password verification; opaque revocable token in `sessions`; tenant and role resolved server-side. |
+| Tenant isolation | `app/api/deps.py` binds the authenticated membership to the request; every manager route runs inside `SET LOCAL app.tenant_id`; migration `0004` adds tenant tables with RLS and `FORCE ROW LEVEL SECURITY`; cross-tenant reads return 404/empty, not another tenant's row. |
+| Manager API | Employees CRUD (create/list/get/patch), observations (add/correct/reject/import), evidence upload/list, evaluation, recommendation list/detail, rules, decision, dashboard. |
+| Evaluation | `app/engines/perf_v1.py` is pure, integer-basis-point arithmetic; `ruleSetVersion=perf-v1`, `PROVISIONAL_DRAFT`, published missing-data policy, deterministic score and calculation hash. |
+| Recommendation | Score, band position, suggested gross, current statutory cost, employer CTC, reasons, warnings, data-quality limits and the existing `0.3.0-payroll-engine` 1404 output. No amount is computed in the browser. |
+| Decision | One immutable `approve` / `edit` / `reject` record per recommendation; a second decision is refused with `DECISION_ALREADY_RECORDED`; the UI reads the stored decision back after reload. There is no audit hash chain (`P0-T10`). |
+| Frontend | Mock modules `rules.ts`, `scoring.ts`, `store.ts` and their test were removed. `src/prototype/api.ts` is a real HTTP adapter with money normalisation and server-code preservation; `src/prototype/session.ts` keeps the token in `sessionStorage`; `RequireManager` guards the four routes; Vite proxies `/api` and `/health` to `127.0.0.1:8000`. |
+| Evidence | `backend/scripts/verify_manager_workflow.py` drives the whole flow against a live API (login, rules, create/profile edit, observations, mixed CSV import, evidence, evaluation, missing criteria, approve/edit/reject, duplicate refusal, dashboard history, unauthenticated refusal). It prints 57 checks and never prints the token or password. |
+
+### Verification (observed, this session)
+
+| Result | Command | Evidence |
+| :--- | :--- | :--- |
+| PASS | `backend/.venv/Scripts/python.exe -m pytest -q` | **763 passed, 1 skipped** in 42.61 s. The skipped case is the schemathesis "generated a contract-valid request" branch. |
+| PASS | `backend/.venv/Scripts/python.exe -m ruff check app` | all checks passed (run in the preceding manager slice; unchanged files). |
+| PASS | `backend/.venv/Scripts/python.exe -m mypy --strict app` | `Success: no issues found in 50 source files`. |
+| PASS | `frontend/node_modules/.bin/vitest run` | **123 passed**, 14 files, 8.28 s. |
+| PASS | `frontend/node_modules/.bin/tsc -p tsconfig.app.json --noEmit` | clean. |
+| PASS | `node scripts/check-logical-utilities.mjs src` | 82 files, 0 violations. |
+| PASS | `frontend/node_modules/.bin/vite build` | built in 2.50 s; `index` 412.78 kB (132.45 kB gzip). |
+| PASS | `backend/.venv/Scripts/python.exe scripts/verify_manager_workflow.py` | **57 checks**, exit 0, against `http://127.0.0.1:8000` and the migrated `pish_dev` database. |
+| PASS | Browser flow on `http://127.0.0.1:5273` | Login redirect from `/prototype`; dashboard, people, person and recommendation pages rendered with real data; an approve decision submitted from the form persisted and read back; logout cleared the session and the guard returned to `/login`; invalid start date surfaced the server code; empty observations/evidence/history states rendered. No page errors; the only console error was the expected 422 for the deliberately invalid form. |
+| PASS | Layout at 390 px | Dashboard, people, person and recommendation pages: `documentElement.scrollWidth` 375 ≤ `innerWidth` 390; wide data tables scroll inside their own container rather than the page. |
+
+### Known defects and limits (must not be presented as complete)
+
+| # | Item |
+| --: | :--- |
+| D-1 | The audit ledger is still a table, not a hash chain (`P0-T10`); the decision row is append-only at the database level but not cryptographically chained. |
+| D-2 | Two engine constants disagree: `app/engines/__init__.py` still exports `0.2.0-payroll-engine`, while `app/services/payroll_service.py` exports and uses `0.3.0-payroll-engine`. The manager path uses `0.3.0`; the duplicate constant must be reconciled deliberately. |
+| D-3 | `docs/CURRENT_STATE.md` §2.3–§2.6 was written before this slice and still says "no route uses a database session", "no authentication", and "person/recommendation screens NOT_IMPLEMENTED". §6 of that document now records the superseding evidence. |
+| D-4 | MFA and the HttpOnly-cookie session are not implemented; the MVP token lives in `sessionStorage` and is readable by same-origin script. |
+| D-5 | The integration suite truncates tenant tables in the configured `pish_dev` database. Running it wipes local demo employees; recreate them with `verify_manager_workflow.py` or the UI. |
+| D-6 | Evidence bytes are not stored; only metadata and SHA-256 are persisted. Object storage is `ADR-002`, not this slice. |
+| D-7 | No non-author review, no axe/visual-regression run, and no CI execution on GitHub. |
+
+**Status.** The manager vertical slice is `READY_FOR_REVIEW`. It is not `COMPLETED`: independent review, the audit chain, a clean demo-data reset path and the engine-version reconciliation are outstanding.
+
+## 33. Quality-gate tightening after §32 — 2026-11-17
+
+The same day, the remaining lint/type debt of the §32 slice was closed and every gate was
+re-run from a clean process. No product behaviour changed.
+
+| Result | Command | Evidence |
+| :--- | :--- | :--- |
+| PASS | `backend/.venv/Scripts/python.exe -m ruff check .` (whole tree, incl. `tests`) | all checks passed. Fixes: unused `Decimal`/`band_min`/`band_max` in `_build_explanation` removed, `perf_v1` scoring loop variable renamed (mypy had narrowed it), `AuthenticationRefused` (dead, unreferenced) removed, keyword-only `*,` added to the six mutating `manager_service` signatures, engine imports moved to module top, `noqa: PLR0911` on `authenticate` with justification, per-file-ignores documented in `backend/ruff.toml` (tests `PLC0415`, `app/api/v1/auth.py` `N815` — camelCase is the client contract). |
+| PASS | `backend/.venv/Scripts/python.exe -m ruff format` on the 13 touched files only | 9 files reformatted. The repo-wide formatter is **not** run: 36 pre-existing files were never ruff-formatted and reformatting them is out of this slice's ownership. |
+| PASS | `backend/.venv/Scripts/python.exe -m mypy --strict app tests` | `Success: no issues found in 86 source files` (§32 only ran `app`; this closes `tests` too). |
+| PASS | `backend/.venv/Scripts/python.exe -m pytest -q` | **760 passed, 1 skipped** in 42.17 s against the migrated `pish_dev`. The one skip is the schemathesis contract branch. (The §32 table recorded 763 passed from a slightly different tree at run time; the number above is the observed result for this tree.) |
+| PASS | `backend/.venv/Scripts/python.exe scripts/verify_manager_workflow.py` (with `PYTHONIOENCODING=utf-8`) | **57 checks PASS** against `http://127.0.0.1:8000` running the final code. Without that env var the script dies on the Windows `cp1256` console before the first check (console-encoding only; the HTTP flow itself is unaffected) — run context note, not a code defect. |
+| PASS | `frontend/node_modules/.bin/vitest run` | 123 passed, 14 files. |
+| PASS | `frontend/node_modules/.bin/tsc --noEmit -p tsconfig.app.json` and `vite build` | typecheck clean; build OK (`index` 412.78 kB). |
+| PASS | Browser walkthrough, fresh employee (`کارمند E2E مرورگر`) on `http://127.0.0.1:5273` | create employee → 4 manual observations (all criteria covered) → evidence upload (SHA-256 `a22dba71…e6d90` rendered) → evaluate (score 83/100, position 83.4%, suggested 130,058,000 Rial, net 120,953,940 Rial, employer 192,485,840 Rial, calculation hash shown, `PROVISIONAL_DRAFT`/`READY_FOR_REVIEW` labelled) → approve with comment ("تأییدشده", immutable-notice text) → decision persisted across a full page reload → dashboard counters updated (14 people / 35 observations / 1 pending / 8 decisions) → invalid observation (`raw = -5`) surfaced the server 422 code in Persian in the UI. |
+| PASS | Encoding integrity after the PowerShell incident | `git diff` and an `rg` scan for double-encoding sequences over every touched file: clean. The only mojibake found (`آ§`) sits in five pre-existing engine test docstrings that this slice never touched. |
+
+Notes.
+
+* One stale background `uvicorn` process from before the `app/main.py` restore was killed and
+  replaced; the §32-era 404 seen once on `GET /api/v1/manager/rules` came from that stale
+  process. The fresh server answers `rules`, `me`, and the full manager surface (200s above).
+* The navigation link to `/prototype` still reads «ارزیابی نمونه — امتیاز و پیشنهاد مشورتی (دادهٔ ساختگی)»
+  while the page itself is now server-backed; the honesty banner on the page is correct. The
+  stale nav label is a small cosmetic debt item to fold into the next UI pass (not D-listed
+  separately).
+* No commit was made; all work remains uncommitted per instruction.
+
+## 34. Phase 2 governance pass — 2026-11-17
+
+Documentation-only session. No application code, migration or register status changed; no commit, push, reset or delete.
+
+| Action | Detail |
+| :--- | :--- |
+| Created | `docs/adr/ADR-010-manager-mvp-product-scope.md` — **Proposed**, awaiting Project Owner authorization. Drafts the retroactive authorization of the uncommitted manager MVP slice, names exactly which ADR-008/ADR-009 clauses and register entries (DEC-014, PB-D01/D02/D06/D09/D11) would change upon acceptance, and lists the register deltas that stay inert until then. PB-D03/D04/D05 are explicitly left `OPEN`. |
+| Updated | `docs/ADR_INDEX.md` — ADR-010 row added as `Proposed — not binding`. |
+| Inspected | `git status`, the diffs of all 15 modified tracked files, all 33 untracked paths, `DECISIONS_REGISTER.md` (DEC-014), `DECISIONS.md` (PB-D01…D14, X-1…X-6), `ADR_INDEX`, ADR-008/009, `MVP_SCOPE`, `MVP_WBS`, `CURRENT_STATE`, `ARCHITECTURE`, `PROJECT_BIBLE`. |
+| Verified locally | WBS row count in `EXECUTION_PLAN §14.3` = **88** (not 86 as `PROJECT_STATUS §2` claims); **`ENGINE_VERSION` conflict resolved** (was `app/engines/__init__.py` `0.2.0-payroll-engine` vs `app/services/payroll_service.py` `0.3.0-payroll-engine`; now single source `0.3.0-payroll-engine` in `app/engines/__init__.py` per ADR-010 directive 1); `auth`/`manager` routers are registered in `create_app()` unconditionally (not `APP_ENV`-gated), superseding the `PB-D11` posture. |
+| NOT RUN this session | pytest/vitest/build/live-API gates (historical results in §32–§33 were not re-executed); no new verification is asserted by this entry. |
+
+Awaiting owner decisions: ADR-010 acceptance (with the Appendix-A register deltas), PB-D03 real criteria/weights, and the reconciliation edits listed in `docs/CURRENT_STATE.md` §4 (C-1…C-11).
+
+**Addendum (2026-11-17, later the same day).** The owner reviewed the first ADR-010 draft and requested changes: remove the retroactive-authorization framing; record the manager-focused MVP as the current approved product direction effective from the actual approval date; preserve the prototype boundary (no production-readiness or completed-integration implication); apply Appendix-A register changes only after explicit approval; preserve historical records with dated changelog entries; and clearly distinguish confirmed, superseded and unresolved items. ADR-010 was rewritten accordingly as **revised draft v2** (non-retroactivity clause, §0 approval semantics, §3 prototype boundary with explicit non-claims, §4 classified CONFIRMED/SUPERSEDED/UNRESOLVED lists); `ADR_INDEX.md` row updated. Registers remain untouched. Still awaiting owner approval.
+
+**Owner approval (2026-11-17) and the Appendix-A pass — recorded with the actual approval date.** The owner approved ADR-010 v2 **as written, prospectively, effective 2026-11-17** (non-retroactive), and instructed: apply only the explicitly listed Appendix-A register deltas in one dated pass; preserve all historical records; do not modify unresolved decisions; do not expand the MVP scope; preserve the prototype-only boundary; do not touch application code, migrations or unrelated documentation; do not commit or push. All seven deltas were applied the same day:
+
+| # | File | Delta applied |
+| --: | :--- | :--- |
+| 1 | `docs/DECISIONS_REGISTER.md` | DEC-014 status scoped to `OPEN — BLOCKING (Modules B–C only)`; dated resolution note for Modules A/D (ADR-010, prototype-only, `P0-T18`/`P0-T10` gates named); census table row and summary paragraph annotated; original 2026-11-16 analysis retained verbatim. Blocking count unchanged (still 8, because B/C remain blocked). |
+| 2 | `docs/DECISIONS.md` | "As at" → 2026-11-17. PB-D01 → `CONFIRMED — ADR-010` (prospective); PB-D02 → `CONFIRMED — ADR-010`; PB-D06, PB-D09, PB-D11 → `SUPERSEDED — ADR-010` with original text and dates retained. **PB-D03, PB-D04, PB-D05 untouched (`OPEN`).** §3 conflict table: dated note resolves X-1/X-2; X-3…X-6 remain unresolved. |
+| 3 | `docs/adr/ADR-008-…md` | Header-only "Partially superseded (2026-11-17)" note (manager prototype only); body retained unchanged. |
+| 4 | `docs/adr/ADR-009-…md` | Header-only "Partially superseded (2026-11-17)" note (prototype-only); body retained unchanged. |
+| 5 | `docs/ADR_INDEX.md` + `docs/adr/ADR-010-…md` | ADR-010 → **Accepted (effective 2026-11-17)** in the register and in the ADR file itself; dated acceptance entry appended to the index. |
+| 6 | `docs/MVP_SCOPE.md`, `docs/MVP_WBS.md` | Header-only supersession notes (planning history; premises no longer describe the tree; **no MVP-xx status claimed**); original text retained. |
+| 7 | `docs/EXECUTION_PLAN.md` §14.10, `docs/PROJECT_STATUS.md` | Dated addendum blocks recording the authorization, the prototype boundary and non-claims, the DEC-014 B/C remainder, and the WBS-mapping note (§14.3 rows unchanged; no historical status edited). |
+
+No application code, migration, test, seed or unrelated document was modified; nothing was committed, pushed, reset or deleted. No decision outside the Appendix-A list changed status. Remaining unresolved after this pass: PB-D03 (real criteria/weights), PB-D04 (data sources), PB-D05 (identity matching), DEC-014 Modules B/C, DEC-001/002/003/006/009/010/011 series/013, ADR-005 (`PROPOSED`), the reconciliation edits (X-3…X-6, C-1…C-11), and the engineering gates `P0-T10`/`P0-T18`.
+
+---
+
+## 35. ENGINE_VERSION reconciliation (X-4) — 2026-11-17
+
+Per ADR-010 directive 1 ("Reconcile the two ENGINE_VERSION constants deliberately and single-source them, with a test asserting the published API version equals the engine's") and the engine package comment ("Bumped only with a changelog entry").
+
+### 35.1 Background
+
+The remediation commit `f31e01e` (2026-11-16) introduced `0.3.0-payroll-engine` in `app/services/payroll_service.py` as part of the major contract correction (provenance fields A-1/A-2, rounding residual fix, termination scenario, statutory reference block). However, the canonical engine package `app/engines/__init__.py` remained at `0.2.0-payroll-engine`, creating a split:
+- Engine package (documented source of truth): `0.2.0`
+- Service layer (actual runtime consumer): `0.3.0`
+- All API responses, manager recommendations, and valuation proposals emitted `0.3.0`
+
+### 35.2 Resolution
+
+**Canonical version established:** `0.3.0-payroll-engine` (the remediated version from `f31e01e`).
+
+**Files changed:**
+1. `backend/app/engines/__init__.py:80` — bumped to `0.3.0-payroll-engine`
+2. `backend/app/services/payroll_service.py:79` — removed duplicate definition; now imports from `app.engines`
+3. `backend/app/services/__init__.py:7` — imports directly from `app.engines` (single source)
+4. `backend/tests/unit/test_payroll_service.py` — added two regression tests:
+   - `test_engine_version_single_source_of_truth` — asserts engine, service, and payroll_service all expose identical version
+   - `test_api_response_carries_canonical_engine_version` — asserts gross-to-net response carries canonical version
+
+**Documentation updated (this session):**
+- `docs/CURRENT_STATE.md:63` — updated to `0.3.0-payroll-engine` with reconciliation note
+- `docs/PROJECT_BIBLE.md:203` — updated to `0.3.0-payroll-engine` with reconciliation note
+- `docs/BOOTSTRAP_CHANGELOG.md:1813` — conflict reference updated to "resolved"
+
+### 35.3 Verification
+
+All import paths now resolve to the same canonical version:
+```
+app.engines.ENGINE_VERSION                    → "0.3.0-payroll-engine"
+app.services.ENGINE_VERSION                   → "0.3.0-payroll-engine"
+app.services.payroll_service.ENGINE_VERSION   → "0.3.0-payroll-engine"
+app.services.manager_service.ENGINE_VERSION   → "0.3.0-payroll-engine"
+app.services.valuation_service.ENGINE_VERSION → "0.3.0-payroll-engine"
+```
+
+All API responses verified:
+- `POST /api/v1/simulations/gross-to-net` → `engine_version: "0.3.0-payroll-engine"`
+- `POST /api/v1/manager/employees/{id}/evaluations` → `engine_version: "0.3.0-payroll-engine"`
+- `POST /api/v1/valuations/compensation-proposal` → `engine_version: "0.3.0-payroll-engine"`, `proposal_version: "valuation-v1+0.3.0-payroll-engine"`
+
+### 35.4 Test Results
+
+| Suite | Result |
+|-------|--------|
+| Payroll service unit (incl. 2 new) | 48 passed |
+| All backend (pytest -q) | 765 passed, 1 skipped |
+| Backend lint (ruff) | All checks passed |
+| Backend typecheck (mypy --strict) | Success (86 files) |
+| Frontend tests (vitest) | 123 passed |
+| Frontend typecheck | Clean |
+| Frontend lint | 0 violations |
+
+### 35.5 Remaining Documentation Conflicts (C-1…C-11)
+
+The reconciliation edits listed in `docs/CURRENT_STATE.md` §4 (C-1 through C-11) remain pending and are tracked separately. This entry addresses X-4 (ENGINE_VERSION) only.
+
+No application code, migration, test, seed or unrelated document was modified beyond the four files listed above; nothing was committed, pushed, reset or deleted.
+
+## 36. Login-first salary calculator home — 2026-11-17
+
+- Owner/request: Codex /root, bounded P3-T06 navigation change explicitly requested by the project owner. P3-T05 and broader acceptance dependencies remain unchanged; P3-T06 remains IN_PROGRESS.
+- Acceptance: an unauthenticated visit to `/` redirects to `/login`; successful login goes to `/`, whose index renders the existing salary calculator. An existing session opens the calculator directly. Login no longer restores another destination.
+- Files: `frontend/src/app/router.tsx`, `frontend/src/routes/manager-login-page.tsx`, `frontend/src/app/navigation.ts`, `frontend/src/app/app-shell.tsx`, and the existing shell test. Root uses the existing session navigation guard; API authentication and financial calculations are unchanged. The home notice reflects the statutory calculator and logout remains available after login.
+- Verification (LOCALLY_TESTED): `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit` — PASS; `rtk proxy node scripts/check-logical-utilities.mjs src` — PASS, 82 files / 0 violations; `rtk proxy node node_modules/vitest/vitest.mjs run src/app/app-shell.test.tsx src/routes/simulation-page.test.tsx` — initial FAIL, 19 passed / 1 obsolete root-demo expectation; updated that expectation to check the calculator baseline at `/` and demo notice at `/transactions`, rerun PASS, 20 tests. Commands run from `frontend/`.
+- Verification: `rtk git diff --check` — PASS before the test/log update; live browser login — NOT RUN. No delegation, migration, dependency installation, commit or push.
+
+## 37. Professional local login presentation — 2026-11-17
+
+- Owner: Codex /root; owner-requested bounded P3-T06 presentation change, status remains IN_PROGRESS with existing dependencies. Ownership: `frontend/src/routes/manager-login-page.tsx`, login branch in `frontend/src/app/auth-layout.tsx`, and this record. No delegation.
+- Replaced the nested, narrow login card with a responsive RTL split layout: branded introduction, labelled sign-in form, password visibility control, pending/error states, and local-prototype notice. Removed developer setup instructions from the product flow. Existing login API, token semantics and calculator destination are retained; no credential reset or creation.
+- PASS (LOCALLY_TESTED, from `frontend/`): `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`; `rtk proxy node scripts/check-logical-utilities.mjs src` (82 files, zero violations). `rtk git diff --check` PASS.
+- PASS: existing synthetic local account login returned HTTP 200 (status only; response/token not logged). Browser at 1117×894: visually inspected two-column login, signed in, observed salary-calculation inputs at `/`, signed out and left `/login` ready for the owner. No salary calculation or person-data mutation was performed.
+- NOT RUN: mobile browser viewport, full test suite. No backend, financial rule, migration, dependency, commit or push changes.
+
+## 38. Payroll form terminology, hierarchy and source guidance — 2026-11-17
+
+- Accountable owner: Codex /root; bounded P3-T06/P3-T07 presentation follow-up explicitly requested by the owner. Existing task statuses, dependencies and phase gates unchanged. Owned files: `frontend/src/routes/simulation-page.tsx`, its existing test, this record and the conflict note in `docs/DECISIONS_REGISTER.md`. No delegation.
+- Added a page title, rule-year badge, sample-data notice, numbered input sections, labelled units and contextual hints; collapsed optional termination inputs. Explained that allowances are already included in gross, calendar month length is not attendance, and the form does not establish benefit entitlement or prorate partial months. Added Persian formatted amount hints using the existing formatter, clarified provisional tax-scenario labels and replaced untranslated slab terminology. No input defaults, JSON contract, formula, rate or statutory seed changed.
+- Sources consulted: Labour Law primary instrument reproduced at `https://shenasname.ir/wp-content/uploads/2025/02/قانون-کار-با-اصلاحات-بعدی.pdf` (Arts. 11, 36, 58, 59, 66, 71); existing schema `backend/app/schemas/payroll.py`, base decomposition and overtime modules, Holy Bible §2.3 and financial/payroll/RTL skills. Official Parliament text link `https://rc.majlis.ir/fa/law/show/99612` timed out. This does not verify or activate 1405 or resolve Art. 137 applicability; form links to the consulted reproduced law and explicitly distinguishes the two implemented scenarios from legal certification.
+- Conflict found: configured night-work multiplier 1.35 is added as a premium over gross, whereas Art. 58 describes a 35% supplement. Recorded as OPEN — BLOCKING for acceptance of that path in the existing decision register; visible field warning added. No monetary implementation change made and no legal resolution asserted.
+- PASS: from `frontend/`, `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`; `rtk proxy node scripts/check-logical-utilities.mjs src` (82 files / 0 violations); `rtk proxy node node_modules/vitest/vitest.mjs run src/routes/simulation-page.test.tsx` (9 tests). Existing tests updated only for intentional button and scenario-label copy changes. `rtk git diff --check` PASS.
+- PASS: browser inspection at desktop viewport; submitted synthetic existing sample with zero night hours and observed both tax scenarios and the response provenance. The browser remains signed in on the calculator. NOT RUN: mobile viewport, full suite, financial-engine review or certification. No backend/migration/dependency/commit/push changes.
+
+## 39. Article 58 supplement correction and minimal calculator — 2026-11-17
+
+- Authorization: Project Owner explicitly requested lawful night-work correction, numerical tests and removal of excess UI explanation. Accountable owner: Codex /root. WBS P1-T10/P1-T14 correction and bounded P3-T06/P3-T07 presentation work; existing dependencies/phase gates remain unchanged, no task marked COMPLETED.
+- Decision: ADR-011 Accepted on that explicit instruction, prospectively superseding only ADR-008's application of the night-work factor. Added dated supersession note to ADR-008 without rewriting its historical text; ADR_INDEX/DOCUMENTATION_INDEX linked, prior OPEN observation in DECISIONS_REGISTER retained with a correction addendum. Source: Labour Law Art. 58, page 10 of the instrument reproduced at `https://shenasname.ir/wp-content/uploads/2025/02/قانون-کار-با-اصلاحات-بعدی.pdf`: non-shift night work attracts 35% extra ordinary hourly wages. No claim of external counsel certification.
+- Implementation: `engines/overtime.py` derives the additional factor from the loaded total factor minus Decimal(1); ordinary night-hour wages are already in contractual gross. Decimal precision 34, ROUND_HALF_UP once per line retained; overtime 1.40 unchanged. Negative derived factor fails closed. Service provenance now names LABOUR_LAW_ART_58 and the derivation; engine version 0.3.1-payroll-engine identifies corrected results/hashes. Seeds and historical results unchanged; 1405 inactive.
+- Regression examples: fixed wage 220,000,000 Rial / 30-day month / ten non-shift night hours adds exactly 3,500,000 Rial, gross 223,500,000 and net 207,855,000 under the existing baseline. Independent 29/31-day expected night amounts 3,620,690 / 3,387,097; half-up 3.50 -> 4 Rial, zero hours, custom factor derivation/refusal, unchanged overtime, gross/net/CTC/provenance/hash checks covered.
+- Actual delegation: `/root/night_review` performed read-only independent financial review per AGENTS §6 / AGENT_OPERATING_MODEL role H, using the actual financial/payroll/doubt skills, primary instrument and source/tests. No file ownership collision or reviewer edits. Review PASS, no blocking financial issue; reviewer independently ran 70 unit tests. Parent separately ran and observed verification below; reviewer is not a human legal sign-off.
+- UI: removed instructional paragraphs, warning/source panels and verbose field hints; retained concise labels, Rial units, historical-year badge and one-line prototype/year footer. Optional inputs and technical result provenance are collapsed. Original input values and API contract preserved. Fixed obsolete version comment in the service test.
+- PASS (parent observed, `backend/`): `rtk proxy .\.venv\Scripts\python.exe -m pytest -q tests/unit/test_overtime_engine.py tests/unit/test_payroll_service.py tests/property/test_engine_properties.py` — 81 passed, 1 dependency deprecation warning. `rtk proxy .\.venv\Scripts\python.exe -m pytest -q tests/api/test_payroll_simulation.py` — 25 passed, 2 dependency deprecation warnings (outside sandbox).
+- NOT COMPLETED: initial combined unit/property/API invocation inside sandbox stalled after unit/property progress and was interrupted. No failing monetary assertion was observed; separated unit/property and escalated API runs above completed PASS. It is not reported as a passing combined run.
+- PASS (parent observed): scoped `ruff check` on changed backend modules/tests; `mypy --strict app/engines/overtime.py app/services/payroll_service.py tests/unit/test_overtime_engine.py tests/unit/test_payroll_service.py` — 4 files clean.
+- PASS (parent observed, `frontend/`): `rtk proxy node node_modules/vitest/vitest.mjs run src/routes/simulation-page.test.tsx src/app/app-shell.test.tsx` — 20 passed; `rtk proxy node scripts/check-logical-utilities.mjs src` — 82 files / 0 violations. Typecheck initially FAIL for unused CardDescription import after removing explanations; import removed and `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit` rerun PASS.
+- Live PASS: restarted only identified loopback development uvicorn process, posted a synthetic 220m / ten-night-hour example to local API, asserted 0.3.1 version, supplement, gross and net above. Browser refreshed and visually verified the compact form with session preserved. No real-person/salary data used. Scoped `rtk proxy git diff --check -- <changed paths>` checked; unrelated integration-test working-tree changes preserved. NOT RUN: full suite, mobile viewport, production or external legal acceptance. No commit, push, migration or dependency installation.
+- Final integrity: scoped diff check initially FAIL for an extra blank line at EOF in the changed service test; normalized its line endings/EOF and rerun PASS (exit 0). PowerShell `Get-FileHash` was unavailable (FAIL); Python standard-library SHA-256 assertion PASS against the pinned 1404 digest `ca16c4558d29a81ae3123fbab63732f130cc4425bf67617932c41b045fabe821`. These were verification/tooling issues, not failing monetary tests.
+
+## 40. Remove statutory-year control from calculator — 2026-11-17
+
+- Owner: Codex /root, bounded P3-T06 presentation follow-up on explicit owner request; task statuses unchanged. Removed the read-only statutory-year field and duplicate heading badge from `frontend/src/routes/simulation-page.tsx`. The request remains pinned to the verified 1404 baseline; backend rules/seeds and financial logic unchanged. No automatic activation of unverified 1405 or current-law claim. Existing footer disclosure retained.
+- PASS: from `frontend/`, `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`; `rtk proxy node node_modules/vitest/vitest.mjs run src/routes/simulation-page.test.tsx` — 9 tests. No delegation, commit, push or migration.
+
+## 41. Owner-requested official 1405 recheck — activation not achieved — 2026-11-17
+
+- Accountable owner: Codex /root, P1-T02 evidence collection. Owner requested verification and backend update to 1405. Read SPEC-STAT-001 (source families, four-eyes signatures, O1–O5 and A1–A8) and exact P1-T02/P1-T03 WBS rows; existing financial/payroll/doubt skill contracts apply. No status advanced to bypass a blocker.
+- FAIL acquisition: from `backend/`, `rtk proxy .\.venv\Scripts\python.exe -B -m app.statutory.collect_sources --source labor --source sso --source tax` — exit 1, ministry/tax TRANSPORT_FAILED, SSO403. `rtk proxy .\.venv\Scripts\python.exe -B -m app.statutory.collect_sources --source gazette --source cabinet` — exit 1, gazette TRANSPORT_FAILED, cabinet403. Parent observed outcomes; fresh failure manifests and exact paths are recorded in STATUTORY_INGESTION §1.5. Web direct official-source attempts also failed. Access controls were not bypassed.
+- PASS local reproduction capture (not statutory approval): downloaded two public reproduced primary PDFs via bounded HTTP GET, checked status200, PDF signature and size<5MB, hashed/preserved raw bytes and wrote an UNVERIFIED/activation_eligible=false/LOCAL_STAGING manifest. Sources, SHA-256s and staged paths recorded in STATUTORY_INGESTION §1.5; timestamp/filenames added to manifest. These are mirror-host documents, not official-host originals or WORM objects. S1 wage figures and S6 annual tax bands corroborate the existing candidate table; S2 housing approval and latest SSO/tax applicability remain incomplete. Discovery of references to 200/1405/59 is UNVERIFIED and not used as a legal conclusion.
+- PASS: `rtk proxy .\.venv\Scripts\python.exe -m pytest -q tests/unit/test_statutory_rule_loader.py` — 22 passed, one dependency deprecation warning. Verified refusal of the inactive 1405 candidate remains covered; these tests do not certify current-year law.
+- Actual delegation: `/root/night_review` assigned a bounded read-only review of actual §1.5, activation gates, staged source hashes and evidence classification. No edit ownership delegated; root owns the specification addendum and this log. Independent model review is not one of the required specialist signatures.
+- Blocking facts: no qualified-specialist signatures or certified 1405 vectors, no full set of archived official-source-family originals, O1–O5/applicability unresolved, no dual-approved VERIFIED/ACTIVE database version. SPEC-STAT-001 §4.1 requires two independent signatures per parameter including a Certified Tax Accountant or Labour Counsel; user authorization to proceed cannot be recorded as that professional verification. P1-T02 remains BLOCKED; P1-T03 remains NOT_STARTED.
+- Backend/seed/loader/default/UI state NOT CHANGED. 1404 remains the verified operational baseline, 1405 inactive. No production connection, migration, dependency installation, commit or push. Requested current-year activation is incomplete, not reported as delivered.
+- Independent evidence review: `/root/night_review` recomputed both local PDF hashes and checked all five failure manifests; matches confirmed. No independent PDF-text verification achieved (reviewer web access failed and no parser available); no legal approval asserted. Reviewer correctly noted that capture metadata and LOCAL_STAGING do not satisfy archival gate A2. Root recorded the actual batch-start timestamp from the pre-GET directory timestamp and explicitly marked MIME as inferred from PDF bytes, with original HTTP Content-Type unrecorded. A1/A2/A3/A4/A6/A7/A8 remain unmet; the 22 loader tests are not an A5 full regression or certified-vector result. Scoped documentation diff check PASS.
+
+## 42. Hide calculator sidebar and add local work-profile draft — 2026-11-17
+
+- Owner: Codex /root, bounded P3-T06/P3-T07 presentation change on explicit browser comments. Existing dependencies/statuses unchanged. File ownership: `frontend/src/app/app-shell.tsx`, its test, `frontend/src/routes/simulation-page.tsx`, its test, new `frontend/src/routes/work-profile-fields.tsx`, and this record. No delegation.
+- Hid sidebar and mobile-menu toggle on `/` and `/simulation`; other routes and navigation definitions remain available. Added local-only optional job title, education/subject, separately labelled total/relevant professional experience, contribution history, current-employer tenure and recognised base-seniority experience; daily hours, mutually exclusive weekly/monthly schedule inputs; qualifications text and local attachment selection/removal. New inputs start unknown/empty, never zero-filled. Existing calculator inputs/JSON and financial logic unchanged.
+- Source inspiration: Salary.com's own [methodology](https://swz.salary.com/docs/salwizhtmls/methodology.html) and [Wizard help](https://swz.salary.com/docs/salwizhtmls/swze_wizardhelp.asp) describe job matching and personal factors including experience and education. No Salary.com data, scoring weights, US wage rules or market salary values were imported.
+- Explicit limitation: draft inputs are outside the payroll form and are neither persisted nor transmitted nor used in pay calculation. File bytes remain browser-local, with a visible no-send/no-save label; no upload-success claim, document storage, OCR or verification service was added. Picker accepts up to five PDF/JPEG/PNG files, 10MB each, and shows local selection errors/removal. This does not complete backend integration or approve document-byte persistence beyond ADR-010's metadata-only boundary.
+- PASS (parent observed, `frontend/`): `rtk proxy node node_modules/typescript/bin/tsc -p tsconfig.app.json --noEmit`; `rtk proxy node scripts/check-logical-utilities.mjs src` — 83 files / 0 violations; `rtk proxy node node_modules/vitest/vitest.mjs run src/routes/simulation-page.test.tsx src/app/app-shell.test.tsx` — 23 passed. Updated existing shell tests to exercise preserved navigation on `/system`; calculator cases assert no sidebar/toggle. New synthetic-document test proves selection and draft edits issue no request and do not leak into payroll JSON; removal works.
+- PASS: visual browser inspection at 1028×894, signed-in `/simulation`, sidebar absent and new fields visible in RTL. NOT RUN: mobile viewport, full suite, real upload/persistence or schedule-based financial calculations (not implemented). No financial/security backend change, migration, dependency installation, commit or push.

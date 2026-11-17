@@ -4,6 +4,7 @@
 - **Date**: 2026-11-16 (25 Aban 1405 SH)
 - **Decider**: Project Owner, by explicit in-session answers (2026-11-16): the product must take information "از جاهای مختلف" about a person and propose a salary based on that person's value ("با توجه به مهارت اون شخص، یعنی سابقه کاری"); the only human user is the manager; the output must be a proposed range **plus** the statutory calculation of that range; the change is to be recorded as an ADR before implementation.
 - **Supersedes**: nothing. This ADR **extends** ADR-008; it removes no engine capability and changes no statutory rule, seed, rate or hash. ADR-001…007 remain in force.
+- **Partially superseded (2026-11-17)**: the out-of-scope bullets of the Decision Outcome ("Persistence of people, proposals or decisions"; "a UI"; "Multi-tenant identity and authentication") were superseded **for the manager workspace prototype only** by [ADR-010](ADR-010-manager-mvp-product-scope.md), approved by the Project Owner, effective 2026-11-17. The advisory-module design, the `valuation-v1` model, the band requirement and every boundary that binds the implementation are unchanged; employee self-service stays out of scope. This text is retained unchanged.
 - **Consulted**: Lead Backend Engineering (corpus synthesis and the existing engine contract)
 
 ## Context and Problem Statement

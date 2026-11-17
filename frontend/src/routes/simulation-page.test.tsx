@@ -6,6 +6,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { SimulationPage } from '@/routes/simulation-page';
 import type { PayrollResponse } from '@/api/payroll-types';
 
+// Salary-result tests isolate the independently tested persisted-profile editor.
+vi.mock('@/routes/work-profile-fields', () => ({ WorkProfileFields: () => null }));
+
 /**
  * The simulation screen is the product's only screen (ADR-008 v1), so it is
  * tested against the real backend contract: the request it sends, the
@@ -144,7 +147,7 @@ afterEach(() => {
 describe('Simulation screen', () => {
   it('sends the documented request to the gross-to-net endpoint', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -164,7 +167,7 @@ describe('Simulation screen', () => {
     const gross = screen.getByLabelText(/حقوق ناخالص ماهانه/);
     await userEvent.clear(gross);
     await userEvent.type(gross, '123456789');
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -174,7 +177,7 @@ describe('Simulation screen', () => {
 
   it('renders the net pay, the tax and the rule-set provenance', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
     expect(within(results).getByText(/نسخه قوانین/)).toHaveTextContent('1404.1 (VERIFIED)');
@@ -189,17 +192,17 @@ describe('Simulation screen', () => {
 
   it('shows both Article 137 postures side by side', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
-    expect(within(results).getByText('محافظه‌کارانه (INTA)')).toBeInTheDocument();
-    expect(within(results).getByText('مرجع دیوان')).toBeInTheDocument();
+    expect(within(results).getByText('سناریوی محافظه‌کارانه')).toBeInTheDocument();
+    expect(within(results).getByText('سناریوی رویه قضایی')).toBeInTheDocument();
     expect(within(results).getAllByText(/۳۱۷٬۹۲۰٬۶۱۲/).length).toBeGreaterThan(0);
   });
 
   it('renders the slab breakdown of the primary posture', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
     const tables = within(results).getAllByRole('table');
@@ -227,7 +230,7 @@ describe('Simulation screen', () => {
       }),
     );
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
     expect(within(results).getByText('تسویه و پایان خدمت (ماده ۱۱)')).toBeInTheDocument();
@@ -248,7 +251,7 @@ describe('Simulation screen', () => {
       ),
     );
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('STATUTORY_PARAMETER_UNAVAILABLE');
@@ -258,7 +261,7 @@ describe('Simulation screen', () => {
 
   it('renders the statutory bases, the insurance block and the field provenance', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     const results = await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
     // The statutory base of severance, Eydi and overtime must be visible:
@@ -273,7 +276,7 @@ describe('Simulation screen', () => {
 
   it('never renders a float as a monetary amount', async () => {
     renderPage();
-    await userEvent.click(screen.getByRole('button', { name: /اجرای شبیه‌سازی/ }));
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
     await screen.findByRole('region', { name: 'نتایج شبیه‌سازی' });
     // A decimal separator in a rendered Rial amount would mean a float
     // reached the screen.

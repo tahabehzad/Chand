@@ -53,7 +53,14 @@ export const SIMULATION_NAV_ITEM: NavItem = {
  * and the service status.
  */
 export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
-  { id: 'dashboard', path: '/', labelFa: 'داشبورد', descriptionFa: '', icon: 'overview' },
+  { id: 'dashboard', path: '/', labelFa: 'صفحه اصلی', descriptionFa: 'محاسبه حقوق', icon: 'simulation' },
+  {
+    id: 'prototype',
+    path: '/prototype',
+    labelFa: 'ارزیابی نمونه',
+    descriptionFa: 'امتیاز و پیشنهاد مشورتی (دادهٔ ساختگی)',
+    icon: 'overview',
+  },
   SIMULATION_NAV_ITEM,
   { id: 'transactions', path: '/transactions', labelFa: 'تراکنش‌ها', descriptionFa: '', icon: 'wallet' },
   { id: 'settings', path: '/settings', labelFa: 'تنظیمات', descriptionFa: '', icon: 'settings' },

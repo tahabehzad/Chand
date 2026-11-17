@@ -1,10 +1,12 @@
 # ADR-008: Product Scope Refocus on the Statutory Payroll Calculation Engine
 
 - **Status**: Accepted
+- **Partially superseded (2026-11-17, night-work correction)**: [ADR-011](ADR-011-night-work-supplement.md) supersedes only application of the night multiplier: the 1.35 total factor contributes an additional 0.35 above gross, whose ordinary night-hour wages are already included. Historical text below is retained; remaining decisions unchanged.
 - **Date**: 2026-11-15 (24 Aban 1405 SH)
 - **Decider**: Project Owner, by explicit in-session answers (2026-11-15): "میخوام خیلی مینیمال باشه و ترو تمیز و مرکزیت این پروژه باید همون بخش محاسبه حقوق بر اساس ... باشد" — scope option "کوچک‌سازی رسمی دامنه" selected; interface option "فقط تابع + API" selected; full v1 calculation coverage (SSO + tax + net, overtime/night, sanavat/eydi/CTC, Art. 11) selected; DEC-002a answered "وابسته به قراءة (توصیه)" (welfare allowances taxable under `conservative_inta`, exempt under `court_precedent`); primary response posture answered `conservative_inta`.
 - **Consulted**: Lead Backend Engineering (corpus synthesis), independent exploration agents (WBS, skills, governance conventions)
 - **Supersedes**: ADR-004 **as to its product-boundary module list and implementation directives 2–3 only**. ADR-004's scope-creep finding (`FIND-PROD-01`/`FIND-PROD-02`), its rationale, and its historical text remain valid and are retained unchanged. ADR-001, ADR-002, ADR-003, ADR-006, ADR-007 and the five-phase/20-week roadmap in REMEDIATED §7 are **not** amended by this ADR.
+- **Partially superseded (2026-11-17)**: the product-boundary clauses of this ADR ("pure functions plus one minimal FastAPI endpoint", "no frontend requirement", "no employee data") were superseded **for the manager workspace prototype only** by [ADR-010](ADR-010-manager-mvp-product-scope.md), approved by the Project Owner, effective 2026-11-17. The statutory engine, its invariants, its seeds, its rule sets and its endpoint contract are unchanged by ADR-010. This text is retained unchanged.
 
 ## Context and Problem Statement
 

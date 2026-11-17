@@ -76,7 +76,7 @@ __all__ = (
 )
 
 #: Engine identity carried by every response (financial-data-integrity #27).
-ENGINE_VERSION = "0.3.0-payroll-engine"
+from app.engines import ENGINE_VERSION
 
 _VALID_MONTH_LENGTHS = frozenset({29, 30, 31})
 
@@ -118,6 +118,8 @@ class PayrollInput:
     probation_days_worked: int | None = None
     termination_scenario: str | None = None
     recognised_service_years: int | None = None
+    employment_ratio: Decimal = Decimal(1)
+    premium_base_rial: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,6 +149,7 @@ def _validate_inputs(inputs: PayrollInput) -> None:
         inputs.accumulated_unused_leave_days,
         inputs.probation_days_worked,
         inputs.recognised_service_years,
+        inputs.premium_base_rial,
     ):
         if optional is not None:
             _require_non_negative_int(optional, "optional liability input")
@@ -267,8 +270,8 @@ def _provenance(
             "mozd_e_saabet / (44 x days / 6) x overtime_hours x 1.40",
         ),
         "bases.night_shift_pay_rial": entry(
-            "LABOUR_LAW_ART_51_59",
-            "mozd_e_saabet / (44 x days / 6) x night_hours x 1.35",
+            "LABOUR_LAW_ART_58",
+            "mozd_e_saabet / (44 x days / 6) x night_hours x (night_shift_multiplier - 1)",
         ),
         "bases.total_gross_rial": entry(
             "LABOUR_LAW_ART_36_NOTE_3",
@@ -500,7 +503,7 @@ def compute_gross_to_net(
 
     bases = decompose_bases(inputs.gross_monthly_rial, inputs.allowances)
     premiums = compute_overtime_premiums(
-        bases.mozd_e_saabet_rial,
+        bases.mozd_e_saabet_rial if inputs.premium_base_rial is None else inputs.premium_base_rial,
         inputs.overtime_hours,
         inputs.night_hours,
         active_rule_set,
@@ -537,7 +540,8 @@ def compute_gross_to_net(
     )
 
     severance = compute_monthly_severance_accrual(bases.mozd_e_saabet_rial)
-    eydi = compute_eydi(bases.mozd_e_saabet_rial, active_rule_set)
+    eydi = compute_eydi(bases.mozd_e_saabet_rial, active_rule_set,
+                        employment_ratio=inputs.employment_ratio)
     employer = compute_employer_cost(
         total_gross_rial=total_gross,
         employer_sso_rial=sso.employer_share_rial,
@@ -651,7 +655,7 @@ def compute_gross_to_net(
         "eydi": {
             "annual_gross_rial": eydi.annual_gross_rial,
             "at_cap": eydi.at_cap,
-            "cap_basis": "max_annual_eydi_rial (90 daily minimum wages, 1404)",
+            "cap_basis": "max_annual_eydi_rial x employment_ratio (ADR-012)",
             "excess_tax_method": "progressive_salary_ladder",
             "includes_overtime_premiums": False,
             "monthly_accrual_rial": eydi.monthly_accrual_rial,
@@ -682,6 +686,20 @@ def compute_gross_to_net(
     }
     if termination_block is not None:
         payload["termination_liability"] = termination_block
+    if inputs.premium_base_rial is not None or inputs.employment_ratio != Decimal(1):
+        payload["inputs"]["employment_ratio"] = str(inputs.employment_ratio)
+        payload["inputs"]["premium_base_rial"] = inputs.premium_base_rial
+        for path in ("bases.overtime_pay_rial", "overtime_pay_rial"):
+            payload["provenance"][path]["formula_ref"] = (
+                "full-time premium base / monthly paid hours x overtime hours x 1.40 (ADR-012)"
+            )
+        payload["provenance"]["bases.night_shift_pay_rial"]["formula_ref"] = (
+            "full-time premium base / monthly paid hours x night hours x (night factor - 1) (ADR-012)"
+        )
+        for path in ("eydi.annual_gross_rial", "eydi"):
+            payload["provenance"][path]["formula_ref"] = (
+                "min(60-day actual wage, statutory full-time Eydi cap x employment_ratio) (ADR-012)"
+            )
 
     canonical = json.dumps(
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
