@@ -2364,7 +2364,7 @@ No application code, migration, test, seed or unrelated document was modified be
 
 ---
 
-## 60. Market Salary Data Refresh (30-Day Freshness, Autumn 1404) — 2026-11-19
+## 60. Market Salary Data Refresh (30-Day Freshness, Autumn 1405 (۲۸ آبان ۱۴۰۵)) — 2026-11-19
 
 - **Owner:** Codex /root. Upgrading stale baseline figures across 194 job roles to current real-market levels (last 30 days).
 - **Implemented Requirements:**
