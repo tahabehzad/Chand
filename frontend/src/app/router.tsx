@@ -105,8 +105,7 @@ export const router = createBrowserRouter([
     : []),
   {
     path: '/',
-    element: <RequireManager><AppShell /></RequireManager>,
-    children: appChildren,
+    element: withSuspense(<ChandShowcasePage />),
   },
   {
     path: '/chand',
@@ -123,6 +122,14 @@ export const router = createBrowserRouter([
   {
     path: '/landing',
     element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    element: <RequireManager><AppShell /></RequireManager>,
+    children: [
+      { path: '/app', element: withSuspense(<SalaryEstimationPage />) },
+      { path: '/dashboard', element: withSuspense(<SalaryEstimationPage />) },
+      ...appChildren,
+    ],
   },
   {
     path: '/proposal',

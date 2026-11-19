@@ -15,13 +15,13 @@
 # ==========================================================================
 
 [project]
-name = "pish-hesabdari-backend"
+name = "chand-backend"
 version = "0.1.0"
-description = "Pish Hesabdari (پیش‌حسابداری) — pre-employment compensation intelligence and evidentiary verification platform (backend)."
+description = "چند؟ (Chand) — سامانه هوشمند برآورد حقوق و جبران خدمات بازار کار ایران (backend)."
 readme = "../README.md"
 requires-python = ">=3.12,<3.14"
 license = { text = "Proprietary" }
-authors = [{ name = "Pish Hesabdari Engineering" }]
+authors = [{ name = "Chand Engineering" }]
 
 # --- runtime dependencies ---------------------------------------------------
 # Only libraries named in the approved technology inventory are listed.

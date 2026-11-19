@@ -1,8 +1,8 @@
-# PROJECT_STATE — Pish Hesabdari
+# PROJECT_STATE — Chand (چند؟)
 
 - **Document ID:** `DOC-STATE-002`
 - **Status:** Derived snapshot — no independent facts
-- **As at:** 2026-11-19 (29 Aban 1405 SH)
+- **As at:** 2026-11-19 (28 Aban 1405 SH)
 - **Owners:** scope `docs/PRODUCT_SCOPE.md` · vision `docs/PRODUCT_VISION.md` · delivery `docs/PROJECT_STATUS.md` · decisions `docs/DECISIONS_REGISTER.md` + `docs/ADR_INDEX.md` · verification `docs/BOOTSTRAP_CHANGELOG.md`
 
 > Snapshot only. Where this file disagrees with an owner document above, the owner is right and this file is stale. Do not record new facts here.
@@ -39,7 +39,7 @@ The prior statutory payroll calculation engine (ADR-008) remains implemented in 
 - React 19 + TypeScript 5.7 + Vite 6 + Tailwind CSS v4.
 - Persian RTL logical CSS properties (`ms-`, `me-`, `ps-`, `pe-`).
 - Accessibility: `prefers-reduced-motion: reduce` disables all animations; accessible Persian labels and ARIA attributes across all inputs.
-- 159 Vitest tests passing across 22 test files; clean production build.
+- 170 Vitest tests passing across 23 test files; clean production build.
 
 ---
 
@@ -64,4 +64,4 @@ The prior statutory payroll calculation engine (ADR-008) remains implemented in 
 ## 5. Verification Checkpoint
 
 - Backend: 872 tests PASS (74 skipped, 0 failed, 0 errors in 27.79s); `ruff check .` PASS (0 errors); `mypy --strict app tests` PASS (0 issues in 131 files).
-- Frontend: 159 Vitest tests PASS across 22 test files; `tsc --noEmit -p tsconfig.app.json` PASS (0 errors); `vite build` PASS (clean build in 3.03s).
+- Frontend: 170 Vitest tests PASS across 23 test files; `tsc --noEmit -p tsconfig.app.json` PASS (0 errors); `vite build` PASS (clean build in 3.03s).

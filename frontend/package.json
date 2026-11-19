@@ -1,10 +1,10 @@
 {
-  "name": "pish-hesabdari-frontend",
+  "name": "chand-frontend",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@9.15.9",
-  "description": "Pish Hesabdari — Persian RTL client SPA (WBS P3-T01…P3-T06, partial)",
+  "description": "چند؟ (Chand) — سامانه هوشمند برآورد حقوق و جبران خدمات بازار کار ایران",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit -p tsconfig.app.json && vite build",
