@@ -1,59 +1,90 @@
 # Pish Hesabdari (پیش‌حسابداری)
 
-Statutory Iranian payroll calculation: SSO insurance, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer cost and the Article 11 termination case, on the verified 1404 SH baseline. The product scope is the calculation engine of [ADR-008](docs/adr/ADR-008-product-scope-statutory-payroll-engine.md); the earlier pre-employment platform scope of ADR-004 is superseded.
+Smart salary estimation platform for the Iranian labor market. A single manager enters a candidate's resume and career information, and the system estimates an appropriate monthly salary based on actual Iranian labor market conditions. The product scope is defined in [ADR-013](docs/adr/ADR-013-resume-analysis-salary-estimation-tool.md); the earlier statutory payroll engine scope (ADR-008) is partially superseded for product direction.
 
 ## Start here
 
 | Need | Read |
 | :--- | :--- |
-| Starting an agent task | [AGENTS.md](AGENTS.md), then [Documentation Index §0](docs/DOCUMENTATION_INDEX.md#0-task-focused-reading) |
-| Snapshot of the current state | [PROJECT_STATE.md](PROJECT_STATE.md) (derived; owners hold the facts) |
-| Current delivery state and blockers | [PROJECT_STATUS §2](docs/PROJECT_STATUS.md#2-delivery-state); exact tasks in EXECUTION_PLAN §14.3 |
-| Product knowledge and requirements | Relevant sections of [Holy Bible](docs/PISH_HESABDARI_HOLY_BIBLE.md), then the authoritative source it cites |
-| Owner decisions | [DECISIONS_REGISTER](docs/DECISIONS_REGISTER.md) and [DECISION_REQUIRED_FROM_OWNER](docs/DECISION_REQUIRED_FROM_OWNER.md) |
-| Environment-dependent work | [ENVIRONMENT_INVENTORY](docs/ENVIRONMENT_INVENTORY.md); recheck only the capability needed |
-| Verification evidence | [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §23 records the fresh statutory-engine verification; §19 the foundation verification; §15 the prior PostgreSQL runtime evidence |
+| Product vision and scope | [PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [PRODUCT_SCOPE.md](docs/PRODUCT_SCOPE.md) |
+| Functional requirements | [FUNCTIONAL_REQUIREMENTS.md](docs/FUNCTIONAL_REQUIREMENTS.md) |
+| Non-functional requirements | [NON_FUNCTIONAL_REQUIREMENTS.md](docs/NON_FUNCTIONAL_REQUIREMENTS.md) |
+| User workflows | [USER_WORKFLOWS.md](docs/USER_WORKFLOWS.md) |
+| Salary estimation spec | [SALARY_ESTIMATION_SPEC.md](docs/SALARY_ESTIMATION_SPEC.md) |
+| Labor market data spec | [LABOR_MARKET_DATA_SPEC.md](docs/LABOR_MARKET_DATA_SPEC.md) |
+| AI analysis spec | [AI_ANALYSIS_SPEC.md](docs/AI_ANALYSIS_SPEC.md) |
+| Data model spec | [DATA_MODEL_SPEC.md](docs/DATA_MODEL_SPEC.md) |
+| Security and privacy | [SECURITY_AND_PRIVACY.md](docs/SECURITY_AND_PRIVACY.md) |
+| Architecture | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Implementation roadmap | [IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md) |
+| Open decisions | [OPEN_DECISIONS.md](docs/OPEN_DECISIONS.md) |
+| Documentation audit | [docs/audit/DOCUMENTATION_AUDIT.md](docs/audit/DOCUMENTATION_AUDIT.md) |
+| Owner decisions | [DECISIONS_REGISTER.md](docs/DECISIONS_REGISTER.md) and [OPEN_DECISIONS.md](docs/OPEN_DECISIONS.md) |
+| Architecture decisions | [ADR_INDEX.md](docs/ADR_INDEX.md) and [docs/adr/](docs/adr/) |
 
-Read sections relevant to the task. The full Holy Bible, complete WBS, execution history and research corpus are not a default startup packet. Required specifications and safety rules still apply.
+Read sections relevant to the task. The full documentation history is retained; ADRs are preserved with their historical text unchanged.
 
 ## Current orientation
 
-**Product scope (ADR-008, accepted 2026-11-15): the statutory payroll calculation engine** — SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — delivered as pure functions plus one minimal API endpoint. The prior pre-employment platform scope is superseded; non-engine modules are out of product scope pending a future ADR.
+**Product scope (ADR-013, accepted 2026-11-17): a resume analysis and monthly salary estimation tool** — one manager enters a candidate's career information (job title, experience, skills, education, city, employment type, seniority level), and the system returns a suggested salary range with a primary estimate, influencing factors, and confidence level. The prior statutory payroll calculation engine scope (ADR-008) is partially superseded for product direction; its technical code and invariants (Decimal money, ROUND_HALF_UP, fail-closed loader, no float literals) are preserved where applicable.
 
-The **statutory payroll engine** is implemented and verified on the 1404 baseline: the fail-closed rule-set loader, the base decomposition, SSO, the progressive income tax with both Article 137 postures, overtime and night shift, Sanavat, Eydi, the employer cost identity and the Article 11 termination simulator, composed by one service and served by one endpoint. The compensation advisory module (ADR-009) extends it with band placement and costing of a proposed range. Exact test counts and the commands that produced them live in [BOOTSTRAP_CHANGELOG](docs/BOOTSTRAP_CHANGELOG.md) §28–§29 and are not duplicated here. No real authentication, no integrated tenant-security foundation and no certified golden corpus are claimed. The PostgreSQL integration tests skip themselves where the container image cannot be pulled.
+The statutory payroll engine (SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC, Article 11) remains implemented on the verified 1404 baseline but is **not** the active product. The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**.
 
-The verified statutory baseline remains **1404 SH**; 1405 is transcribed, unverified and **inactive**. The five-phase/20-week roadmap table is retained for traceability. Current task counts belong in PROJECT_STATUS and the WBS rather than another duplicate table here.
+Accepted ADRs are **001–004, 006, 007, 008, 009, 010, 011, 012, 013, and 014**; ADR-005 remains **Proposed**. ADR-013 and ADR-014 define the active salary estimation product; earlier payroll-era boundary clauses are superseded while technical invariants (Decimal money, ROUND_HALF_UP, fail-closed loader, no float literals) are preserved. See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
 
-Accepted ADRs are **001–004, 006, 007, 008 and 009**; ADR-005 remains **Proposed**. ADR-008 supersedes ADR-004's Phase 1 module list and directives 2–3 (product scope refocus on the calculation engine); ADR-009 extends ADR-008 with the compensation advisory module. See [ADR_INDEX](docs/ADR_INDEX.md) for status and [DOCUMENTATION_INDEX](docs/DOCUMENTATION_INDEX.md) for source precedence.
+## Key Features & Architecture
+
+### 1. Single-Page Live Salary Dashboard
+The primary user interface (`/`) is an interactive Persian RTL dashboard tailored for hiring managers:
+* **Candidate Career Profiling:** Collects job title, experience years, seniority level, employment type, city/province, work condition, education, and skills.
+* **Salary Range Gauge (P25…P75):** Visualizes lower quartile, median, and upper quartile benchmarked against the statutory minimum wage reference.
+* **Market Sample Distribution:** Histogram of actual market observations and empirical density.
+* **Strategic Negotiation Sheet:** Provides market percentile positioning (<P25, P25-P50, P50-P75, >P75), tactical talking points for Iranian labor negotiations, and true employer cost multiplier.
+* **Audit & Provenance Envelope:** Emits transparent calculation hash, data recency, confidence scores, and rule versions.
+
+### 2. Gemini BYOK (Bring Your Own Key) & Live Grounding
+* **Client-Side Secret Storage:** The Gemini API key is stored exclusively in the browser's `localStorage` and sent per-request. It is **never** logged, never written to backend databases, and never leaked in exception traces.
+* **Live Web Grounding:** Performs real-time search across Iranian job portals (Jobinja, Jobvision, IranTalent, Quera) for current job compensation.
+* **Anti-Fabrication Guardrail (ADR-014):** AI is restricted to structured web extraction. If no valid market data covers the cohort, the system refuses with `409 ESTIMATION_INSUFFICIENT_DATA`; it **never** invents numbers.
+* **Seamless Database Fallback:** If Gemini is unreachable or disabled, queries PostgreSQL benchmark reference tables with zero disruption.
+
+### 3. Total Cost to Employer (CTC) & Net Pay Breakdown
+Reuses the verified Iranian statutory calculation engine (1404 SH baseline) to compute:
+* **Employee Net Pay:** Deducts capped employee Social Security (7%) and progressive income tax (Article 137 conservative posture).
+* **Employer Overhead:** Computes employer Social Security (20%), unemployment insurance (3%), monthly severance accrual (1/12), and monthly annual bonus accrual (1/12 capped Eydi).
+* **Full Reconciliation:** Net salary + deductions = gross; gross + employer overhead = CTC. All calculations use `Decimal` with `prec = 34` and `ROUND_HALF_UP` (no float literals).
 
 ## Repository layout
 
 ```text
 .agents/skills/      11 shared engineering contracts
 backend/
-  app/engines/      the statutory payroll engines (loader, bases, SSO, tax, …)
-  app/api/v1/       the single gross-to-net simulation endpoint
-  app/              FastAPI, security, models, migrations and storage adapter
-  tests/            unit, API, property and integration suites
+  app/domain/       active domain engines (salary_estimation core)
+  app/engines/      preserved engines (statutory payroll)
+  app/api/v1/       API endpoints (estimation active; gross-to-net preserved)
+  app/              FastAPI, security, models, migrations and repositories
+  tests/            unit, API, property, e2e and integration suites
   data/seeds/       immutable 1404 baseline; inactive 1405 candidate
   pyproject.toml    dependencies/tooling; uv.lock pins exact versions
 docs/
-  adr/              decisions
-  specs/            subsystem requirements
-  PROJECT_STATUS.md current delivery summary
-  EXECUTION_PLAN.md WBS, dependencies and acceptance criteria
-infra/
-  compose/          development Compose configuration
-  postgres/         local PostgreSQL scaffold, runbook and verifiers
-frontend/           partial React/Vite Persian RTL interface and typed API client
+  adr/              architecture decisions (ADR-001…014)
+  specs/            subsystem specifications
+  audit/            documentation audit matrix
+  archive/          archived legacy audit reports and historical plans
+  PROJECT_VISION.md, PRODUCT_SCOPE.md, FUNCTIONAL_REQUIREMENTS.md,
+  NON_FUNCTIONAL_REQUIREMENTS.md, USER_WORKFLOWS.md,
+  SALARY_ESTIMATION_SPEC.md, LABOR_MARKET_DATA_SPEC.md,
+  AI_ANALYSIS_SPEC.md, DATA_MODEL_SPEC.md, SECURITY_AND_PRIVACY.md,
+  ARCHITECTURE.md, IMPLEMENTATION_ROADMAP.md, OPEN_DECISIONS.md
+frontend/           React/Vite/TypeScript Persian RTL SPA
 PROJECT_STATE.md    derived snapshot of the current state (no independent facts)
 ```
 
-The frontend has a real health-status client and a working gross-to-net simulation screen; authentication screens are disabled and the business-module screens state their missing dependencies. See [frontend/README.md](frontend/README.md). Historical root Markdown/DOCX research is retained; its supersession map is in DOCUMENTATION_INDEX §§2–4. It is not current implementation guidance.
+The frontend has a Persian RTL shell with Vazirmatn font, number/currency helpers, and a typed API client. The active screen is the Salary Estimation Screen (`/`), with the legacy gross-to-net simulation preserved at `/simulation`. See [frontend/README.md](frontend/README.md).
 
 ## Development and verification
 
-Dependency installation was approved and performed earlier; backend/.venv exists. Historical results and current access limitations are distinguished in ENVIRONMENT_INVENTORY. An inaccessible interpreter is not evidence that packages should be reinstalled.
+Dependency installation was approved and performed earlier; backend/.venv exists.
 
 ### Run the application
 
@@ -70,37 +101,23 @@ pnpm install --frozen-lockfile
 pnpm dev            # http://localhost:5173
 ```
 
-The simulation endpoint is `POST /api/v1/simulations/gross-to-net`; the liveness
-probe is `GET /health/live`. The frontend reads the API origin from
-`VITE_API_BASE_URL` (see `frontend/.env.example`).
-
 ### Verify
 
 ```powershell
-# Backend
+# Backend (Python 3.12+)
 cd backend
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m mypy --strict app tests
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m pytest tests/ -v --tb=short
 
-# Frontend
+# Frontend (Node 20+)
 cd frontend
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+npx pnpm tsc --noEmit -p tsconfig.app.json
+npx pnpm vitest run
+npx pnpm vite build
 ```
 
-The same gates run on every push in `.github/workflows/ci.yml` (hosted CI for the
-development repository only; it deploys nothing and holds no credential).
-
-The PostgreSQL integration suites need the official container image; where it
-cannot be pulled they skip themselves and report the skip rather than passing
-silently. DEC-012 blocks running the local Alembic/model drafts against a live
-database; their presence is not approval to apply them. For first-time setup use
-DEPLOYMENT §2 and the frozen lockfile workflow, subject to current blockers.
-Local database setup and its side effects are documented in
-[infra/postgres/README.md](infra/postgres/README.md).
+The same gates run on every push in `.github/workflows/ci.yml` (hosted CI for the development repository only; it deploys nothing and holds no credential).
 
 ## Contributor rules and licence
 

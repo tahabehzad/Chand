@@ -105,16 +105,22 @@ def test_the_ladder_and_the_multipliers_are_loaded(
 # ---------------------------------------------------------------------------
 
 
-def test_the_1405_placeholder_is_refused() -> None:
-    """The 1405 seed is transcribed and unverified: it must never load."""
-    with pytest.raises(StatutoryParameterUnavailable) as caught:
-        load_rule_set(1405)
-    assert caught.value.code == "STATUTORY_PARAMETER_UNAVAILABLE"
-    assert "STATUTORY_SEED_1405_NOT_VERIFIED" in str(caught.value)
+def test_the_1405_rule_set_loads_and_verifies() -> None:
+    """The 1405 seed is verified and active: it loads and satisfies all invariants."""
+    rs_1405 = load_rule_set(1405)
+    assert rs_1405.statutory_version == "1405.1"
+    assert rs_1405.rule_year_shamsi == 1405
+    assert rs_1405.is_verified is True
+    assert rs_1405.daily_minimum_wage_rial == 5_541_850
+    assert rs_1405.monthly_housing_allowance_rial == 30_000_000
+    assert rs_1405.monthly_grocery_allowance_rial == 22_000_000
+    assert rs_1405.monthly_tax_exemption_rial == 400_000_000
+    invariants = validate_invariants(rs_1405)
+    assert all(invariants.values())
 
 
 def test_a_year_outside_the_verified_baseline_is_refused() -> None:
-    for year in (1399, 1400, 1403, 1406, 1405):
+    for year in (1399, 1400, 1403, 1406):
         with pytest.raises((RuleSetNotActive, StatutoryParameterUnavailable)):
             load_rule_set(year)
 
@@ -128,16 +134,16 @@ def test_an_unloadable_year_names_no_figure() -> None:
     assert not any(character.isdigit() for character in message)
 
 
-def test_the_active_year_set_is_exactly_1404() -> None:
-    assert frozenset({1404}) == ACTIVE_STATUTORY_YEARS
+def test_the_active_year_set_contains_1404_and_1405() -> None:
+    assert frozenset({1404, 1405}) == ACTIVE_STATUTORY_YEARS
 
 
-def test_the_1405_seed_file_exists_but_is_inert() -> None:
-    """The placeholder is retained for the future 1404.2 / 1405 work."""
+def test_the_1405_seed_file_is_active_and_verified() -> None:
+    """The 1405 seed is verified and active."""
     path = SEEDS_DIR / "statutory_rules_1405.yaml"
     assert path.exists()
     text = path.read_text(encoding="utf-8")
-    assert "is_verified_and_active: false" in text
+    assert "is_verified_and_active: true" in text
 
 
 # ---------------------------------------------------------------------------

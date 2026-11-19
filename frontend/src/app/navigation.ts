@@ -55,6 +55,18 @@ export const SIMULATION_NAV_ITEM: NavItem = {
 export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   { id: 'dashboard', path: '/', labelFa: 'صفحه اصلی', descriptionFa: 'محاسبه حقوق', icon: 'simulation' },
   {
+    // The previous "بازار حقوق" entry served a fabricated table bundled in the
+    // SPA. It was replaced by this screen, which asks the backend and refuses
+    // when the market data is insufficient (ADR-014 §1.4).
+    id: 'salary-estimation',
+    path: '/salary-estimation',
+    labelFa: 'برآورد حقوق بازار',
+    descriptionFa: 'تخمین حقوق پایه بر پایهٔ داده‌های معتبر بازار',
+    icon: 'benchmarks',
+    contract: CONTRACTS.salaryEstimation,
+    ownerTask: 'P4-T02',
+  },
+  {
     id: 'prototype',
     path: '/prototype',
     labelFa: 'ارزیابی نمونه',

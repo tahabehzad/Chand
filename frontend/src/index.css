@@ -1,5 +1,6 @@
 @import '@fontsource-variable/vazirmatn';
 @import 'tailwindcss';
+@import './styles/print.css';
 
 /*
   Persian design tokens — SPEC-FE-001 §§2–3.
@@ -30,7 +31,81 @@
   --color-warning: oklch(45% 0.11 75);
   --color-success: oklch(42% 0.09 155);
 
-  --radius-card: 0.75rem;
+  /* FoodTrace-inspired accent palette — emerald / teal gradient family. */
+  --color-accent-emerald: oklch(63% 0.14 160);
+  --color-accent-teal: oklch(60% 0.12 180);
+  --color-accent-emerald-dark: oklch(48% 0.14 160);
+  --color-accent-teal-dark: oklch(45% 0.12 180);
+
+  /* Dark mode surface tokens. */
+  --color-surface-dark: oklch(12% 0.01 250);
+  --color-surface-muted-dark: oklch(9% 0.01 250);
+  --color-surface-raised-dark: oklch(14% 0.01 250);
+  --color-border-subtle-dark: oklch(20% 0.01 250);
+  --color-ink-dark: oklch(94% 0 0);
+  --color-ink-muted-dark: oklch(70% 0.01 250);
+
+  --radius-card: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+html.dark {
+  --color-surface: var(--color-surface-dark);
+  --color-surface-muted: var(--color-surface-muted-dark);
+  --color-surface-raised: var(--color-surface-raised-dark);
+  --color-border-subtle: var(--color-border-subtle-dark);
+  --color-ink: var(--color-ink-dark);
+  --color-ink-muted: var(--color-ink-muted-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-surface: var(--color-surface-dark);
+    --color-surface-muted: var(--color-surface-muted-dark);
+    --color-surface-raised: var(--color-surface-raised-dark);
+    --color-border-subtle: var(--color-border-subtle-dark);
+    --color-ink: var(--color-ink-dark);
+    --color-ink-muted: var(--color-ink-muted-dark);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
 }
 
 @layer components {
@@ -53,6 +128,101 @@
   .chart-grid {
     background-image: repeating-linear-gradient(to top, transparent 0, transparent calc(25% - 1px), var(--color-border-subtle) calc(25% - 1px), var(--color-border-subtle) 25%);
   }
+
+  /* FoodTrace-style glass card: larger radius, subtle shadow, hover lift. */
+  .card-premium {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-raised);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-premium:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--color-accent-emerald) 35%, transparent);
+    box-shadow: 0 12px 32px -8px color-mix(in oklch, var(--color-accent-emerald) 14%, transparent);
+  }
+  html.dark .card-premium {
+    background: var(--color-surface-raised-dark);
+    border-color: var(--color-border-subtle-dark);
+  }
+  html.dark .card-premium:hover {
+    border-color: color-mix(in oklch, var(--color-accent-emerald-dark) 40%, transparent);
+    box-shadow: 0 12px 32px -8px color-mix(in oklch, var(--color-accent-emerald-dark) 22%, transparent);
+  }
+
+  /* Glassmorphic card variant with multi-surface reflection */
+  .card-glass {
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklch, var(--color-border-subtle) 80%, transparent);
+    background: color-mix(in oklch, var(--color-surface-raised) 85%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-glass:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--color-brand) 30%, transparent);
+    box-shadow: 0 16px 36px -10px color-mix(in oklch, var(--color-brand) 12%, transparent);
+  }
+  html.dark .card-glass {
+    background: color-mix(in oklch, var(--color-surface-raised-dark) 75%, transparent);
+    border-color: color-mix(in oklch, var(--color-border-subtle-dark) 80%, transparent);
+    box-shadow: 0 8px 28px -6px rgba(0, 0, 0, 0.35);
+  }
+  html.dark .card-glass:hover {
+    border-color: color-mix(in oklch, var(--color-brand) 40%, transparent);
+    box-shadow: 0 16px 40px -10px color-mix(in oklch, var(--color-brand) 25%, transparent);
+  }
+
+  /* Gradient primary button (FoodTrace emerald→teal). */
+  .btn-gradient {
+    background: linear-gradient(135deg, var(--color-accent-emerald), var(--color-accent-teal));
+    color: #ffffff;
+    box-shadow: 0 4px 14px -3px color-mix(in oklch, var(--color-accent-emerald) 40%, transparent);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, var(--color-accent-emerald-dark), var(--color-accent-teal-dark));
+    box-shadow: 0 6px 20px -4px color-mix(in oklch, var(--color-accent-emerald) 55%, transparent);
+    transform: translateY(-1px);
+  }
+  .btn-gradient:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px -2px color-mix(in oklch, var(--color-accent-emerald) 40%, transparent);
+  }
+  .btn-gradient:focus-visible {
+    outline-color: var(--color-accent-emerald);
+  }
+
+  /* Glass header bar. */
+  .header-glass {
+    background: color-mix(in oklch, var(--color-surface-raised) 85%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  html.dark .header-glass {
+    background: color-mix(in oklch, var(--color-surface-raised-dark) 85%, transparent);
+    border-bottom-color: var(--color-border-subtle-dark);
+  }
+
+  /* Subtle ambient aura effects */
+  .aura-glow {
+    position: relative;
+  }
+  .aura-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, color-mix(in oklch, var(--color-brand) 40%, transparent), color-mix(in oklch, var(--color-accent-teal) 40%, transparent));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }
 
 @layer base {
@@ -71,6 +241,12 @@
     /* Persian is cursive: positive tracking breaks the joining rhythm (§3.2). */
     letter-spacing: 0;
     word-spacing: 0;
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+
+  html.dark body {
+    background-color: var(--color-surface-muted-dark);
+    color: var(--color-ink-dark);
   }
 
   :where(h1, h2, h3, h4) {
@@ -98,4 +274,113 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* === اتوفیل یکپارچه هم‌تم سایت چند؟ (مشکی + طلایی و تم روشن) === */
+.chand-autofill {
+  position: absolute;
+  z-index: 9600;
+  background: linear-gradient(155deg, rgba(20, 20, 28, 0.98), rgba(10, 10, 14, 0.98));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.92), 0 0 35px -14px rgba(212, 175, 55, 0.25);
+  overflow: hidden;
+  margin-top: 6px;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  max-height: 320px;
+  overflow-y: auto;
+}
+html.light-theme .chand-autofill,
+html:not(.dark) .chand-autofill {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.98), rgba(250, 248, 243, 0.98));
+  border: 1px solid rgba(196, 150, 30, 0.35);
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.15), 0 0 35px -14px rgba(212, 175, 55, 0.2);
+}
+.chand-autofill .opt {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #F4F4F6;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+html.light-theme .chand-autofill .opt,
+html:not(.dark) .chand-autofill .opt {
+  color: #141417;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.chand-autofill .opt:last-child {
+  border-bottom: none;
+}
+.chand-autofill .opt small {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.14);
+  color: #D4AF37;
+}
+html.light-theme .chand-autofill .opt small,
+html:not(.dark) .chand-autofill .opt small {
+  background: rgba(196, 150, 30, 0.15);
+  color: #9E7410;
+}
+.chand-autofill .opt:hover, .chand-autofill .opt.active {
+  background: linear-gradient(135deg, #FFFDF5 0%, #F3E5AB 45%, #D4AF37 100%) !important;
+  color: #060608 !important;
+}
+.chand-autofill .opt:hover small, .chand-autofill .opt.active small {
+  background: rgba(6, 6, 8, 0.18) !important;
+  color: #060608 !important;
+}
+.chand-autofill mark {
+  background: transparent;
+  color: inherit;
+  border-bottom: 2px solid #D4AF37;
+  padding: 0;
+}
+.chand-autofill .opt.active mark, .chand-autofill .opt:hover mark {
+  border-color: #060608;
+}
+
+/* یکسان‌سازی ظاهر اتوفیل بومی مرورگر با تم تاریک و طلایی سایت */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0b0b0f inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #D4AF37 !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+html.light-theme input:-webkit-autofill,
+html.light-theme input:-webkit-autofill:hover, 
+html.light-theme input:-webkit-autofill:focus, 
+html.light-theme input:-webkit-autofill:active,
+html:not(.dark) input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1a160d !important;
+  caret-color: #9E7410 !important;
+  border-color: rgba(196, 150, 30, 0.4) !important;
+}
+
+select option {
+  background-color: #121218 !important;
+  color: #F4F4F6 !important;
+  padding: 10px 14px !important;
+}
+html.light-theme select option,
+html:not(.dark) select option {
+  background-color: #FAF6ED !important;
+  color: #1a160d !important;
 }

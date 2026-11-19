@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -121,17 +121,18 @@ function jsonResponse(body: unknown, status = 200) {
   };
 }
 
-function renderPage() {
+function renderPage(gross = '300000000') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
+  render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         <SimulationPage />
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  if (gross) fireEvent.change(screen.getByLabelText(/حقوق ناخالص ماهانه/), { target: { value: gross } });
 }
 
 beforeEach(() => {
@@ -145,6 +146,14 @@ afterEach(() => {
 });
 
 describe('Simulation screen', () => {
+  it('starts with an empty amount and requires employer input before calculating', async () => {
+    renderPage('');
+    expect(screen.getByLabelText(/حقوق ناخالص ماهانه/)).toHaveValue('');
+    await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
+    expect(screen.getByText(/عدد صحیح و مثبت/)).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('sends the documented request to the gross-to-net endpoint', async () => {
     renderPage();
     await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
@@ -166,13 +175,16 @@ describe('Simulation screen', () => {
     renderPage();
     const gross = screen.getByLabelText(/حقوق ناخالص ماهانه/);
     await userEvent.clear(gross);
-    await userEvent.type(gross, '123456789');
+    await userEvent.type(gross, String(123456789).replace(/\d/g, (digit) =>
+      String.fromCharCode(0x06f0 + Number(digit))));
+    await userEvent.selectOptions(screen.getByLabelText('تعداد روزهای ماه'), '31');
     await userEvent.click(screen.getByRole('button', { name: /محاسبه حقوق/ }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     const body = JSON.parse(String(init.body)) as Record<string, unknown>;
     expect(body.gross_monthly_rial).toBe(123_456_789);
+    expect(body.days_in_month).toBe(31);
   });
 
   it('renders the net pay, the tax and the rule-set provenance', async () => {

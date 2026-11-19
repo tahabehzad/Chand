@@ -47,6 +47,13 @@ const PrototypeRecommendationPage = lazy(
   () => import('@/routes/prototype/recommendation-page'),
 );
 
+const SalaryEstimationPage = lazy(() =>
+  import('@/components/salary-estimation/SalaryEstimationPage').then(
+    (m) => ({ default: m.SalaryEstimationPage }),
+  ),
+);
+const ChandShowcasePage = lazy(() => import('@/routes/chand-showcase-page'));
+
 function withSuspense(element: ReactElement): ReactElement {
   return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
 }
@@ -57,7 +64,7 @@ function guarded(element: ReactElement): ReactElement {
 }
 
 const appChildren: RouteObject[] = [
-  { index: true, element: withSuspense(<SimulationPage />) },
+  { index: true, element: withSuspense(<SalaryEstimationPage />) },
   { path: 'transactions', element: withSuspense(<TransactionsPage />) },
   { path: 'settings', element: withSuspense(<SettingsPage />) },
   { path: 'system', element: withSuspense(<SystemPage />) },
@@ -69,6 +76,7 @@ const appChildren: RouteObject[] = [
     element: guarded(<PrototypeRecommendationPage />),
   },
   { path: 'simulation', element: withSuspense(<SimulationPage />) },
+  { path: 'salary-estimation', element: withSuspense(<SalaryEstimationPage />) },
   { path: 'ctc', element: withSuspense(<CtcPage />) },
   { path: 'termination', element: withSuspense(<TerminationPage />) },
   { path: 'documents', element: withSuspense(<DocumentsPage />) },
@@ -78,23 +86,43 @@ const appChildren: RouteObject[] = [
   { path: '*', element: withSuspense(<NotFoundPage />) },
 ];
 
-/*
-  The synthetic preview route is registered only in a development build.
-  The lazy import above can still emit an orphan fixture chunk in production;
-  absence of a route does not prove the module is absent from dist/.
-*/
-if (import.meta.env.DEV) {
-  appChildren.splice(appChildren.length - 1, 0, {
-    path: 'dev/preview',
-    element: withSuspense(<DevPreviewPage />),
-  });
-}
-
 export const router = createBrowserRouter([
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/dev/preview',
+          element: withSuspense(
+            <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
+              <DevPreviewPage />
+            </main>,
+          ),
+        },
+        {
+          path: '/dev/salary-estimation',
+          element: withSuspense(<SalaryEstimationPage />),
+        },
+      ]
+    : []),
   {
     path: '/',
     element: <RequireManager><AppShell /></RequireManager>,
     children: appChildren,
+  },
+  {
+    path: '/chand',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/chand.ir',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/intro',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/landing',
+    element: withSuspense(<ChandShowcasePage />),
   },
   {
     path: '/proposal',

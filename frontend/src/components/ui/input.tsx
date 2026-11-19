@@ -31,8 +31,8 @@ export function Input({ label, hint, error, className, dir, ...props }: InputPro
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy === '' ? undefined : describedBy}
         className={cn(
-          'min-h-11 w-full rounded-lg border bg-surface-raised px-3 py-2 text-sm text-ink',
-          'border-border-subtle focus-visible:border-brand',
+          'min-h-11 w-full rounded-xl border bg-surface-raised px-3 py-2 text-sm text-ink',
+          'border-border-subtle focus-visible:border-brand focus-visible:ring-1 focus-visible:ring-brand',
           // Numeric fields are end-aligned, not right-aligned: `text-end`
           // follows the document direction logically.
           dir === 'ltr' && 'text-end tabular',

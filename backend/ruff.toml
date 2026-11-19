@@ -51,6 +51,8 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
+# scripts are operator CLI tools: print statements, naive script flow and CLI args are standard.
+"scripts/**" = ["T20", "ANN", "S", "PLC0415", "PTH", "UP", "DTZ", "I", "F541", "RUF001", "I002", "F401"]
 # tests scope imports inside test functions on purpose: each test pulls only
 # the app surface it exercises, keeping test modules independent of app-wide
 # import order (PLC0415).
@@ -80,7 +82,14 @@ ignore = [
 # documented client contract (frontend/src/prototype/types.ts); renaming them
 # would fork the API contract, so pep8-naming is waived for that module.
 # The local development seed prints its credentials to stdout by design.
-"scripts/**" = ["T20", "RUF001"]
+
+# The salary-estimation modules publish Persian refusal texts, factor notes and
+# warnings: they are the product's user-facing wording (SPEC-FE-001), so the
+# ambiguous-unicode rules flag the language itself, exactly like the manager
+# workspace modules above.  RUF002 (English docstrings) stays enforced.
+"app/domain/salary_estimation/*.py" = ["RUF001", "RUF003"]
+"app/services/estimation/*.py" = ["RUF001"]
+"app/api/v1/estimation/*.py" = ["RUF001"]
 
 [lint.flake8-tidy-imports.banned-api]
 # `round()` uses banker's rounding and is banned on monetary values.

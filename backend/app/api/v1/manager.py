@@ -296,9 +296,15 @@ async def create_employee(
 
 
 @router.get("/employees", response_model=list[EmployeeResponse], summary="List employees")
-async def list_employees(manager: ManagerRequired, db: DbSession) -> list[EmployeeResponse]:
-    employees = await manager_service.load_employees(db, manager.tenant_id)
-    return [_employee_response(employee) for employee in employees]
+async def list_employees(manager: ManagerRequired, db: DbSession) -> list[EmployeeResponse] | JSONResponse:
+    try:
+        employees = await manager_service.load_employees(db, manager.tenant_id)
+        return [_employee_response(employee) for employee in employees]
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"code": "DATASTORE_UNAVAILABLE", "detail": "پایگاه داده در دسترس نیست."}},
+        )
 
 
 @router.get("/employees/{employee_id}", response_model=EmployeeResponse, summary="One employee")

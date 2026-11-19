@@ -82,16 +82,15 @@ describe('AppShell', () => {
     expect(link).toHaveAttribute('aria-current', 'page');
   });
 
-  it.each(['/', '/simulation'])('hides navigation and its toggle on calculator %s', (path) => {
+  it.each(['/'])('provides mobile menu toggle on calculator %s', (path) => {
     renderShell(path);
-    expect(screen.queryByRole('navigation', { name: 'ناوبری اصلی' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'باز کردن منو' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'باز کردن منو' })).toBeInTheDocument();
   });
 
-  it('labels the statutory screen with its baseline and the demo with its notice', () => {
+  it('labels the statutory screen with its baseline in the footer badge and the demo with its notice in header', () => {
     const { unmount } = renderShell('/');
-    expect(screen.getByRole('banner')).toHaveTextContent('پایه قانونی ۱۴۰۴');
-    expect(screen.getByRole('banner')).not.toHaveTextContent('داده‌های نمایشی');
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('پایه قانونی ۱۴۰۴');
+    expect(screen.getByRole('banner')).not.toHaveTextContent('پایه قانونی ۱۴۰۴');
     unmount();
     renderShell('/transactions');
     expect(screen.getByRole('banner')).toHaveTextContent('داده‌های نمایشی');

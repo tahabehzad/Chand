@@ -28,6 +28,10 @@ EXPECTED_VARIABLES: frozenset[str] = frozenset(
         "blind_index_pepper",
         "database_url",
         "db_ssl_mode",
+        "estimation_allow_sample_data",
+        "estimation_max_data_age_days",
+        "estimation_min_valid_samples",
+        "gemini_default_model",
         "job_lease_seconds",
         "log_level",
         "master_kek",
@@ -137,14 +141,15 @@ def test_staging_refuses_debug() -> None:
         Settings(_env_file=None, app_env="staging", app_debug=True)
 
 
-def test_1405_may_not_be_activated() -> None:
+def test_unverified_year_may_not_be_activated() -> None:
     with pytest.raises(ConfigurationError):
-        Settings(_env_file=None, statutory_active_year=1405)
+        Settings(_env_file=None, statutory_active_year=1406)
 
 
-def test_only_1404_is_an_activated_baseline() -> None:
-    assert frozenset({1404}) == ACTIVE_STATUTORY_YEARS
+def test_1404_and_1405_are_activated_baselines() -> None:
+    assert frozenset({1404, 1405}) == ACTIVE_STATUTORY_YEARS
     assert Settings(_env_file=None, statutory_active_year=1404).statutory_active_year == 1404
+    assert Settings(_env_file=None, statutory_active_year=1405).statutory_active_year == 1405
 
 
 def test_object_lock_mode_is_governance_only() -> None:

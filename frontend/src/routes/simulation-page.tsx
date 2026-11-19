@@ -9,7 +9,8 @@ import { Icon } from '@/components/icon';
 import { CONTRACTS } from '@/api/contracts';
 import { apiClient } from '@/api/instance';
 import { formatMoney, formatPercentFromRate } from '@/lib/money';
-import { toPersianDigits } from '@/lib/numerals';
+import { parseIntegerInput, toPersianDigits } from '@/lib/numerals';
+import { useUiStore } from '@/state/ui-store';
 import { isApiError } from '@/api/errors';
 import type { GrossToNetRequest, PayrollResponse, TaxPosture } from '@/api/payroll-types';
 import { WorkProfileFields } from './work-profile-fields';
@@ -33,10 +34,29 @@ const OPTIONAL_NUMERIC_FIELDS = [
  * Render a whole-Rial amount with the project numeral policy (SPEC-FE-001
  * §4.2): Persian digits, the Persian thousands separator and no fractional
  * Rial.  A value that is not a safe integer is refused rather than rounded.
+ * Respects the display unit preference (rial/toman); a Toman rendering is
+ * refused for a value not divisible by 10 and falls back to Rial.
  */
-function rialAmount(value: number): string {
-  const formatted = formatMoney(value, 'rial');
-  return formatted.ok ? formatted.value.amount : '—';
+function rialAmount(value: number): { amount: string; unitLabel: string; unit: 'rial' | 'toman' } {
+  const unit = useUiStore.getState().preferredUnit;
+  const formatted = formatMoney(value, unit);
+  if (formatted.ok) {
+    return { amount: formatted.value.amount, unitLabel: formatted.value.unitLabel, unit: formatted.value.unit };
+  }
+  // Not divisible by 10 for Toman: fall back to Rial with a note.
+  const rial = formatMoney(value, 'rial');
+  return { amount: rial.ok ? rial.value.amount : '—', unitLabel: rial.ok ? rial.value.unitLabel : 'ریال', unit: 'rial' };
+}
+
+/** Render an amount followed by its unit label, respecting the preferred unit. */
+function MoneyText({ value }: { value: number }) {
+  const { amount, unitLabel } = rialAmount(value);
+  return (
+    <>
+      {amount}
+      <span className='text-sm font-normal text-ink-muted'>{unitLabel}</span>
+    </>
+  );
 }
 
 /** Render the Persian label of one tax band, with the rate the backend applied. */
@@ -68,15 +88,15 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
         <div className='grid gap-3 sm:grid-cols-2'>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
             <p className='text-xs text-ink-muted'>خالص دریافتی</p>
-            <p className='text-2xl font-semibold tabular-nums'>{rialAmount(netRial)} <span className='text-sm font-normal text-ink-muted'>ریال</span></p>
+            <p className='text-2xl font-semibold tabular-nums'><MoneyText value={netRial} /></p>
           </div>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
             <p className='text-xs text-ink-muted'>مالیات بر درآمد</p>
-            <p className='text-xl font-semibold tabular-nums text-destructive'>{rialAmount(taxRial)} <span className='text-sm font-normal text-ink-muted'>ریال</span></p>
+            <p className='text-xl font-semibold tabular-nums text-destructive'><MoneyText value={taxRial} /></p>
           </div>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
             <p className='text-xs text-ink-muted'>کسور از درآمد مشمول مالیات (ماده ۱۳۷)</p>
-            <p className='text-xl font-semibold tabular-nums'>{rialAmount(deductionRial)} <span className='text-sm font-normal text-ink-muted'>ریال</span></p>
+            <p className='text-xl font-semibold tabular-nums'><MoneyText value={deductionRial} /></p>
           </div>
           <div className='rounded-lg border border-border-subtle bg-surface p-3'>
             <p className='text-xs text-ink-muted'>شمول مالیات مزایای رفاهی در این سناریو</p>
@@ -92,16 +112,16 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
               <thead>
                 <tr className='border-b border-border-subtle'>
                   <th className='pb-2 text-ink-muted'>ردیف</th>
-                  <th className='pb-2 text-ink-muted'>مبلغ مشمول (ریال)</th>
-                  <th className='pb-2 text-ink-muted'>مالیات (ریال)</th>
+                  <th className='pb-2 text-ink-muted'>مبلغ مشمول ({useUiStore.getState().preferredUnit === 'toman' ? 'تومان' : 'ریال'})</th>
+                  <th className='pb-2 text-ink-muted'>مالیات ({useUiStore.getState().preferredUnit === 'toman' ? 'تومان' : 'ریال'})</th>
                 </tr>
               </thead>
               <tbody>
                 {slabs.map((s, i) => (
                   <tr key={i} className='border-b border-border-subtle/50 last:border-0'>
                     <td className='py-1'>{s.label}</td>
-                    <td className='py-1 tabular-nums'>{rialAmount(s.taxed)}</td>
-                    <td className='py-1 tabular-nums'>{rialAmount(s.tax)}</td>
+                    <td className='py-1 tabular-nums'><MoneyText value={s.taxed} /></td>
+                    <td className='py-1 tabular-nums'><MoneyText value={s.tax} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -113,48 +133,57 @@ function PostureCard({ title, posture, netRial, taxRial, deductionRial, welfareT
   );
 }
 
+const INITIAL_INPUTS: GrossToNetRequest = {
+  gross_monthly_rial: 0,
+  rule_year: 1404,
+  days_in_month: 30,
+  tax_posture: 'conservative_inta',
+  allowances: {
+    housing: 0,
+    grocery: 0,
+    marriage: 0,
+    child: 0,
+    continuous_attraction: 0,
+  },
+  overtime_hours: 0,
+  night_hours: 0,
+  continuous_attraction_taxable: false,
+  probation_months: null,
+  tenure_months: null,
+  accumulated_unused_leave_days: null,
+  probation_days_worked: null,
+};
+
 export function SimulationPage() {
   const [search, setSearch] = useSearchParams();
   const employeeId = search.get('employee') ?? '';
   const [workDirty, setWorkDirty] = useState(false);
   const [workContext, setWorkContext] = useState<WorkResult['work_context'] | null>(null);
-  const [formData, setFormData] = useState<GrossToNetRequest>({
-    /*
-     * The seeded example is illustrative, not a market claim: it is chosen so
-     * that the progressive ladder is actually engaged (the 1404 monthly
-     * exemption is 240,000,000 Rial), so a first-time user sees both Article
-     * 137 postures with a non-zero tax instead of an empty slab table.
-     */
-    gross_monthly_rial: 300000000,
-    rule_year: 1404,
-    days_in_month: 30,
-    tax_posture: 'conservative_inta',
-    allowances: {
-      housing: 9000000,
-      grocery: 4500000,
-      marriage: 3000000,
-      child: 6000000,
-      continuous_attraction: 0,
-    },
-    overtime_hours: 0,
-    night_hours: 0,
-    continuous_attraction_taxable: false,
-    probation_months: null,
-    tenure_months: null,
-    accumulated_unused_leave_days: null,
-    probation_days_worked: null,
-  });
+  const [formData, setFormData] = useState(INITIAL_INPUTS);
+  const [grossInput, setGrossInput] = useState('');
+  const [grossError, setGrossError] = useState<string>();
+  const parsedGross = parseIntegerInput(grossInput);
+  const grossRial = parsedGross.ok && !parsedGross.negative ? Number(parsedGross.value) : 0;
+  const validGross = Number.isSafeInteger(grossRial) && grossRial > 0;
+  const grossHint = validGross ? formatMoney(grossRial, 'rial') : null;
 
   const [result, setResult] = useState<PayrollResponse | null>(null);
   const [error, setError] = useState<{ message: string; code: string } | null>(null);
   const restoreWork = useCallback((saved: WorkResult | null) => {
-    if (saved?.full_time_inputs) setFormData(saved.full_time_inputs);
+    if (saved?.full_time_inputs) {
+      setFormData(saved.full_time_inputs);
+      setGrossInput(toPersianDigits(String(saved.full_time_inputs.gross_monthly_rial)));
+      setGrossError(undefined);
+    }
     setResult(saved?.payroll ?? null);
     setWorkContext(saved?.work_context ?? null);
     setError(null);
   }, []);
   const selectEmployee = useCallback((id: string) => {
     setSearch(id ? { employee: id } : {}, { replace: true });
+    setFormData(INITIAL_INPUTS);
+    setGrossInput('');
+    setGrossError(undefined);
     setResult(null); setWorkContext(null);
   }, [setSearch]);
 
@@ -193,15 +222,22 @@ export function SimulationPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    if (!validGross) {
+      setGrossError('حقوق ناخالص ماهانه را به‌صورت عدد صحیح و مثبت به ریال وارد کنید.');
+      return;
+    }
+    mutation.mutate({ ...formData, gross_monthly_rial: grossRial });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setResult(null); setWorkContext(null);
+    setError(null);
     const { name, value, type } = e.target;
     let parsedValue: string | number | boolean | null = value;
 
-    if (type === 'number' || type === 'range') {
+    if (name === 'days_in_month') {
+      parsedValue = Number(value);
+    } else if (type === 'number' || type === 'range') {
       if (OPTIONAL_NUMERIC_FIELDS.includes(name as (typeof OPTIONAL_NUMERIC_FIELDS)[number])) {
         parsedValue = value === '' ? null : Number(value);
       } else {
@@ -240,25 +276,30 @@ export function SimulationPage() {
           <h1 className='text-2xl font-bold text-ink sm:text-3xl'>محاسبه حقوق و دستمزد</h1>
         </div>
       </header>
-      <WorkProfileFields employeeId={employeeId} onSelect={selectEmployee} onDirtyChange={setWorkDirty} onRestored={restoreWork} locked={mutation.isPending} />
+      <div className='grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,0.58fr)]'>
       <form onSubmit={handleSubmit} className='space-y-4'>
         <fieldset disabled={mutation.isPending} className='min-w-0 space-y-4'>
         <Card>
           <CardHeader className='bg-surface/50'>
-            <CardTitle>حقوق ماهانه</CardTitle>
+            <CardTitle>اطلاعات حقوق و کارکرد</CardTitle>
           </CardHeader>
           <CardContent className='space-y-4'>
-            <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            <div className='grid gap-4 sm:grid-cols-2'>
               <Input
                 name='gross_monthly_rial'
-                type='number'
+                type='text'
                 label={employeeId ? 'حقوق ناخالص ماهانه تمام‌وقت، بدون پایه سنوات (ریال)' : 'حقوق ناخالص ماهانه با مزایا (ریال)'}
-                hint={`${rialAmount(formData.gross_monthly_rial)} ریال`}
-                value={formData.gross_monthly_rial}
-                onChange={handleChange}
+                hint={grossHint?.ok ? `${grossHint.value.amount} ${grossHint.value.unitLabel}` : 'جمع حقوق و مزایا پیش از کسر بیمه و مالیات'}
+                error={grossError}
+                value={grossInput}
+                onChange={(event) => {
+                  setGrossInput(toPersianDigits(event.target.value));
+                  setGrossError(undefined);
+                  setResult(null);
+                  setWorkContext(null);
+                  setError(null);
+                }}
                 inputMode='numeric'
-                min={1}
-                step="any"
                 dir='ltr'
                 className='tabular-nums'
               />
@@ -317,9 +358,10 @@ export function SimulationPage() {
               />
             </div>
 
-            <div className='border-t border-border-subtle pt-6'>
-              <h3 className='mb-4 font-semibold'>مزایای منظورشده در ناخالص (ریال)</h3>
-              <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+            <details className='rounded-xl border border-border-subtle p-4'>
+              <summary className='cursor-pointer text-sm font-semibold text-ink'>ریز مزایای داخل ناخالص (اختیاری، ریال)</summary>
+              <p className='mt-3 text-sm text-ink-muted'>مبالغی را وارد کنید که در حقوق ناخالص بالا حساب کرده‌اید.</p>
+              <div className='mt-4 grid gap-4 sm:grid-cols-2'>
                 {[
                   { key: 'housing', label: 'حق مسکن' },
                   { key: 'grocery', label: 'بن کارگری' },
@@ -342,7 +384,7 @@ export function SimulationPage() {
                   />
                 ))}
               </div>
-            </div>
+            </details>
 
             {!employeeId && <details className='rounded-xl border border-border-subtle bg-surface/50 p-4'>
               <summary className='cursor-pointer text-sm font-semibold text-ink'>تنظیمات تکمیلی و برآورد پایان همکاری (اختیاری)</summary>
@@ -427,13 +469,53 @@ export function SimulationPage() {
         )}
         </fieldset>
       </form>
+      <Card className='min-w-0 border-brand/30 lg:sticky lg:top-4'>
+        <CardHeader className='bg-brand/5'>
+          <CardTitle>خلاصهٔ حقوق ماهانه</CardTitle>
+        </CardHeader>
+        <CardContent role='status' className='space-y-4'>
+          {mutation.isPending ? (
+            <p className='text-sm text-ink-muted'>در حال محاسبهٔ حقوق…</p>
+          ) : result ? (
+            <>
+              <div>
+                <p className='text-sm text-ink-muted'>خالص پرداختی به کارمند</p>
+                <p className='mt-1 break-words text-3xl font-bold tabular-nums text-brand'><MoneyText value={result.net_rial} /></p>
+              </div>
+              <dl className='space-y-3 border-t border-border-subtle pt-4 text-sm'>
+                {([
+                  ['سهم بیمهٔ کارمند', result.employee_deductions.employee_sso_7pct_rial],
+                  ['مالیات حقوق', result.employee_deductions.income_tax_rial],
+                  ['هزینهٔ ماهانهٔ کارفرما', result.employer_cost.total_monthly_employer_cost_rial],
+                ] as const).map(([label, value]) => (
+                  <div key={label} className='flex flex-wrap justify-between gap-x-3 gap-y-1'>
+                    <dt className='text-ink-muted'>{label}</dt>
+                    <dd className='font-semibold tabular-nums'><MoneyText value={value} /></dd>
+                  </div>
+                ))}
+              </dl>
+              <a href='#payroll-details' className='inline-block text-sm font-medium text-brand underline'>جزئیات محاسبه</a>
+            </>
+          ) : (
+            <p className='text-sm leading-7 text-ink-muted'>حقوق ناخالص را وارد کنید و «محاسبه حقوق» را بزنید تا خالص پرداختی، کسورات و هزینهٔ کارفرما را ببینید.</p>
+          )}
+        </CardContent>
+      </Card>
+      </div>
+
+      <details open={Boolean(employeeId)} className='rounded-xl border border-border-subtle bg-surface p-4'>
+        <summary className='cursor-pointer text-sm font-semibold text-ink'>محاسبه با پروندهٔ کارمند (اختیاری)</summary>
+        <div className='mt-4'>
+          <WorkProfileFields employeeId={employeeId} onSelect={selectEmployee} onDirtyChange={setWorkDirty} onRestored={restoreWork} locked={mutation.isPending} />
+        </div>
+      </details>
 
       {result && (
-        <section aria-label='نتایج شبیه‌سازی' className='space-y-6'>
+        <section id='payroll-details' aria-label='نتایج شبیه‌سازی' className='scroll-mt-20 space-y-6'>
           {workContext && <Card><CardContent className='grid gap-4 sm:grid-cols-3'>
             <div><p className='text-xs text-ink-muted'>نسبت کارکرد</p><p className='mt-2 font-semibold'>{formatPercentFromRate(workContext.ratio) ?? '—'}</p></div>
-            <div><p className='text-xs text-ink-muted'>ناخالص متناسب با کارکرد</p><p className='mt-2 font-semibold'>{rialAmount(workContext.gross_rial)} ریال</p></div>
-            <div><p className='text-xs text-ink-muted'>پایه سنوات این ماه</p><p className='mt-2 font-semibold'>{rialAmount(workContext.seniority_rial)} ریال</p></div>
+            <div><p className='text-xs text-ink-muted'>ناخالص متناسب با کارکرد</p><p className='mt-2 font-semibold'><MoneyText value={workContext.gross_rial} /></p></div>
+            <div><p className='text-xs text-ink-muted'>پایه سنوات این ماه</p><p className='mt-2 font-semibold'><MoneyText value={workContext.seniority_rial} /></p></div>
           </CardContent></Card>}
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <h2 className='text-xl font-semibold'>نتایج محاسبه</h2>
@@ -485,38 +567,38 @@ export function SimulationPage() {
               <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>بیمه کارمند (۷٪)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.employee_deductions.employee_sso_7pct_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.employee_deductions.employee_sso_7pct_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>مالیات درآمد</p>
-                  <p className='text-lg font-semibold tabular-nums text-destructive'>{rialAmount(result.employee_deductions.income_tax_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums text-destructive'><MoneyText value={result.employee_deductions.income_tax_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>خالص دریافتی</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.net_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.net_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>مانده گرد کردن</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.rounding_residual_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.rounding_residual_rial} /></p>
                 </div>
               </div>
 
               <div className='border-t border-border-subtle pt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>سنوات (ماهانه)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.severance_sanavat.monthly_accrual_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.severance_sanavat.monthly_accrual_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>عیدی (ماهانه)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.eydi.monthly_accrual_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.eydi.monthly_accrual_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>هزینه کل کارفرما (ماه)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.employer_cost.total_monthly_employer_cost_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.employer_cost.total_monthly_employer_cost_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>بهای تمام‌شده سالانه</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.employer_cost.annual_ctc_12month_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.employer_cost.annual_ctc_12month_rial} /></p>
                 </div>
               </div>
 
@@ -526,23 +608,23 @@ export function SimulationPage() {
                   <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
                     <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                       <p className='text-xs text-ink-muted'>تعهد آزمایشی (کارفرما)</p>
-                      <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.termination_liability.employer_initiated_probation_liability_rial)} ریال</p>
+                      <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.termination_liability.employer_initiated_probation_liability_rial} /></p>
                     </div>
                     <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                       <p className='text-xs text-ink-muted'>تعهد آزمایشی (کارمند)</p>
-                      <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.termination_liability.employee_initiated_probation_liability_rial ?? 0)} ریال</p>
+                      <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.termination_liability.employee_initiated_probation_liability_rial ?? 0} /></p>
                     </div>
                     <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                       <p className='text-xs text-ink-muted'>سنوات خروج</p>
-                      <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.termination_liability.exit_severance_rial)} ریال</p>
+                      <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.termination_liability.exit_severance_rial} /></p>
                     </div>
                     <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                       <p className='text-xs text-ink-muted'>خرید مرخصی</p>
-                      <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.termination_liability.leave_buyout_rial)} ریال</p>
+                      <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.termination_liability.leave_buyout_rial} /></p>
                     </div>
                     <div className='rounded-lg border border-border-subtle bg-surface p-3 sm:col-span-2'>
                       <p className='text-xs text-ink-muted'>مجموع جداسازی</p>
-                      <p className='text-xl font-semibold tabular-nums'>{rialAmount(result.termination_liability.total_separation_rial)} ریال</p>
+                      <p className='text-xl font-semibold tabular-nums'><MoneyText value={result.termination_liability.total_separation_rial} /></p>
                     </div>
                   </div>
                 </div>
@@ -564,31 +646,31 @@ export function SimulationPage() {
               <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>حقوق ناخالص ماهانه</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.total_gross_rial - result.bases.overtime_pay_rial - result.bases.night_shift_pay_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.total_gross_rial - result.bases.overtime_pay_rial - result.bases.night_shift_pay_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>جمع ناخالص با اضافه‌کاری و شب‌کاری</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.total_gross_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.total_gross_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>مزایای رفاهی (خارج از مزد ثابت)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.welfare_total_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.welfare_total_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>مزد ثابت (مبنای سنوات و عیدی)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.mozd_e_saabet_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.mozd_e_saabet_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>اضافه‌کاری (مخرج {toPersianDigits(result.bases.overtime_divisor)} ساعت)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.overtime_pay_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.overtime_pay_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>شب‌کاری</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.bases.night_shift_pay_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.bases.night_shift_pay_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>سقف بیمهٔ ماهانه</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.insurable_ceiling_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.sso.insurable_ceiling_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>اعمال سقف بیمه</p>
@@ -598,19 +680,19 @@ export function SimulationPage() {
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>حقوق مشمول بیمه</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.insurable_wage_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.sso.insurable_wage_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>بیمهٔ کارمند (۷٪)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.employee_share_7pct_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.sso.employee_share_7pct_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>بیمهٔ کارفرما (۲۰٪)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.employer_share_20pct_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.sso.employer_share_20pct_rial} /></p>
                 </div>
                 <div className='rounded-lg border border-border-subtle bg-surface p-3'>
                   <p className='text-xs text-ink-muted'>بیمهٔ بیکاری (۳٪)</p>
-                  <p className='text-lg font-semibold tabular-nums'>{rialAmount(result.sso.unemployment_fund_3pct_rial)} ریال</p>
+                  <p className='text-lg font-semibold tabular-nums'><MoneyText value={result.sso.unemployment_fund_3pct_rial} /></p>
                 </div>
               </div>
             </CardContent>

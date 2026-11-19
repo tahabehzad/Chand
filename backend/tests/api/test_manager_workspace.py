@@ -70,6 +70,17 @@ def _test_dsn() -> str:
             configured = ""
     if not configured:
         pytest.skip("DATABASE_URL is not configured; PostgreSQL integration skipped")
+    import socket
+    from urllib.parse import urlsplit
+
+    parsed = urlsplit(configured)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 5432
+    try:
+        with socket.create_connection((host, port), timeout=0.5):
+            pass
+    except OSError:
+        pytest.skip("PostgreSQL server is not reachable; PostgreSQL integration skipped")
     return configured
 
 

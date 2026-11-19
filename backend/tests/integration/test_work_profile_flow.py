@@ -44,6 +44,17 @@ def isolated(tmp_path_factory: pytest.TempPathFactory) -> Iterator[dict[str, Any
     dsn = get_settings().database_url.get_secret_value().replace("postgresql://", "postgresql+asyncpg://", 1)
     if not dsn:
         pytest.fail("Explicit local PostgreSQL configuration is required.")
+    import socket
+    from urllib.parse import urlsplit
+
+    parsed = urlsplit(dsn)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 5432
+    try:
+        with socket.create_connection((host, port), timeout=0.5):
+            pass
+    except OSError:
+        pytest.skip("PostgreSQL server is not reachable; integration tests skipped")
     engine = create_async_engine(dsn, poolclass=NullPool, hide_parameters=True,
         connect_args={"server_settings": {"search_path": schema + ",public"}})
     factory = async_sessionmaker(engine, expire_on_commit=False)

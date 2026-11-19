@@ -21,6 +21,6 @@ class Base(DeclarativeBase):
     """Shared declarative base for all Pish Hesabdari tables."""
 
 
-from app.models import audit, identity, manager, statutory, work_profile  # noqa: E402
+from app.models import audit, estimation, identity, manager, statutory, work_profile  # noqa: E402
 
-__all__ = ("Base", "audit", "identity", "manager", "statutory", "work_profile")
+__all__ = ("Base", "audit", "estimation", "identity", "manager", "statutory", "work_profile")

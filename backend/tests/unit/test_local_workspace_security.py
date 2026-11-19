@@ -69,7 +69,7 @@ def test_chunked_upload_is_rejected_before_application_parsing() -> None:
         return {"type": "http.request", "body": next(chunks), "more_body": True}
     async def send(message: dict[str, object]) -> None:
         sent.append(message)
-    asyncio.run(WorkUploadLimit(application)(  # type: ignore[arg-type]
+    asyncio.run(WorkUploadLimit(application)(
         {"type": "http", "method": "POST", "path": "/api/v1/manager/employees/demo/work-documents"},
         receive, send,  # type: ignore[arg-type]
     ))

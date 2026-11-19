@@ -1,0 +1,21 @@
+{
+	"nodes":[
+		{"id":"home","type":"file","file":"Project Knowledge/Project Home.md","x":-980,"y":-320,"width":480,"height":480,"color":"1"},
+		{"id":"inventory","type":"file","file":"Project Knowledge/Overview/Documentation Inventory.md","x":-300,"y":-620,"width":420,"height":280},
+		{"id":"architecture","type":"file","file":"Project Knowledge/Architecture/Architecture Map.md","x":-300,"y":-300,"width":420,"height":280,"color":"4"},
+		{"id":"decisions","type":"file","file":"Project Knowledge/Decisions/Decision Status.md","x":-300,"y":20,"width":420,"height":280,"color":"3"},
+		{"id":"devlog","type":"file","file":"Project Knowledge/Development Log/Development Log Index.md","x":280,"y":-620,"width":420,"height":280},
+		{"id":"risks","type":"file","file":"Project Knowledge/Risks/Risk Register.md","x":280,"y":-300,"width":420,"height":280,"color":"2"},
+		{"id":"agents","type":"file","file":"Project Knowledge/Agent Knowledge/Agent Guide.md","x":280,"y":20,"width":420,"height":280,"color":"6"},
+		{"id":"templates","type":"file","file":"Project Knowledge/Templates/ADR Template.md","x":-300,"y":360,"width":420,"height":280}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"home","fromSide":"right","toNode":"inventory","toSide":"left"},
+		{"id":"e2","fromNode":"home","fromSide":"right","toNode":"architecture","toSide":"left"},
+		{"id":"e3","fromNode":"home","fromSide":"right","toNode":"decisions","toSide":"left"},
+		{"id":"e4","fromNode":"home","fromSide":"right","toNode":"devlog","toSide":"left"},
+		{"id":"e5","fromNode":"home","fromSide":"right","toNode":"risks","toSide":"left"},
+		{"id":"e6","fromNode":"home","fromSide":"right","toNode":"agents","toSide":"left"},
+		{"id":"e7","fromNode":"home","fromSide":"right","toNode":"templates","toSide":"left"}
+	]
+}

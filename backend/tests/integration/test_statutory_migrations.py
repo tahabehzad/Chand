@@ -57,7 +57,16 @@ IDENTITY_TABLES = (
 #: The audit ledger tables delivered by migration 0005 (all tenant-scoped,
 #: hash-chained / append-only).
 AUDIT_TABLES = ("audit_logs", "access_log")
-ALL_TABLES = TABLES + IDENTITY_TABLES + MANAGER_TABLES + AUDIT_TABLES
+#: Work profile tables delivered by migration 0006 (all tenant-scoped).
+WORK_PROFILE_TABLES = ("employee_work_profiles", "employee_work_documents", "employee_work_calculations")
+#: Market reference tables delivered by migration 0007 (ADR-014).  Global reference
+#: records with no personal data, therefore no tenant_id and no RLS.
+ESTIMATION_TABLES = (
+    "market_data_sources",
+    "market_salary_observations",
+    "market_salary_aggregates",
+)
+ALL_TABLES = TABLES + IDENTITY_TABLES + MANAGER_TABLES + AUDIT_TABLES + WORK_PROFILE_TABLES + ESTIMATION_TABLES
 READER = "pish_statutory_reader"
 REVIEWER = "pish_statutory_reviewer"
 OWNER = "pish_migration_owner"

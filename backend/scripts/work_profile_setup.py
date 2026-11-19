@@ -12,6 +12,7 @@ import os
 import secrets
 import subprocess
 import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 sys.path.insert(0, ".")
@@ -27,7 +28,8 @@ async def status() -> None:
     engine = build_engine()
     try:
         async with engine.connect() as connection:
-            rows = (await connection.execute(text("SELECT version_num FROM alembic_version"))).scalars()
+            result = await connection.execute(text("SELECT version_num FROM alembic_version"))
+            rows: Sequence[str] = result.scalars().all()
             print("local_revision:", ",".join(rows))
     finally:
         await engine.dispose()
@@ -70,7 +72,7 @@ def provision() -> None:
     if os.name == "nt":
         user = os.environ.get("USERDOMAIN", "") + "\\" + os.environ["USERNAME"]
         executable = str(Path(os.environ["SYSTEMROOT"]) / "System32" / "icacls.exe")
-        result = subprocess.run(  # noqa: S603 — trusted Windows ACL utility, no shell
+        result = subprocess.run(
             [executable, str(KEY_PATH), "/inheritance:r", "/grant:r", user + ":F"],
             capture_output=True, check=False,
         )
