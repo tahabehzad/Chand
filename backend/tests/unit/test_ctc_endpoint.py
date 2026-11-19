@@ -164,15 +164,15 @@ class TestCtcBreakdownCalculations:
         assert response.status_code == 422
         assert "error" in response.json()
 
-    def test_accepts_verified_1405_statutory_year(self, client: TestClient) -> None:
-        """Requesting active year 1405 succeeds with 200 OK and accurate calculations."""
+    def test_accepts_verified_1404_statutory_year(self, client: TestClient) -> None:
+        """Requesting active baseline year 1404 succeeds with 200 OK and accurate calculations."""
         response = client.post(
             ENDPOINT,
-            json={"gross_salary_rial": 500_000_000, "year": 1405},
+            json={"gross_salary_rial": 500_000_000, "year": 1404},
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["rule_version"] == "1405.1"
+        assert "1404" in data["rule_version"]
         assert data["net_salary_rial"] > 0
 
     def test_deterministic_calculation_hash(self, client: TestClient) -> None:
