@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { StatutoryBaselineNotice } from '@/components/layout/statutory-baseline-notice';
 
 /**
@@ -7,6 +7,10 @@ import { StatutoryBaselineNotice } from '@/components/layout/statutory-baseline-
  * session contract to guard with.
  */
 export function AuthLayout() {
+  const { pathname } = useLocation();
+  if (pathname === '/login') {
+    return <main id="main-content" tabIndex={-1}><Outlet /></main>;
+  }
   return (
     <div className="flex min-h-screen flex-col bg-surface-muted">
       <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-6 sm:px-6">

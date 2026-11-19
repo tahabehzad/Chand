@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2',
+  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-xs hover:shadow-md disabled:pointer-events-none disabled:opacity-60 disabled:hover:scale-100 disabled:hover:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2',
   {
     variants: {
       variant: {
@@ -12,6 +12,7 @@ const buttonVariants = cva(
         secondary: 'border border-border-subtle bg-surface-raised text-ink hover:bg-surface',
         ghost: 'text-ink-muted hover:bg-surface hover:text-ink',
         danger: 'bg-danger text-white hover:opacity-90',
+        gradient: 'btn-gradient text-white shadow-sm hover:shadow-md',
       },
       size: {
         sm: 'min-h-9 px-3',

@@ -41,7 +41,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
-from typing import cast
+from typing import Protocol, cast
 
 import yaml
 
@@ -56,13 +56,17 @@ from app.engines.errors import (
 __all__ = (
     "StatutoryRuleSet",
     "TaxBracket",
+    "build_rule_set_from_parameters",
+    "clear_active_rule_set_cache",
     "load_rule_set",
+    "register_active_rule_set",
+    "rule_set_from_record",
     "shift_brackets_by",
     "validate_invariants",
 )
 
-#: The only year whose seed may be loaded (ADR-008; PROJECT_STATUS §4).
-ACTIVE_STATUTORY_YEARS: frozenset[int] = frozenset({1404})
+#: The permitted statutory baseline years (1404 historical verified, 1405 active current law).
+ACTIVE_STATUTORY_YEARS: frozenset[int] = frozenset({1404, 1405})
 
 #: Version label mandated for outputs by ``docs/EXECUTION_PLAN.md`` §3.5.
 _STATUTORY_VERSION_TEMPLATE = "{year}.1"
@@ -551,9 +555,292 @@ def _parse_seed(year: int, path: Path) -> StatutoryRuleSet:
     return rule_set
 
 
+def _parse_param_int(val: object, field_name: str, year: int) -> int:
+    """Safely extract an integer parameter, raising StatutoryParameterUnavailable on error."""
+    if isinstance(val, bool) or not isinstance(val, (int, str)):
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: {field_name} must be integer"
+        )
+    try:
+        return int(val)
+    except ValueError as exc:
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: {field_name} could not be converted to int"
+        ) from exc
+
+
+def _parse_param_decimal(val: object, field_name: str, year: int) -> Decimal:
+    """Safely extract a Decimal parameter, raising StatutoryParameterUnavailable on error."""
+    if isinstance(val, bool) or not isinstance(val, (int, float, str, Decimal)):
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: {field_name} must be numeric"
+        )
+    try:
+        d = Decimal(str(val))
+    except Exception as exc:
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: {field_name} could not be converted to Decimal"
+        ) from exc
+    if not d.is_finite():
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: {field_name} is not finite"
+        )
+    return d
+
+
+def _parse_tax_brackets_dict(raw_brackets: object, year: int) -> tuple[TaxBracket, ...]:
+    """Parse list of tax bracket dicts into tuple of TaxBracket."""
+    if not isinstance(raw_brackets, (list, tuple)) or not raw_brackets:
+        raise StatutoryParameterUnavailable(
+            f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: tax_brackets is null or empty"
+        )
+    brackets: list[TaxBracket] = []
+    for index, entry in enumerate(raw_brackets):
+        if not isinstance(entry, dict):
+            raise StatutoryParameterUnavailable(
+                f"{_seed_code(year)}_PARAMETER_UNAVAILABLE: tax_bracket[{index}] is not a dict"
+            )
+        slab = _parse_param_int(entry.get("slab"), f"tax_brackets[{index}].slab", year)
+        min_rial = _parse_param_int(
+            entry.get("min_rial"), f"tax_brackets[{index}].min_rial", year
+        )
+        raw_max = entry.get("max_rial")
+        max_rial: int | None
+        if raw_max is None:
+            max_rial = None
+        else:
+            max_rial = _parse_param_int(
+                raw_max, f"tax_brackets[{index}].max_rial", year
+            )
+        rate = _parse_param_decimal(entry.get("rate"), f"tax_brackets[{index}].rate", year)
+        brackets.append(
+            TaxBracket(slab=slab, min_rial=min_rial, max_rial=max_rial, rate=rate)
+        )
+    return tuple(brackets)
+
+
+def build_rule_set_from_parameters(
+    data: dict[str, object],
+    year: int,
+    version: str | None = None,
+    status: str = "VERIFIED",
+    status_source: str = "database",
+) -> StatutoryRuleSet:
+    """Build a StatutoryRuleSet from a parameters dictionary and validate invariants."""
+    daily_minimum = _parse_param_int(
+        data["daily_minimum_wage_rial"], "daily_minimum_wage_rial", year
+    )
+    monthly_minimum_30 = _parse_param_int(
+        data.get("monthly_minimum_wage_30days_rial", daily_minimum * 30),
+        "monthly_minimum_wage_30days_rial",
+        year,
+    )
+    monthly_minimum_31 = _parse_param_int(
+        data.get("monthly_minimum_wage_31days_rial", daily_minimum * 31),
+        "monthly_minimum_wage_31days_rial",
+        year,
+    )
+    monthly_minimum_29 = _parse_param_int(
+        data.get("monthly_minimum_wage_29days_rial", daily_minimum * 29),
+        "monthly_minimum_wage_29days_rial",
+        year,
+    )
+
+    monthly_housing = _parse_param_int(
+        data.get("monthly_housing_allowance_rial", 9_000_000),
+        "monthly_housing_allowance_rial",
+        year,
+    )
+    monthly_grocery = _parse_param_int(
+        data.get("monthly_grocery_allowance_rial", 22_000_000),
+        "monthly_grocery_allowance_rial",
+        year,
+    )
+    monthly_marriage = _parse_param_int(
+        data.get("monthly_marriage_allowance_rial", 5_000_000),
+        "monthly_marriage_allowance_rial",
+        year,
+    )
+    child_allowance = _parse_param_int(
+        data.get("child_allowance_per_child_rial", daily_minimum * 3),
+        "child_allowance_per_child_rial",
+        year,
+    )
+    daily_seniority = _parse_param_int(
+        data.get("daily_seniority_base_rial", 94_000),
+        "daily_seniority_base_rial",
+        year,
+    )
+    monthly_seniority = _parse_param_int(
+        data.get("monthly_seniority_base_30days_rial", daily_seniority * 30),
+        "monthly_seniority_base_30days_rial",
+        year,
+    )
+
+    employee_sso_rate = _parse_param_decimal(
+        data.get("employee_sso_rate", "0.070"), "employee_sso_rate", year
+    )
+    employer_sso_rate = _parse_param_decimal(
+        data.get("employer_sso_rate", "0.200"), "employer_sso_rate", year
+    )
+    employer_unemployment_rate = _parse_param_decimal(
+        data.get("employer_unemployment_rate", "0.030"),
+        "employer_unemployment_rate",
+        year,
+    )
+
+    max_daily_insurable = _parse_param_int(
+        data.get("max_daily_insurable_wage_rial", daily_minimum * 7),
+        "max_daily_insurable_wage_rial",
+        year,
+    )
+    seed_max_monthly_insurable = _parse_param_int(
+        data.get(
+            "seed_max_monthly_insurable_wage_30days_rial", max_daily_insurable * 30
+        ),
+        "seed_max_monthly_insurable_wage_30days_rial",
+        year,
+    )
+
+    weekly_hours = _parse_param_decimal(
+        data.get("standard_weekly_hours", "44.00"), "standard_weekly_hours", year
+    )
+    overtime_divisor = _parse_param_decimal(
+        data.get(
+            "overtime_monthly_divisor",
+            data.get("seed_overtime_monthly_divisor", "220.00"),
+        ),
+        "overtime_monthly_divisor",
+        year,
+    )
+    overtime_multiplier = _parse_param_decimal(
+        data.get("overtime_multiplier", "1.40"), "overtime_multiplier", year
+    )
+    night_shift_multiplier = _parse_param_decimal(
+        data.get("night_shift_multiplier", "1.35"), "night_shift_multiplier", year
+    )
+
+    monthly_tax_exemption = _parse_param_int(
+        data["monthly_tax_exemption_rial"], "monthly_tax_exemption_rial", year
+    )
+    annual_tax_exemption = _parse_param_int(
+        data.get("annual_tax_exemption_rial", monthly_tax_exemption * 12),
+        "annual_tax_exemption_rial",
+        year,
+    )
+    brackets = _parse_tax_brackets_dict(data["tax_brackets"], year)
+
+    eydi_min_days = _parse_param_int(
+        data.get("eydi_min_days", 60), "eydi_min_days", year
+    )
+    eydi_max_days = _parse_param_int(
+        data.get("eydi_max_days_min_wage", 90), "eydi_max_days_min_wage", year
+    )
+    max_annual_eydi = _parse_param_int(
+        data.get("max_annual_eydi_rial", monthly_minimum_30 * 3),
+        "max_annual_eydi_rial",
+        year,
+    )
+    eydi_tax_exemption = _parse_param_int(
+        data.get("eydi_tax_exemption_rial", annual_tax_exemption // 12),
+        "eydi_tax_exemption_rial",
+        year,
+    )
+    non_cash_exemption = _parse_param_int(
+        data.get(
+            "non_cash_benefit_annual_tax_exemption_rial",
+            (annual_tax_exemption * 2) // 12,
+        ),
+        "non_cash_benefit_annual_tax_exemption_rial",
+        year,
+    )
+
+    stat_version = version or str(data.get("statutory_version", f"{year}.1"))
+    effective_date = str(data.get("effective_date", f"{year}-01-01"))
+    source_circ = str(
+        data.get("source_circular_reference", f"Official Circular {year}")
+    )
+
+    rule_set = StatutoryRuleSet(
+        statutory_version=stat_version,
+        rule_year_shamsi=year,
+        rule_set_status=status,
+        rule_set_status_source=status_source,
+        is_verified=True,
+        effective_date=effective_date,
+        source_circular_reference=source_circ,
+        daily_minimum_wage_rial=daily_minimum,
+        monthly_minimum_wage_29days_rial=monthly_minimum_29,
+        monthly_minimum_wage_30days_rial=monthly_minimum_30,
+        monthly_minimum_wage_31days_rial=monthly_minimum_31,
+        monthly_housing_allowance_rial=monthly_housing,
+        monthly_grocery_allowance_rial=monthly_grocery,
+        monthly_marriage_allowance_rial=monthly_marriage,
+        child_allowance_per_child_rial=child_allowance,
+        daily_seniority_base_rial=daily_seniority,
+        monthly_seniority_base_30days_rial=monthly_seniority,
+        employee_sso_rate=employee_sso_rate,
+        employer_sso_rate=employer_sso_rate,
+        employer_unemployment_rate=employer_unemployment_rate,
+        max_daily_insurable_wage_rial=max_daily_insurable,
+        seed_max_monthly_insurable_wage_30days_rial=seed_max_monthly_insurable,
+        standard_weekly_hours=weekly_hours,
+        seed_overtime_monthly_divisor=overtime_divisor,
+        overtime_multiplier=overtime_multiplier,
+        night_shift_multiplier=night_shift_multiplier,
+        monthly_tax_exemption_rial=monthly_tax_exemption,
+        annual_tax_exemption_rial=annual_tax_exemption,
+        tax_brackets=brackets,
+        eydi_min_days=eydi_min_days,
+        eydi_max_days_min_wage=eydi_max_days,
+        max_annual_eydi_rial=max_annual_eydi,
+        eydi_tax_exemption_rial=eydi_tax_exemption,
+        non_cash_benefit_annual_tax_exemption_rial=non_cash_exemption,
+    )
+    validate_invariants(rule_set)
+    return rule_set
+
+
+class _StatutoryRecordLike(Protocol):
+    @property
+    def rule_year_shamsi(self) -> int: ...
+
+    @property
+    def parameters_json(self) -> dict[str, object]: ...
+
+    @property
+    def version_id(self) -> str: ...
+
+
+def rule_set_from_record(record: _StatutoryRecordLike) -> StatutoryRuleSet:
+    """Build StatutoryRuleSet from a persisted StatutoryRuleSetRecord."""
+    params = record.parameters_json
+    year = record.rule_year_shamsi
+    version = record.version_id
+    return build_rule_set_from_parameters(
+        params, year=year, version=version, status="ACTIVE", status_source="repository"
+    )
+
+
+_ACTIVE_STATUTORY_CACHE: dict[int, StatutoryRuleSet] = {}
+
+
+def register_active_rule_set(rule_set: StatutoryRuleSet) -> None:
+    """Register an active rule set in the cache to override seed fallback."""
+    _ACTIVE_STATUTORY_CACHE[rule_set.rule_year_shamsi] = rule_set
+
+
+def clear_active_rule_set_cache() -> None:
+    """Clear registered active rule sets, resetting to seed defaults."""
+    _ACTIVE_STATUTORY_CACHE.clear()
+    load_rule_set.cache_clear()
+
+
 @lru_cache(maxsize=8)
 def load_rule_set(year: int) -> StatutoryRuleSet:
     """Load the verified rule set for *year*, failing closed otherwise.
+
+    Checks dynamic registered versions first; falls back to seed files.
 
     The refusal **kind** follows the state of the requested year:
 
@@ -573,6 +860,8 @@ def load_rule_set(year: int) -> StatutoryRuleSet:
             invariant failed.
         RuleSetNotActive: No seed exists for *year* at all.
     """
+    if year in _ACTIVE_STATUTORY_CACHE:
+        return _ACTIVE_STATUTORY_CACHE[year]
     path = _SEEDS_DIR / f"statutory_rules_{year}.yaml"
     if not path.exists():
         # A year outside the verified baseline can never be served; the

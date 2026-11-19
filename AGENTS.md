@@ -8,14 +8,14 @@ Persian (Farsi) for all user-facing prose; English for code, identifiers, paths,
 
 ## 1. Start with the task
 
-The product is the **statutory payroll calculation engine** (ADR-008, accepted 2026-11-15): SSO, progressive income tax, net pay, overtime/night shift, Sanavat, Eydi, employer CTC and the Article 11 worst case — pure functions plus one minimal API endpoint on the verified **1404 SH** baseline. The prior pre-employment platform scope (ADR-004's module list) is superseded; the five-phase/20-week roadmap table is retained for traceability. 1405 is transcribed, unverified and inactive.
+The active product is the **resume analysis and monthly salary estimation tool** (ADR-013, accepted 2026-11-17; ADR-014, accepted 2026-11-18): one manager enters a candidate's career information (job title, experience, skills, education, city, employment type, seniority level), and the system returns a suggested monthly salary range (P25…P75) with a primary estimate (median), contributing factors, and confidence level based on verified Iranian labor market data. The prior statutory payroll calculation engine scope (ADR-008) remains implemented in code but is superseded as the active product direction. The earlier pre-employment platform scope (ADR-004) is historical.
 
-Read this file, then use **docs/DOCUMENTATION_INDEX.md §0** to select context. Before your first change, read the Holy Bible **§0.3, §13.1 and §13.8**, the relevant §3 requirements and the applicable primary sources. Read §0.4 only when source provenance is relevant; it is a historical inventory. Do not load the entire Holy Bible, WBS, changelog or research corpus by default.
+Read this file, then use **docs/DOCUMENTATION_INDEX.md §0** to select context. For the active salary estimation product, refer to **docs/PRODUCT_VISION.md**, **docs/PRODUCT_SCOPE.md**, **docs/SALARY_ESTIMATION_SPEC.md**, **docs/LABOR_MARKET_DATA_SPEC.md**, **docs/DATA_MODEL_SPEC.md**, and **docs/ARCHITECTURE.md**.
 
-- Current delivery status: **docs/PROJECT_STATUS.md §2**; task dependencies/acceptance: **docs/EXECUTION_PLAN.md §14.3**.
+- Current delivery status: **docs/PROJECT_STATUS.md §2**; task dependencies/acceptance: **docs/EXECUTION_PLAN.md**.
 - Derived snapshot (no independent facts): **PROJECT_STATE.md**. If it disagrees with an owner above, the owner wins and the snapshot is wrong.
-- Latest recorded application and UI evidence: **docs/BOOTSTRAP_CHANGELOG.md §28**; engine verification: §23–§24; PostgreSQL runtime: §15; documentation maintenance: §29. Historical test results are not a fresh runtime check.
-- Decisions: **docs/DECISIONS_REGISTER.md** and **docs/ADR_INDEX.md**. ADR-006, ADR-007, ADR-008 and ADR-009 are accepted; ADR-005 remains proposed.
+- Latest recorded application and UI evidence: **docs/BOOTSTRAP_CHANGELOG.md §28**; engine verification: §23–§24; market salary engine verification: ADR-014 (82 domain tests + 13 E2E tests PASS; 129 frontend tests PASS).
+- Decisions: **docs/DECISIONS_REGISTER.md**, **docs/OPEN_DECISIONS.md**, and **docs/ADR_INDEX.md**. Accepted ADRs: 001–004, 006, 007, 008, 009, 010, 011, 012, 013, and 014; ADR-005 remains proposed.
 - Research Markdown/DOCX is historical and contains rejected recommendations. Consult only for a specific evidence question after checking the supersession index.
 
 ## 2. Non-negotiable invariants
@@ -29,19 +29,20 @@ Violating any invariant is a defect regardless of tests.
 4. A forensic anomaly is not a fraud verdict; route it to a human.
 5. Human review/adjudication remains mandatory where specified.
 6. Historical simulations retain their original rule-set reference; never recompute or rewrite them.
+7. **Refuse instead of fabricate (ADR-014):** When no verified market observation covers a profile cohort, the engine must return `insufficient_data` with the measured counts and reasons; it must **never** invent salary numbers, interpolate blindly, or fall back to an unmeasured national average. AI is restricted to resume text parsing and must never generate salary figures.
 
 ### Financial
-7. Decimal only: no float literal in `backend/app/engines/**`; `getcontext().prec = 34`; `ROUND_HALF_UP` only; no Python `round()` on money.
-8. Round once at the line-item boundary. Surface a signed `rounding_residual_rial` for rounded-line/rounded-total differences (≤ 1 Rial per line).
-9. Every emitted figure carries `rule_version`, `rule_set_status`, `engine_version`, `calculation_hash`, `generated_at` and per-field provenance.
-10. Unknown statutory values stay unknown: never coerce null to zero; raise `StatutoryParameterUnavailable`.
-11. Calculation is a pure function of `(inputs, rule_set_version)`: no clock, randomness, network or environment reads in the calculation path.
+8. Decimal only: no float literal in `backend/app/engines/**` or `backend/app/domain/salary_estimation/**`; `getcontext().prec = 34`; `ROUND_HALF_UP` only; no Python `round()` on money.
+9. Round once at the line-item boundary. Surface a signed `rounding_residual_rial` for rounded-line/rounded-total differences (≤ 1 Rial per line).
+10. Every emitted figure carries `rule_version` / `estimation_version`, `engine_version`, `calculation_hash`, `generated_at` and per-field provenance.
+11. Unknown statutory values stay unknown: never coerce null to zero; raise `StatutoryParameterUnavailable`.
+12. Calculation is a pure function of `(inputs, rule_set_version / market_observations)`: no clock, randomness, network or environment reads in the calculation path.
 
 ### Security
-12. Every tenant table gets `tenant_id`, an RLS policy and `FORCE ROW LEVEL SECURITY` in the same migration.
-13. Encrypt PII in the application layer with AES-256-GCM; keys never enter the database. Exact lookup uses HMAC-SHA256 blind indexing with an isolated pepper; no `pgcrypto`.
-14. The audit ledger is append-only; the database rejects UPDATE/DELETE.
-15. Never print, log, commit or transmit secrets, National IDs, mobile numbers, Sheba numbers or real candidate salaries.
+13. Tenant tables get `tenant_id`, an RLS policy and `FORCE ROW LEVEL SECURITY`. Global reference tables (e.g. `market_salary_observations`, `market_salary_aggregates`, `market_data_sources`) hold no tenant data and require no RLS per ADR-007 / ADR-014.
+14. Encrypt PII in the application layer with AES-256-GCM when high-sensitivity personal data is stored; keys never enter the database. Exact lookup uses HMAC-SHA256 blind indexing with an isolated pepper.
+15. The audit ledger is append-only; the database rejects UPDATE/DELETE.
+16. Never print, log, commit or transmit secrets, National IDs, mobile numbers, Sheba numbers or real candidate salaries.
 
 ## 3. Authority and change control
 
@@ -71,6 +72,7 @@ Load only applicable `.agents/skills/*/SKILL.md` contracts:
 - Monetary change: **financial-data-integrity**; engine change: also **iranian-payroll-engineering**.
 - Database/security: **database-engineering**, **security-threat-model**.
 - Persian UI/PDF: **persian-rtl-engineering**.
+- LLM search/grounding: **llm-market-grounding**.
 - Architecture/specification/review/modeling/discovery/ADR work: the matching existing skill.
 
 Skills constrain how to work, not product scope. **Slow-path execution remains undecided**: software-architecture and REMEDIATED §3.1 name BackgroundTasks, but ADR-005 is proposed and P2-T04 remains blocked. Keep the JobQueue interface boundary; do not treat a proposed queue, cloud fallback or unresolved PDF preference as approved. See Holy Bible §4.8 and §13.5.

@@ -36,7 +36,9 @@ export type IconName =
   | 'spinner'
   | 'empty'
   | 'lock'
-  | 'external';
+  | 'external'
+  | 'sun'
+  | 'moon';
 
 type IconDefinition = {
   /** Persian accessible label, used when the icon is not aria-hidden. */
@@ -136,6 +138,16 @@ export const ICON_REGISTRY: Record<IconName, IconDefinition> = {
     labelFa: 'پیوند بیرونی',
     directional: false,
     path: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+  },
+  sun: {
+    labelFa: 'خورشید — حالت روشن',
+    directional: false,
+    path: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18M12 11v6M12 8h.01',
+  },
+  moon: {
+    labelFa: 'ماه — حالت تیره',
+    directional: false,
+    path: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z',
   },
 };
 

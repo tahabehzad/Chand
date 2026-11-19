@@ -482,3 +482,54 @@ def test_the_article_137_deduction_uses_the_exact_sso_share() -> None:
     court = calculation.payload["tax_postures"][POSTURE_COURT_PRECEDENT]
     assert conservative["art137_deduction_rial"] == exact_deduction
     assert court["art137_deduction_rial"] == round_half_up(exact_share)
+
+
+# ---------------------------------------------------------------------------
+# ENGINE_VERSION consistency (X-4 / ADR-010 directive 1)
+# ---------------------------------------------------------------------------
+
+
+def test_engine_version_single_source_of_truth() -> None:
+    """Engine and service layer must expose the same ENGINE_VERSION."""
+    from app.engines import ENGINE_VERSION as ENGINE_ENGINE_VERSION
+    from app.services import ENGINE_VERSION as SERVICE_ENGINE_VERSION
+    from app.services.payroll_service import ENGINE_VERSION as PAYROLL_ENGINE_VERSION
+
+    # All three import paths must resolve to the same canonical version
+    assert ENGINE_ENGINE_VERSION == SERVICE_ENGINE_VERSION == PAYROLL_ENGINE_VERSION
+    # The version identifies the Article 58 supplement correction (ADR-011).
+    assert ENGINE_ENGINE_VERSION == "0.4.0-payroll-engine"
+
+
+def test_api_response_carries_canonical_engine_version() -> None:
+    """The gross-to-net response must carry the canonical engine version."""
+    from app.engines import ENGINE_VERSION as CANONICAL_VERSION
+
+    calculation = compute_gross_to_net(PayrollInput(gross_monthly_rial=100_000_000))
+    assert calculation.payload["engine_version"] == CANONICAL_VERSION
+    assert calculation.payload["engine_version"] == "0.4.0-payroll-engine"
+
+
+def test_article_58_flows_through_gross_net_cost_and_provenance() -> None:
+    """Ordinary wages already in 220m gross; ten night hours add exactly 3.5m."""
+    baseline = compute_gross_to_net(_inputs(gross_monthly_rial=220_000_000, allowances=Allowances()))
+    night = compute_gross_to_net(
+        _inputs(gross_monthly_rial=220_000_000, allowances=Allowances(), night_hours=10)
+    )
+    payload = night.payload
+    assert payload["bases"]["night_shift_pay_rial"] == 3_500_000
+    assert payload["bases"]["total_gross_rial"] == 223_500_000
+    assert payload["employee_deductions"]["employee_sso_7pct_rial"] == 15_645_000
+    assert payload["employee_deductions"]["income_tax_rial"] == 0
+    assert payload["net_rial"] == 207_855_000
+    assert payload["employer_cost"]["total_monthly_employer_cost_rial"] == (
+        223_500_000
+        + payload["sso"]["employer_share_20pct_rial"]
+        + payload["sso"]["unemployment_fund_3pct_rial"]
+        + payload["severance_sanavat"]["monthly_accrual_rial"]
+        + payload["eydi"]["monthly_accrual_rial"]
+    )
+    provenance = payload["provenance"]["bases.night_shift_pay_rial"]
+    assert provenance["rule_id"] == "LABOUR_LAW_ART_58"
+    assert "night_shift_multiplier - 1" in provenance["formula_ref"]
+    assert night.calculation_hash != baseline.calculation_hash

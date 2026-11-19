@@ -38,26 +38,45 @@ Keep the loaded document revision/section in the task handoff; reread when the s
 
 | Path | ID | Purpose | Authority rank |
 | :--- | :-- | :--- | :--: |
-| [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) | `DOC-EXEC-001` | The master execution plan: scope, specification baseline, WBS, gates | 4 |
+| [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) | `DOC-EXEC-001` | The master execution plan: scope, specification baseline, WBS, gates (payroll-era; partially superseded by ADR-013) | 4 |
 | [`docs/DECISIONS_REGISTER.md`](DECISIONS_REGISTER.md) | `REG-DEC-001` | The register of unresolved decisions and blockers | 4 |
-| [`docs/IMPLEMENTATION_READINESS.md`](IMPLEMENTATION_READINESS.md) | `DOC-READY-001` | Per-phase readiness classification | 4 |
+| [`docs/OPEN_DECISIONS.md`](OPEN_DECISIONS.md) | `REG-OPEN-002` | Open decisions for the salary estimation tool | 4 |
+| [`docs/IMPLEMENTATION_READINESS.md`](IMPLEMENTATION_READINESS.md) | `DOC-READY-001` | Per-phase readiness classification (payroll-era; partially superseded) | 4 |
 | [`docs/ADR_INDEX.md`](ADR_INDEX.md) | `DOC-ADRIDX-001` | The ADR register and the rejected-technology list | 4 |
 | [`docs/DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md) | `DOC-DOCIDX-001` | This document: the hierarchy and the supersession map | 4 |
-| [`docs/EXECUTION_DOCUMENTATION_AUDIT.md`](EXECUTION_DOCUMENTATION_AUDIT.md) | `DOC-AUDIT-001` | The self-audit of this package | 4 |
-| [`docs/ROADMAP_OPERATIONAL_PAYROLL.md`](ROADMAP_OPERATIONAL_PAYROLL.md) | `DOC-ROADMAP-001` | Derived roadmap from the delivered engine to operational use: in-domain, decision-blocked and out-of-scope tracks with milestones | 4 (derived; creates no task or scope authority) |
+| [`docs/audit/DOCUMENTATION_AUDIT.md`](audit/DOCUMENTATION_AUDIT.md) | `DOC-AUDIT-002` | Documentation audit matrix after ADR-013 scope change | 4 |
+| [`docs/ROADMAP_OPERATIONAL_PAYROLL.md`](ROADMAP_OPERATIONAL_PAYROLL.md) | `DOC-ROADMAP-001` | Derived roadmap from the delivered engine to operational use (payroll-era; historical) | 4 (derived; creates no task or scope authority) |
 
-**Derived snapshot (not an authority):** [`PROJECT_STATE.md`](../PROJECT_STATE.md) (`DOC-STATE-001`) is a short snapshot of the current state for a reader who needs orientation. It holds **no independent facts** and ranks below every row above: delivery state is owned by [`docs/PROJECT_STATUS.md`](PROJECT_STATUS.md), tasks by [`docs/EXECUTION_PLAN.md`](EXECUTION_PLAN.md) §14.3, decisions by [`docs/DECISIONS_REGISTER.md`](DECISIONS_REGISTER.md) and [`docs/adr/`](adr/), verification by [`docs/BOOTSTRAP_CHANGELOG.md`](BOOTSTRAP_CHANGELOG.md). Where the snapshot disagrees with an owner, the owner is correct and the snapshot is stale. Load it instead of the owners only when a one-screen orientation is enough; load the owner for any decision, status change or verification claim.
+### 1.2 Product vision and scope (new product direction)
 
-### 1.2 Subordinate specifications
+| Path | ID | Purpose | Authority rank |
+| :--- | :-- | :--- | :--: |
+| [`docs/PRODUCT_VISION.md`](PRODUCT_VISION.md) | `DOC-VISION-001` | Product vision: resume analysis and salary estimation tool | 2 |
+| [`docs/PRODUCT_SCOPE.md`](PRODUCT_SCOPE.md) | `DOC-SCOPE-001` | Product scope: in-scope and out-of-scope capabilities | 2 |
+| [`docs/FUNCTIONAL_REQUIREMENTS.md`](FUNCTIONAL_REQUIREMENTS.md) | `DOC-FUNC-REQ-001` | Functional requirements (FR-01…FR-13) | 2 |
+| [`docs/NON_FUNCTIONAL_REQUIREMENTS.md`](NON_FUNCTIONAL_REQUIREMENTS.md) | `DOC-NONFUNC-REQ-001` | Non-functional requirements (NF-01…NF-18) | 2 |
+| [`docs/USER_WORKFLOWS.md`](USER_WORKFLOWS.md) | `DOC-WORKFLOW-001` | User workflows and screen map | 2 |
+| [`docs/SALARY_ESTIMATION_SPEC.md`](SALARY_ESTIMATION_SPEC.md) | `DOC-SALARY-EST-001` | Salary estimation methodology and output | 2 |
+| [`docs/LABOR_MARKET_DATA_SPEC.md`](LABOR_MARKET_DATA_SPEC.md) | `DOC-LABOR-MARKET-001` | Labor market data sources, model, and acquisition | 2 |
+| [`docs/AI_ANALYSIS_SPEC.md`](AI_ANALYSIS_SPEC.md) | `DOC-AI-ANALYSIS-001` | AI analysis boundaries and responsibilities | 2 |
+| [`docs/DATA_MODEL_SPEC.md`](DATA_MODEL_SPEC.md) | `DOC-DATA-MODEL-001` | Database schema and data model | 2 |
+| [`docs/SECURITY_AND_PRIVACY.md`](SECURITY_AND_PRIVACY.md) | `DOC-SECURITY-001` | Security and privacy for the new product | 2 |
+| [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) | `DOC-ARCH-002` | Simplified architecture for salary estimation tool | 2 |
+| [`docs/IMPLEMENTATION_ROADMAP.md`](IMPLEMENTATION_ROADMAP.md) | `DOC-ROADMAP-002` | Implementation roadmap and open decisions | 3 |
+
+### 1.3 Subordinate specifications (existing — partially superseded)
 
 | Path | ID | Scope |
 | :--- | :-- | :--- |
-| [`docs/specs/STATUTORY_INGESTION.md`](specs/STATUTORY_INGESTION.md) | `SPEC-STAT-001` | Source identification, acquisition, transcription, four-eyes verification, versioning, change history, activation criteria, 1404 regression |
-| [`docs/specs/AUTH.md`](specs/AUTH.md) | `SPEC-AUTH-001` | Users, organizations, membership, roles, permissions, sessions, MFA, tenant isolation, audit attribution, key management, emergency access |
-| [`docs/specs/FRONTEND_PERSIAN.md`](specs/FRONTEND_PERSIAN.md) | `SPEC-FE-001` | RTL layout, Vazirmatn, Jalali calendar, numeral and currency policy, text normalisation, PDF shaping and embedding, accessibility, responsive behaviour |
-| [`docs/specs/TESTING.md`](specs/TESTING.md) | `SPEC-QA-001` | The 13 test layers, tooling, environments, fixtures, CI stages, blocking rules, coverage, release criteria |
-| [`docs/specs/DEPLOYMENT.md`](specs/DEPLOYMENT.md) | `SPEC-OPS-001` | Topology, Windows development, containers, migrations, configuration and secrets, TLS, observability, backup, runbooks, retention, upgrade/rollback, air-gapped deployment |
-| [`docs/specs/DOCUMENT_FORENSICS.md`](specs/DOCUMENT_FORENSICS.md) | `SPEC-DOC-001` | Document taxonomy, custody, OCR, tamper detection, signatures, issuer verification, status model, consistency matrix, 4-way disambiguation, `V_score` |
+| [`docs/specs/STATUTORY_INGESTION.md`](specs/STATUTORY_INGESTION.md) | `SPEC-STAT-001` | Statutory parameter ingestion (1404/1405) — **OUTDATED**; payroll-era, not used for salary estimation |
+| [`docs/specs/AUTH.md`](specs/AUTH.md) | `SPEC-AUTH-001` | Users, organizations, roles, sessions, MFA — **OUTDATED**; single manager only in new product |
+| [`docs/specs/FRONTEND_PERSIAN.md`](specs/FRONTEND_PERSIAN.md) | `SPEC-FE-001` | RTL layout, Vazirmatn, Jalali calendar, numeral and currency policy — **VALID**; still applicable |
+| [`docs/specs/TESTING.md`](specs/TESTING.md) | `SPEC-QA-001` | Test layers, tooling, environments, CI stages — **NEEDS_UPDATE**; adapt to salary estimation |
+| [`docs/specs/DEPLOYMENT.md`](specs/DEPLOYMENT.md) | `SPEC-OPS-001` | Topology, containers, migrations, configuration — **NEEDS_UPDATE**; simplify for new product |
+| [`docs/specs/DOCUMENT_FORENSICS.md`](specs/DOCUMENT_FORENSICS.md) | `SPEC-DOC-001` | Document taxonomy, OCR, tamper detection — **OBSOLETE**; out of scope |
+| [`docs/specs/WORK_PROFILE_PAYROLL.md`](specs/WORK_PROFILE_PAYROLL.md) | — | Work profile and payroll — **OUTDATED**; payroll-era |
+| [`docs/specs/STATUTORY_DATABASE_CONTRACT.md`](specs/STATUTORY_DATABASE_CONTRACT.md) | — | Statutory database contract — **OUTDATED**; payroll-era |
+| [`docs/specs/history/STATUTORY_DATABASE_CONTRACT.rev2.md`](specs/history/STATUTORY_DATABASE_CONTRACT.rev2.md) | — | Historical DB contract — **OBSOLETE** |
 
 ### 1.3 Architecture Decision Records
 
@@ -69,15 +88,24 @@ Keep the loaded document revision/section in the task handoff; reread when the s
 | [`docs/adr/ADR-004-phase-1-product-boundary-prehire-scope.md`](adr/ADR-004-phase-1-product-boundary-prehire-scope.md) | Accepted — module list and directives 2–3 **superseded by ADR-008**; text retained |
 | [`docs/adr/ADR-005-async-execution-strategy.md`](adr/ADR-005-async-execution-strategy.md) | **Proposed** |
 | [`docs/adr/ADR-006-phase-0-owner-approved-security-and-schema.md`](adr/ADR-006-phase-0-owner-approved-security-and-schema.md) | **Accepted — owner-approved four Phase 0 choices; limited amendment of ADR-003 directive 3** |
-| [`docs/adr/ADR-008-product-scope-statutory-payroll-engine.md`](adr/ADR-008-product-scope-statutory-payroll-engine.md) | **Accepted — product scope refocus on the statutory payroll calculation engine; resolves DEC-002a; ADR-004 module list superseded** |
+| [`docs/adr/ADR-008-product-scope-statutory-payroll-engine.md`](adr/ADR-008-product-scope-statutory-payroll-engine.md) | **Accepted — product scope refocus on the statutory payroll calculation engine; resolves DEC-002a; ADR-004 module list superseded; product-boundary clauses partially superseded by ADR-013** |
+| [`docs/adr/ADR-009-compensation-advisory-module.md`](adr/ADR-009-compensation-advisory-module.md) | **Accepted** — extends ADR-008; out of scope for new product |
+| [`docs/adr/ADR-010-manager-mvp-product-scope.md`](adr/ADR-010-manager-mvp-product-scope.md) | **Accepted** — approved by the Project Owner (v2), prospective, **effective 2026-11-17**; product-direction clauses partially superseded by ADR-013 |
+| [`docs/adr/ADR-011-night-work-supplement.md`](adr/ADR-011-night-work-supplement.md) | **Accepted** — night-work computation correction; narrowly supersedes ADR-008's night multiplier application |
+| [`docs/adr/ADR-012-persisted-work-profile-and-payroll.md`](adr/ADR-012-persisted-work-profile-and-payroll.md) | **Accepted** — persisted work profiles, encrypted local documents, proportional payroll |
+| [`docs/adr/ADR-013-resume-analysis-salary-estimation-tool.md`](adr/ADR-013-resume-analysis-salary-estimation-tool.md) | **Accepted** — product scope change to resume analysis and monthly salary estimation tool; partially supersedes ADR-008 and ADR-010 product-boundary clauses |
+| [`docs/adr/ADR-014-market-salary-reference-data-and-estimation.md`](adr/ADR-014-market-salary-reference-data-and-estimation.md) | **Accepted** — market salary reference data and the estimation engine (cohort statistics, validation, confidence, API/UI truthfulness); approved by Project Owner (2026-11-18) |
 
-### 1.4 Upstream sources — outside `docs/`, unmodified by this workstream
+### 1.4 Archived legacy reports — moved to `docs/archive/legacy_reports/`
 
-| Path | Role | Rank |
+| Path | Original Role | Status |
 | :--- | :--- | :--: |
-| `REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` | The authoritative product & technical specification | 2 |
-| `PHASE_1_RED_TEAM_AUDIT.md` | The findings and correction register | 3 |
-| `PHASE_1_FINAL_AUDIT_BRIEF.md` | **Superseded** baseline brief | 6 |
+| `docs/archive/legacy_reports/REMEDIATED_TECHNICAL_SPECIFICATION_V2.md` | Authoritative product & technical specification (payroll-era) | Archived / Superseded |
+| `docs/archive/legacy_reports/PHASE_1_RED_TEAM_AUDIT.md` | Findings and correction register (payroll-era) | Archived / Historical |
+| `docs/archive/legacy_reports/PHASE_1_FINAL_AUDIT_BRIEF.md` | Baseline brief (pre-hire era) | Archived / Obsolete |
+| `docs/archive/legacy_reports/RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` | Research gap analysis | Archived / Historical |
+| `docs/archive/legacy_reports/PRODUCT_AUDIT_REPORT.md` | Independent audit report | Archived / Historical |
+| `docs/archive/legacy_reports/PROJECT_HANDOFF_SUMMARY.md` | Handoff summary | Archived / Historical |
 | `RESEARCH_GAP_ANALYSIS_AND_ADVANCED_SPECIFICATION.md` | **Historical** research synthesis | 5 (retained sections only) |
 | `گزارش جامع پژوهشی.docx` (PH-RES-1405-01) | Persian baseline research | 5 |
 | `Technical Investigation of Related Software Projects.docx` | Technology landscape survey | 5 |

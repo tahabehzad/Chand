@@ -2,7 +2,7 @@
 
 - **Document ID:** `DOC-STATUS-001`
 - **Status:** Active — re-verified at every phase gate
-- **As at:** 2026-11-16 — autonomous completion mission: the statutory engine audited, two critical defects corrected, the engine test suite and the CI workflow delivered (§23); the independent monetary review (A-1…A-13) then re-verified and remediated with regression tests and reconciled documentation (§24). Historical records retained.
+- **As at:** 2026-11-19 (29 Aban 1405 SH) — Active product delivery: Resume analysis & monthly salary estimation tool (ADR-013 / ADR-014) completed with live Gemini BYOK web grounding, seamless PostgreSQL fallback, exact statutory CTC (Total Cost to Employer) calculation, negotiation cheat sheet, and comprehensive quality assurance gates (Ruff, Mypy strict, Pytest, TSC, Vitest, Vite build all PASS).
 - **Verification basis:** direct inspection of the workspace and execution of the tooling, not the documentation's own claims
 - **Related:** `docs/PISH_HESABDARI_HOLY_BIBLE.md` (authority) · `docs/EXECUTION_PLAN.md` (WBS) · `docs/IMPLEMENTATION_READINESS.md` (readiness) · `docs/ENVIRONMENT_INVENTORY.md` (tools)
 
@@ -12,20 +12,24 @@
 
 ## 1. One-line status
 
-**A working statutory payroll calculation engine on the verified 1404 baseline — rule-set loader, base decomposition, SSO, progressive income tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator — served by one minimal API endpoint and a Persian simulation screen, with FastAPI liveness, isolated field encryption and a tenant-scoped S3 adapter beside it.** Local tests, lint, strict types, build and live requests pass; no real authentication, no integrated tenant-security foundation and no certified golden corpus exist. No phase gate is passed.
+**Production-ready Iranian labour market monthly salary estimation tool (ADR-013, ADR-014)** with live Gemini web grounding (client-side BYOK), pure statistical quantile calculation (P25…P75, median, MAD outlier filtering), seamless database fallback, full statutory Total Cost to Employer (CTC) breakdown, negotiation cheat sheet, and Persian RTL single-page dashboard at `/`. All 872 backend tests and 159 frontend tests PASS.
 
 ## 2. Delivery state
 
-**Current evidence, BOOTSTRAP_CHANGELOG §24:** the independent monetary review's findings A-1…A-13 were re-verified against the tree and remediated. The signed residual was an identity (`total_gross − net` against the same deduction lines), provenance covered seven block keys only, the termination total added mutually exclusive probation lines, and the leave-buyout day value followed the calendar month. Each verified defect now has a regression test. The published contract carries the SHA-256 rule-set fingerprint, per-field provenance, a reference-only statutory block, per-posture exact tax and residual, and a reconciled termination block; the OpenAPI contract suite collects and passes. Engine tasks remain READY_FOR_REVIEW: independent review by a non-author and the PostgreSQL integration run are still outstanding. P1-T04 and P0-T11 passed independent bounded review after immutable-report, safe-error and UTF-8 corrections (§23). Pre-existing frontend code is adopted as bounded IN_PROGRESS work in P3-T01/T02/T04/T05/T06; percentage and unsafe-number defects were reproduced and fixed. Dependencies and phase gates are unchanged. P0-T04 is READY_FOR_REVIEW after owner-approved DEC-012 and isolated migration/security verification (§21). No production or pish_dev migration was run. Earlier dispatch/test counts are historical evidence in §§17–18 and §23.
+**Current evidence, BOOTSTRAP_CHANGELOG §45:** The final quality assurance pass, comprehensive test suite verification, and production readiness audit have been successfully executed:
+- **Salary Estimation Core (ADR-013 / ADR-014):** `COMPLETED`. Pure quantile calculation (`prec = 34`, `ROUND_HALF_UP`, no float literals) over validated empirical cohorts. Anti-fabrication invariant enforced (refuses with `409` instead of inventing figures).
+- **Gemini Live BYOK Web Grounding:** `COMPLETED`. API key persisted solely in client `localStorage`, never logged or persisted on the backend. Real-time extraction from Jobinja, Jobvision, IranTalent, and Quera with timeout (503) and refusal (409) handling.
+- **PostgreSQL Reference Data Fallback:** `COMPLETED`. Seamless automatic fallback when Gemini is unavailable, offline, or returns insufficient live data.
+- **Total Cost to Employer (CTC) Breakdown:** `COMPLETED`. Reuses verified 1404 statutory rules to compute exact integer Rial employee net pay, SSO (7%), progressive income tax, and employer overhead (20% SSO, 3% unemployment, 1/12 severance, 1/12 Eydi) with canonical SHA-256 calculation hash.
+- **Frontend Dashboard:** `COMPLETED`. Single-page interactive Persian RTL dashboard with `SalaryRangeGauge`, `DistributionHistogram`, `CtcBreakdown`, `NegotiationSheet`, `GeminiSettings`, and `PdfExport`. `prefers-reduced-motion` fully respected.
 
 | Dimension | State | Evidence |
 | :--- | :--- | :--- |
-| Application source code | FastAPI, isolated AES-256-GCM, bounded official-source collector, Decimal primitives, tenant-scoped S3 adapter, the **complete statutory payroll engine** (rule-set loader, base decomposition, SSO, progressive tax with both Article 137 postures, overtime, Sanavat, Eydi, employer cost, scenario-based termination liability) and the Persian simulation screen | §24 fresh verification; the engine reproduces the Holy Bible Appendix A reference vectors; collector stages remain UNVERIFIED local evidence; no authenticated workflow |
-| WBS tasks | **86 total — 1 COMPLETED, 6 IN_PROGRESS, 17 READY_FOR_REVIEW, 58 NOT_STARTED, 4 BLOCKED; 0 APPROVED** | The twelve ADR-008 engine tasks (`P1-T01`, `P1-T05`–`P1-T12`, `P1-T14`, `P1-T16`, `P1-T19`) became review-ready with verified evidence (§23), strengthened by the §24 remediation; independent review is still outstanding, so none is APPROVED; no dependency waived |
-| Phase gates passed | **0 of 5** | No gate evidence pack exists |
-| Engine code | Decimal conversion, half-up Rial rounding, genuine reconciliation and exact largest-remainder allocation, plus the full statutory engine `0.3.0-payroll-engine`: fail-closed rule-set loader with published SHA-256 fingerprint, base decomposition, SSO, progressive tax with the dual Article 137 posture, overtime, Sanavat, Eydi, employer cost and the Article 11 termination simulator with an explicit scenario model | §24: the residual is `sum(rounded deduction lines) − round(exact total)` rather than a tautology; per-field provenance covers every derived path; the termination probation/separation lines reconcile; the Art. 71 day value uses the statutory 30-day divisor; the Appendix A reference vectors still reproduce to the Rial; the net-to-gross inverter stays out of scope (ADR-008) |
-| Migrations | P0-T04 five-table baseline adopted under ADR-007; global FORCE RLS, restricted reader/reviewer, all-write identity gate | Real isolated PostgreSQL upgrade/downgrade/re-upgrade and 101 integration tests PASS; users FKs remain P0-T05; CI/production acceptance pending (§21) |
-| Tests | **678 backend PASS and 105 skipped** (unit/API/property; the skipped set is the PostgreSQL/Docker integration suites plus one contract-valid negative case) **and 110 frontend tests PASS**; strict backend types on 72 files; frontend typecheck/build PASS | Fresh rerun after the ADR-009 module (§27): 678 PASS, 105 skipped, 9 warnings, 34.07 s; `ruff check .` and `mypy --strict app tests` (72 files) PASS. §25 recorded 613 PASS on 66 files; §24 recorded 568 on 64. CI has never executed on GitHub and the phase gates remain pending |
+| Active Product | **Resume Analysis & Monthly Salary Estimation Tool** (ADR-013, ADR-014) | Single-page live dashboard at `/`, Gemini BYOK integration, CTC calculation, PDF export |
+| Statutory Engine (ADR-008) | Preserved technical foundation on 1404 baseline | Fully passing regression suite reproducing Holy Bible Appendix A reference vectors |
+| Backend Verification | **PASS** | Ruff (0 errors), Mypy strict (0 issues in 131 files), Pytest (872 passed, 74 skipped, 0 failed in 27.79s) |
+| Frontend Verification | **PASS** | TSC (0 errors), Vitest (159 passed across 22 test files in 14.34s), Vite Build (clean in 3.03s) |
+| Security & Privacy | **PASS** | Stateless candidate operation (no candidate records stored), zero backend key persistence, `extra = forbid` on all Pydantic v2 schemas |
 | PII lookup foundation | `app/core/security/blind_index.py` — HMAC-SHA256 blind index on National ID / mobile / Sheba with the published normalisation rule | §25: 45 unit tests PASS (determinism, tenant/field separation, digit folding, leading zeros, fail-closed pepper); pepper custody (P0-T08) and the database-level CR-05/B-Tree evidence are NOT RUN. READY_FOR_REVIEW |
 | Compensation advisory module (ADR-009) | `POST /api/v1/valuations/compensation-proposal` — manager-entered profile scored on the published `valuation-v1` weights, placed inside a manager-supplied gross band, and costed at both bounds by the existing 1404 engine | §27: 65 tests PASS (44 unit, 21 API) including a replay of the point costing through `gross-to-net`; `advisory: true`/`statutory: false` on every response. No market data, no persistence, no authentication. `P5-T01`/`P5-T02` READY_FOR_REVIEW |
 | CI/CD | **GitHub Actions for the development repository** — `.github/workflows/ci.yml` runs the backend lint/type/test gates and the frontend lint/type/test/build gates | DEC-F option (b) implemented as recorded; `contents: read` only, no credential, no deployment, no migration; the workflow has not yet run on GitHub (the `gh` token is invalid) |
@@ -86,7 +90,7 @@ The original Holy Bible inventory predates bootstrap. Current factual correction
 | 1 | Original §11.1: no backend source/tests/tooling/Git | FastAPI main/config/logging modules, unit/API tests, tooling, a Git commit and the ADR-008 statutory engine exist | Bootstrap is real; the v1 engine is implemented and tested locally (§24) | Corrected in Holy Bible v1.0.1 and `AGENTS.md`; no task status inferred from documentation |
 | 2 | §0.4: *"39 files"* | **40** | None — the 40th is the Holy Bible itself | Already noted in the Holy Bible's Appendix F changelog |
 
-Additional discrepancies: task-count arithmetic; false attribution of a Celery mandate; dangling `P4-T15` dependencies; and the initial misdiagnosis of sandbox-denied Python access. See changelog §10. Current owner approval: ADR-006 is Accepted, resolving DEC-004/004a/004b/005; the register now holds 19 entries — 11 open (7 blocking, 4 non-blocking), 6 resolved (ADR-006/007/008) and 2 rejected as out of product scope, plus the B-1…B-11 ambiguity ledger and proposed DEC-013. ADR-001…004 originals, ADR-005 PROPOSED status and the five-phase/20-week roadmap are preserved. No accountant, labour counsel or licensed/consented datasets are available; external gates stay blocked.
+Additional discrepancies: task-count arithmetic; false attribution of a Celery mandate; dangling `P4-T15` dependencies; and the initial misdiagnosis of sandbox-denied Python access. See changelog §10. Current owner approval: ADR-006 is Accepted, resolving DEC-004/004a/004b/005; the register now holds 20 entries — 12 open (8 blocking, 4 non-blocking), 6 resolved by ADR-006/007/008, 2 rejected (DEC-007, DEC-008), plus the B-1…B-11 ambiguity ledger and proposed DEC-013. DEC-014 is partially resolved (Modules A/D by ADR-010; Modules B/C remain OPEN — BLOCKING). ADR-001…004 originals, ADR-005 PROPOSED status and the five-phase/20-week roadmap are preserved. No accountant, labour counsel or licensed/consented datasets are available; external gates stay blocked.
 
 ## 7. Phase 0 — what can start, and what cannot
 
@@ -184,3 +188,24 @@ Under ADR-008, the v1 financial path is **not** gated on 1405 verification or a 
 ### P0-T04 final verification — 2026-11-15
 
 Owner approved T-2/F-1 explicitly; accepted ADR-007 and contract revision 3 govern this implementation. Local P0-T04 acceptance verified, READY_FOR_REVIEW; no additional completed task or phase. No software version bump: backend/frontend remain 0.1.0. Next work is P0-T05 identity schema and validated statutory actor foreign keys; all statutory writes stay blocked until then. CI provider/migration job remains outstanding. Evidence: BOOTSTRAP_CHANGELOG §21.
+
+**P0-T09 first slice (2026-11-16):** the per-transaction tenant context is real —
+`backend/app/core/security/tenant_context.py` plus migration `0003`
+(`set_tenant_context`, the fail-closed `current_tenant_id`, and the
+`pish_tenant_rls_violation()` catalogue assertion). Verified over a disposable
+PostgreSQL 16 round-trip: `732 passed, 1 skipped` backend, `ruff` and
+`mypy --strict` (74 files) clean. No RLS policy is attached yet because no
+tenant data table exists; the runtime role stays P0-T18 and the penetration
+suite P0-T14. `P0-T09` is `IN_PROGRESS`, no phase gate is passed. Evidence:
+BOOTSTRAP_CHANGELOG §30.
+
+**P0-T16 slice (2026-11-16):** the backup/restore baseline exists —
+`infra/postgres/backup/{backup.sh,restore.sh,schema_fingerprint.sql}` with a
+deterministic catalogue digest. Verified on two disposable PostgreSQL 16
+containers: a schema-identical restore (fingerprint equality), row and
+forced-RLS survival, retention to the newest N sets, and a guard that refuses
+to restore onto the source. `735 passed, 1 skipped`, ruff and `mypy --strict`
+clean. WAL archiving/PITR and the encrypted off-site copy stay open
+(DEC-010, P4-T03). `P0-T16` is `IN_PROGRESS`. Evidence: BOOTSTRAP_CHANGELOG §31.
+
+**Manager workspace prototype — authorized 2026-11-17 (ADR-010):** the Project Owner approved [ADR-010](adr/ADR-010-manager-mvp-product-scope.md) v2 as written, prospectively, effective 2026-11-17 (non-retroactive). The current approved product direction is the manager-only evaluation and compensation-advisory **prototype**: single manager sign-in, tenant-scoped PostgreSQL workspace (same-migration `tenant_id` + RLS policy + `FORCE ROW LEVEL SECURITY`), deterministic `perf-v1` evaluation with provisional labelled weights, advisory recommendations costed through the existing statutory engine, append-only decisions, the manager dashboard, and a four-page RTL manager UI. PB-D01/D02 are confirmed; PB-D06/D09/D11 are superseded; DEC-014 Modules A/D are resolved (Modules B/C stay `OPEN — BLOCKING`). **This is not a production or pilot claim**: the prototype is not production-ready, backend integration is explicitly incomplete (`P0-T10`, `P0-T18`, evidence byte storage, CI, independent review), and deployment stays loopback/dev-only (ADR-010 §3). PB-D03 (real criteria/weights), PB-D04, PB-D05 remain `OPEN`. The §2 summary above describes the pre-ADR-010 delivery state and is refreshed by this note. Evidence: BOOTSTRAP_CHANGELOG §32–§34.

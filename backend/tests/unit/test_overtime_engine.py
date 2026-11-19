@@ -9,11 +9,12 @@ Related:
 
 from __future__ import annotations
 
+from dataclasses import replace
 from decimal import ROUND_HALF_UP, Decimal
 
 import pytest
 
-from app.engines.errors import MonthLengthInvalid
+from app.engines.errors import MonthLengthInvalid, PayrollInputError
 from app.engines.overtime import compute_overtime_premiums
 from app.engines.rules import StatutoryRuleSet, load_rule_set
 
@@ -69,10 +70,38 @@ def test_the_night_shift_premium_uses_its_own_multiplier(
     rule_set: StatutoryRuleSet,
 ) -> None:
     hourly = Decimal(APPENDIX_A_SAABET) / Decimal("220.00")
-    expected = _rial(hourly * 5 * rule_set.night_shift_multiplier)
+    expected = _rial(hourly * 5 * Decimal("0.35"))
     result = compute_overtime_premiums(APPENDIX_A_SAABET, 0, 5, rule_set, 30)
     assert result.night_pay_rial == expected
-    assert result.night_pay_rial == 9_065_224
+    assert result.night_pay_rial == 2_350_243
+
+
+@pytest.mark.parametrize(
+    ("days", "expected"), [(29, 3_620_690), (30, 3_500_000), (31, 3_387_097)]
+)
+def test_article_58_independent_month_vectors(
+    rule_set: StatutoryRuleSet, days: int, expected: int
+) -> None:
+    """220m Rial fixed wage, ten non-shift night hours, 35% supplement only."""
+    result = compute_overtime_premiums(220_000_000, 0, 10, rule_set, days)
+    assert result.night_pay_rial == expected
+
+
+def test_article_58_half_up_and_unchanged_overtime(rule_set: StatutoryRuleSet) -> None:
+    """10 Rial/hour: one night hour adds 3.5 -> 4; overtime adds 14."""
+    result = compute_overtime_premiums(2_200, 1, 1, rule_set, 30)
+    assert result.night_pay_exact == Decimal("3.50")
+    assert result.night_pay_rial == 4
+    assert result.overtime_pay_rial == 14
+    assert result.premium_total_rial == 18
+
+
+def test_night_supplement_is_derived_from_loaded_factor(rule_set: StatutoryRuleSet) -> None:
+    modified = replace(rule_set, night_shift_multiplier=Decimal("1.50"))
+    assert compute_overtime_premiums(2_200, 0, 1, modified, 30).night_pay_rial == 5
+    invalid = replace(rule_set, night_shift_multiplier=Decimal("0.35"))
+    with pytest.raises(PayrollInputError, match="night total factor"):
+        compute_overtime_premiums(2_200, 0, 1, invalid, 30)
 
 
 def test_the_premium_total_is_the_sum_of_the_two_lines(

@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactElement } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import { AppShell } from './app-shell';
 import { AuthLayout } from './auth-layout';
+import { RequireManager } from './require-manager';
 import { RouteFallback } from './route-fallback';
 
 /*
@@ -9,7 +10,6 @@ import { RouteFallback } from './route-fallback';
   optimisation added later: the initial bundle must stay small in an air-gapped
   deployment.
 */
-const OverviewPage = lazy(() => import('@/routes/overview-page'));
 const TransactionsPage = lazy(() => import('@/routes/transactions-page'));
 const SettingsPage = lazy(() => import('@/routes/settings-page'));
 const SystemPage = lazy(() => import('@/routes/system-page'));
@@ -40,17 +40,43 @@ const MfaPage = lazy(() => import('@/routes/auth/mfa-page'));
 const SessionExpiredPage = lazy(() => import('@/routes/auth/session-expired-page'));
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'));
 const DevPreviewPage = lazy(() => import('@/routes/dev-preview-page'));
+const PrototypeDashboardPage = lazy(() => import('@/routes/prototype/dashboard-page'));
+const PrototypePeoplePage = lazy(() => import('@/routes/prototype/people-page'));
+const PrototypePersonPage = lazy(() => import('@/routes/prototype/person-page'));
+const PrototypeRecommendationPage = lazy(
+  () => import('@/routes/prototype/recommendation-page'),
+);
+
+const SalaryEstimationPage = lazy(() =>
+  import('@/components/salary-estimation/SalaryEstimationPage').then(
+    (m) => ({ default: m.SalaryEstimationPage }),
+  ),
+);
+const ChandShowcasePage = lazy(() => import('@/routes/chand-showcase-page'));
 
 function withSuspense(element: ReactElement): ReactElement {
   return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
 }
 
+/** The manager screens render only when a real session token exists. */
+function guarded(element: ReactElement): ReactElement {
+  return withSuspense(<RequireManager>{element}</RequireManager>);
+}
+
 const appChildren: RouteObject[] = [
-  { index: true, element: withSuspense(<OverviewPage />) },
+  { index: true, element: withSuspense(<SalaryEstimationPage />) },
   { path: 'transactions', element: withSuspense(<TransactionsPage />) },
   { path: 'settings', element: withSuspense(<SettingsPage />) },
   { path: 'system', element: withSuspense(<SystemPage />) },
+  { path: 'prototype', element: guarded(<PrototypeDashboardPage />) },
+  { path: 'prototype/people', element: guarded(<PrototypePeoplePage />) },
+  { path: 'prototype/people/:personId', element: guarded(<PrototypePersonPage />) },
+  {
+    path: 'prototype/recommendations/:recommendationId',
+    element: guarded(<PrototypeRecommendationPage />),
+  },
   { path: 'simulation', element: withSuspense(<SimulationPage />) },
+  { path: 'salary-estimation', element: withSuspense(<SalaryEstimationPage />) },
   { path: 'ctc', element: withSuspense(<CtcPage />) },
   { path: 'termination', element: withSuspense(<TerminationPage />) },
   { path: 'documents', element: withSuspense(<DocumentsPage />) },
@@ -60,23 +86,43 @@ const appChildren: RouteObject[] = [
   { path: '*', element: withSuspense(<NotFoundPage />) },
 ];
 
-/*
-  The synthetic preview route is registered only in a development build.
-  The lazy import above can still emit an orphan fixture chunk in production;
-  absence of a route does not prove the module is absent from dist/.
-*/
-if (import.meta.env.DEV) {
-  appChildren.splice(appChildren.length - 1, 0, {
-    path: 'dev/preview',
-    element: withSuspense(<DevPreviewPage />),
-  });
-}
-
 export const router = createBrowserRouter([
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: '/dev/preview',
+          element: withSuspense(
+            <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
+              <DevPreviewPage />
+            </main>,
+          ),
+        },
+        {
+          path: '/dev/salary-estimation',
+          element: withSuspense(<SalaryEstimationPage />),
+        },
+      ]
+    : []),
   {
     path: '/',
-    element: <AppShell />,
+    element: <RequireManager><AppShell /></RequireManager>,
     children: appChildren,
+  },
+  {
+    path: '/chand',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/chand.ir',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/intro',
+    element: withSuspense(<ChandShowcasePage />),
+  },
+  {
+    path: '/landing',
+    element: withSuspense(<ChandShowcasePage />),
   },
   {
     path: '/proposal',

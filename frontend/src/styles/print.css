@@ -1,0 +1,108 @@
+/*
+  Print & PDF Export stylesheet — SPEC-FE-001 & Persian RTL.
+  Authority: ADR-014, WBS P4-T03.
+*/
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-family: 'Vazirmatn Variable', Vazirmatn, Tahoma, 'Segoe UI', system-ui, sans-serif !important;
+    direction: rtl !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Hide app navigation, sidebar, interactive form, and action buttons */
+  header:not(.print-header),
+  nav,
+  aside,
+  button,
+  .no-print,
+  [data-no-print],
+  form,
+  input,
+  select,
+  textarea {
+    display: none !important;
+  }
+
+  /* Reveal print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Grid layout overrides for print */
+  .grid,
+  .lg\:grid-cols-12 {
+    display: block !important;
+  }
+
+  .lg\:col-span-7,
+  .lg\:col-span-5,
+  .max-w-6xl {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Avoid broken page cuts inside widgets and cards */
+  .card,
+  .print-avoid-break,
+  section,
+  figure,
+  table,
+  dl {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .card {
+    border: 1px solid #e2e8f0 !important;
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+    margin-bottom: 12pt !important;
+  }
+
+  /* Ensure text colors are legible on paper */
+  .text-ink-muted,
+  .text-muted-foreground {
+    color: #475569 !important;
+  }
+
+  .text-ink {
+    color: #0f172a !important;
+  }
+
+  /* Open details tags */
+  details[open] summary,
+  details summary {
+    font-weight: bold;
+    margin-bottom: 4pt;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}

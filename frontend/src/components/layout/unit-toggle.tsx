@@ -17,7 +17,7 @@ export function UnitToggle() {
     <div
       role="group"
       aria-label="واحد نمایش مبالغ"
-      className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface-raised p-1"
+      className="inline-flex items-center gap-1 rounded-xl border border-border-subtle bg-surface-raised p-1"
     >
       {UNITS.map((unit) => (
         <button
@@ -26,8 +26,10 @@ export function UnitToggle() {
           onClick={() => setPreferredUnit(unit)}
           aria-pressed={preferredUnit === unit}
           className={cn(
-            'min-h-8 rounded-md px-3 text-xs font-medium transition-colors',
-            preferredUnit === unit ? 'bg-brand text-white' : 'text-ink-muted hover:text-ink',
+            'min-h-10 rounded-lg px-3.5 text-xs font-semibold transition-all cursor-pointer',
+            preferredUnit === unit
+              ? 'bg-brand text-white shadow-xs'
+              : 'text-ink-muted hover:bg-surface hover:text-ink',
           )}
         >
           {UNIT_LABELS[unit]}

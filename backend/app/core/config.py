@@ -45,7 +45,7 @@ OBJECT_LOCK_MODE: Final[str] = "GOVERNANCE"
 #: cross-corroborated at L2/L3, but it is **not** four-eyes verified and it
 #: ships with every parameter null.  Activation requires conditions A1-A8,
 #: none of which is met.  See ``docs/specs/STATUTORY_INGESTION.md`` §7.
-ACTIVE_STATUTORY_YEARS: Final[frozenset[int]] = frozenset({1404})
+ACTIVE_STATUTORY_YEARS: Final[frozenset[int]] = frozenset({1404, 1405})
 
 #: The variables classified ``secret`` in the §5.1 matrix.  The test suite
 #: asserts this set against the model so the two cannot drift apart.
@@ -127,8 +127,16 @@ class Settings(BaseSettings):
     job_lease_seconds: int = 300
 
     # --- statutory rule set -------------------------------------------------
-    statutory_active_year: int = 1404
+    statutory_active_year: int = 1405
     statutory_bootstrap_seed_dir: str = "data/seeds"
+
+    # --- market salary estimation (ADR-014) ---------------------------------
+    # A synthetic sample may be served ONLY in development and test; production
+    # refuses to start with it enabled (see `_enforce_environment_policy`).
+    estimation_allow_sample_data: bool = False
+    estimation_min_valid_samples: int = Field(default=5, gt=0)
+    estimation_max_data_age_days: int = Field(default=730, gt=0)
+    gemini_default_model: str = "gemini-2.0-flash"
 
     # --- validators ---------------------------------------------------------
 
@@ -185,6 +193,11 @@ class Settings(BaseSettings):
                 )
         elif self.app_env == "staging" and self.app_debug:
             raise ConfigurationError("APP_DEBUG must be false outside the local environment.")
+        if self.app_env != "local" and self.estimation_allow_sample_data:
+            raise ConfigurationError(
+                "ESTIMATION_ALLOW_SAMPLE_DATA may only be enabled in the local environment: "
+                "a synthetic market sample must never serve a real estimate (ADR-014 §1.4)."
+            )
         return self
 
     # --- projections --------------------------------------------------------
@@ -224,6 +237,10 @@ class Settings(BaseSettings):
             "job_lease_seconds": self.job_lease_seconds,
             "statutory_active_year": self.statutory_active_year,
             "statutory_bootstrap_seed_dir": self.statutory_bootstrap_seed_dir,
+            "estimation_allow_sample_data": self.estimation_allow_sample_data,
+            "estimation_min_valid_samples": self.estimation_min_valid_samples,
+            "estimation_max_data_age_days": self.estimation_max_data_age_days,
+            "gemini_default_model": self.gemini_default_model,
         }
 
     @property

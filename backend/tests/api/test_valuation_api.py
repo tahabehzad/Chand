@@ -127,7 +127,13 @@ def test_the_proposal_hash_is_deterministic_across_calls(client: TestClient) -> 
     first = _post(client)
     second = _post(client)
     assert first["calculation_hash"] == second["calculation_hash"]
-    assert first["generated_at"] != second["generated_at"]
+    # The hash is independent of the clock (invariant 11): only the envelope
+    # timestamp moves. Two calls can share one timestamp on a host whose clock
+    # resolution is coarser than the request, so ordering is what is asserted.
+    first_generated = str(first["generated_at"])
+    second_generated = str(second["generated_at"])
+    assert first_generated.endswith("+00:00")
+    assert datetime.fromisoformat(second_generated) >= datetime.fromisoformat(first_generated)
 
 
 # --- the statutory costing is the engine's, not the module's ---------------

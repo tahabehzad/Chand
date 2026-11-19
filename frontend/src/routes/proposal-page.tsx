@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { apiClient } from '@/api/instance';
 import { isApiError } from '@/api/errors';
 import { toPersianDigits } from '@/lib/numerals';
-import { MANAGER_SESSION_KEY } from '@/routes/manager-login-page';
+import { clearSession, readSession } from '@/prototype/session';
 
 /**
  * The manager's proposal screen (ADR-009, `P5-T02`).
@@ -72,7 +72,7 @@ function toman(value: string): number | null {
 
 export function ProposalPage() {
   const navigate = useNavigate();
-  const manager = window.sessionStorage.getItem(MANAGER_SESSION_KEY);
+  const session = readSession();
 
   const [totalYears, setTotalYears] = useState('5');
   const [relevantYears, setRelevantYears] = useState('3');
@@ -85,7 +85,7 @@ export function ProposalPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  if (!manager) return <Navigate to="/login" replace />;
+  if (!session) return <Navigate to="/login" replace />;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -137,14 +137,14 @@ export function ProposalPage() {
         <div>
           <h1 className="text-xl font-semibold text-ink">پیشنهاد حقوق</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            {manager} — بازه را شما تعیین می‌کنید؛ سامانه جایگاه فرد و هزینهٔ قانونی آن را حساب می‌کند.
+            {session.manager.displayName} — بازه را شما تعیین می‌کنید؛ سامانه جایگاه فرد و هزینهٔ قانونی آن را حساب می‌کند.
           </p>
         </div>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => {
-            window.sessionStorage.removeItem(MANAGER_SESSION_KEY);
+            clearSession();
             navigate('/login', { replace: true });
           }}
         >

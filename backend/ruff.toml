@@ -51,7 +51,12 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-"tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811", "RUF001"]
+# scripts are operator CLI tools: print statements, naive script flow and CLI args are standard.
+"scripts/**" = ["T20", "ANN", "S", "PLC0415", "PTH", "UP", "DTZ", "I", "F541", "RUF001", "I002", "F401"]
+# tests scope imports inside test functions on purpose: each test pulls only
+# the app surface it exercises, keeping test modules independent of app-wide
+# import order (PLC0415).
+"tests/**" = ["S", "ARG", "PLR2004", "ANN", "PLR0913", "PLR0915", "F401", "F811", "RUF001", "PLC0415"]
 # RUF001 is waived for tests only: Persian/Arabic-Indic/fullwidth digit fixtures
 # are deliberate evidence that the blind-index normalisation folds them, so the
 # "ambiguous character" diagnostic flags the data under test, not a defect.
@@ -63,6 +68,28 @@ ignore = [
 # code.  Renaming the classes to satisfy pep8-naming would fork the
 # documented contract, so the suffix rule is waived for that one module.
 "app/engines/errors.py" = ["N818"]
+# The manager workspace contracts and user-facing strings are deliberately
+# Persian (AGENTS.md §0/§10, SPEC-FE-001): the ambiguous-unicode rule flags
+# the Persian digits and letters inside those strings, and the camelCase
+# Pydantic fields mirror the documented client contract
+# (frontend/src/prototype/types.ts).  Both are the contract, not defects.
+"app/engines/perf_v1.py" = ["RUF001"]
+"app/services/manager_service.py" = ["RUF001"]
+"app/schemas/manager.py" = ["RUF001", "N815"]
+"app/api/v1/manager.py" = ["RUF001", "N815"]
+"app/api/v1/auth.py" = ["RUF001", "N815"]
+# The auth response fields (displayName, nameFa, tokenType) mirror the
+# documented client contract (frontend/src/prototype/types.ts); renaming them
+# would fork the API contract, so pep8-naming is waived for that module.
+# The local development seed prints its credentials to stdout by design.
+
+# The salary-estimation modules publish Persian refusal texts, factor notes and
+# warnings: they are the product's user-facing wording (SPEC-FE-001), so the
+# ambiguous-unicode rules flag the language itself, exactly like the manager
+# workspace modules above.  RUF002 (English docstrings) stays enforced.
+"app/domain/salary_estimation/*.py" = ["RUF001", "RUF003"]
+"app/services/estimation/*.py" = ["RUF001"]
+"app/api/v1/estimation/*.py" = ["RUF001"]
 
 [lint.flake8-tidy-imports.banned-api]
 # `round()` uses banker's rounding and is banned on monetary values.

@@ -7,7 +7,14 @@ const entries = Object.values(CONTRACTS) as ContractDefinition[];
 describe('the contract registry', () => {
   it('marks delivered contracts', () => {
     const delivered = entries.filter(isDelivered).map((entry) => entry.id);
-    expect(delivered).toEqual(['health.live', 'simulations.gross-to-net']);
+    expect(delivered).toEqual([
+      'health.live',
+      'simulations.gross-to-net',
+      'estimations.create',
+      'simulations.salary-ctc-breakdown',
+      'simulations.document-analysis',
+      'regulatory.status',
+    ]);
   });
 
   it('names an owning WBS task for every contract', () => {

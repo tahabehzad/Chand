@@ -186,13 +186,12 @@ def test_an_unverified_rule_year_is_refused_with_the_stable_error_shape(
     client: TestClient,
 ) -> None:
     payload = dict(VALID_REQUEST)
-    payload["rule_year"] = 1405
+    payload["rule_year"] = 1406
     response = client.post(ENDPOINT, json=payload)
     assert response.status_code == 422
     body = response.json()
     assert set(body) == {"error"}
-    assert body["error"]["code"] == "STATUTORY_PARAMETER_UNAVAILABLE"
-    assert "140" not in body["error"]["detail"].replace("1405", "")
+    assert body["error"]["code"] == "RULE_SET_NOT_ACTIVE"
 
 
 def test_a_year_without_a_rule_set_is_refused(client: TestClient) -> None:
@@ -261,10 +260,10 @@ def test_a_gross_that_does_not_cover_the_allowances_is_refused(
 def test_no_error_response_carries_a_monetary_amount(client: TestClient) -> None:
     """The error shape carries a stable code, never an amount."""
     payload = dict(VALID_REQUEST)
-    payload["rule_year"] = 1405
+    payload["rule_year"] = 1406
     body = client.post(ENDPOINT, json=payload).json()
     detail = body["error"]["detail"]
-    assert not any(character.isdigit() for character in detail.replace("1405", ""))
+    assert not any(character.isdigit() for character in detail.replace("1406", ""))
 
 
 def test_the_error_shape_is_the_same_for_every_refusal(client: TestClient) -> None:

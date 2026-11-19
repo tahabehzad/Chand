@@ -117,15 +117,15 @@ also starts the local demo at `http://127.0.0.1:5273/`.
 ## Verification performed
 
 See the handoff report in the delivery message: `typecheck`, `lint`, `test`
-(90 tests, 11 files, historical baseline) and `build` were run, and the running app was inspected at
+(123 tests, 14 files, current baseline) and `build` were run, and the running app was inspected at
 1440 px and 360 px in the browser (direction, navigation, drawer state, unit
 labels, refusal of Toman for a non-divisible amount, no horizontal overflow).
 
 Not verified: any authenticated flow, any real API response other than the
 health probe (the backend was not running), axe (P3-T12), and any PDF output.
 
-Fresh adoption verification (2026-11-15, BOOTSTRAP_CHANGELOG §19): **99 tests
-across 11 files PASS**, typecheck via production build PASS, logical-utility
+Fresh adoption verification (2026-11-15, BOOTSTRAP_CHANGELOG §19): **123 tests
+across 14 files PASS**, typecheck via production build PASS, logical-utility
 gate PASS. Independent review found and verified repairs to short/integer rate
 percentage formatting and unsafe JavaScript number inputs. Exact string/bigint
 amounts remain supported. Misleading session-expiry and base-URL comments were

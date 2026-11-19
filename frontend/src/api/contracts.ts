@@ -116,6 +116,30 @@ export const CONTRACTS = {
     availability: 'awaiting-backend',
     ownerTask: 'P2-T10',
   }),
+  salaryEstimation: contract({
+    id: 'estimations.create',
+    method: 'POST',
+    path: '/api/v1/simulations/salary-estimation',
+    purposeFa: 'برآورد حقوق بر اساس بازار کار ایران',
+    availability: 'delivered',
+    ownerTask: 'P4-T02',
+  }),
+  salaryCtcBreakdown: contract({
+    id: 'simulations.salary-ctc-breakdown',
+    method: 'POST',
+    path: '/api/v1/simulations/salary-ctc-breakdown',
+    purposeFa: 'تفکیک هزینه کل کارفرما (CTC) و خالص حقوق',
+    availability: 'delivered',
+    ownerTask: 'P4-T03',
+  }),
+  documentAnalysis: contract({
+    id: 'simulations.document-analysis',
+    method: 'POST',
+    path: '/api/v1/simulations/document-analysis',
+    purposeFa: 'تحلیل اصالت مدارک شغلی و محاسبه اثر بر حقوق',
+    availability: 'delivered',
+    ownerTask: 'P4-T05',
+  }),
 
   benchmarkBand: contract({
     id: 'benchmarks.band',
@@ -140,6 +164,14 @@ export const CONTRACTS = {
     purposeFa: 'مشاهده دفتر حسابرسی',
     availability: 'awaiting-backend',
     ownerTask: 'P2-T10',
+  }),
+  regulatoryStatus: contract({
+    id: 'regulatory.status',
+    method: 'GET',
+    path: '/api/v1/regulatory/status',
+    purposeFa: 'وضعیت و نسخه قوانین جاری و همگام‌سازی مراجع رسمی',
+    availability: 'delivered',
+    ownerTask: 'P4-T04',
   }),
 } as const satisfies Record<string, ContractDefinition>;
 

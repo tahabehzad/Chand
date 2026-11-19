@@ -55,6 +55,16 @@ Parent ran the bounded collector against all six official discovery entries. Min
 
 ---
 
+### 1.5 Owner-requested current-year recheck — 2026-11-17
+
+Owner requested official-source verification and backend activation for 1405. Accountable owner: Codex /root, P1-T02 evidence collection; no legal verifier or certified accountant is asserted. This dated addendum does not overwrite the historical transcription or satisfy A1–A8.
+
+- Fresh bounded official collector results: ministry `TRANSPORT_FAILED`; SSO `HTTP_REJECTED` / 403; tax authority `TRANSPORT_FAILED`; Official Gazette `TRANSPORT_FAILED`; Cabinet/legal portal `HTTP_REJECTED` / 403. Failure manifests are in `.freebuff/statutory-acquisition/20261117T120230-labor-4b9ce6fd97704b8dba5f0c2377552908/`, `20261117T120238-sso-9878af5b72e54081869f5f1156e65be9/`, `20261117T120239-tax-0b67c15e80314ce69f37d2591ce8bc18/`, `20261117T120413-gazette-b499fa6798a94cd79f40affbd7358082/`, and `20261117T120413-cabinet-7a4950b499ae4757b3ed8c1adf2450df/`. Web access to the official wage news page also failed. No challenge or access restriction was bypassed.
+- Acquired two reproduced primary documents for review, **not official-host captures**: [S1 circular 6682, 1405/01/31](https://bidbarg.net/documents/100/mozd1405.pdf), SHA-256 `3a48fa71fbc7a3219ac8ba5f6a0cc88574493bfc2d69828df68176b8ca7aa65a`; [S6 circular 1005/200/ص, 1405/01/31](https://shenasname.ir/wp-content/uploads/2026/04/بخشنامه-احکام-مالیاتی-قانون-بودجه-سال-۱۴۰۵-کل-کشور.pdf), SHA-256 `f3e9bf0080784189e5a61a4a400818e893506fd4a5cfe3c02476e2b772be728e`. Raw bytes and manifest: `.freebuff/statutory-acquisition/1405-reproductions-1794917085659252900/`. This is LOCAL_STAGING, UNVERIFIED, activation_eligible=false; it is not WORM archival or cryptographic legal-verifier sign-off.
+- Read the source text: S1 states daily minimum 5,541,850 Rial, daily seniority base 166,667, monthly grocery 22,000,000 and marriage allowance 5,000,000. S6 page 2 states annual exemption 4,800 million Rial and annual bands 9,600 / 12,000 / 14,400 / 16,800 million Rial at 10 / 15 / 20 / 25 / 30 percent. These corroborate the existing candidate table only, not all statutory inputs. They are not written to an active rule set.
+- The SSO circular reproduction at `https://hoghogh.ai/circulars/c-37c3a40f` is discovery evidence only, not proof of an archived latest original. Discovery also surfaced references to tax circular 200/1405/59 dated 1405/07/27 about welfare-benefit treatment; its original was not acquired. Its applicability/effective period must be checked before assuming that changing annual thresholds alone updates current-year tax logic. Housing-resolution verification and O1–O5 remain open.
+- Activation remains blocked by missing A1 specialist signatures, A3 official-source-family originals, A4 closure of open items, A6 certified vectors, and A7–A8 approval/persistence. Local reproduction hashes alone do not satisfy these gates. No seed, loader allowlist, request default or year label changed. P1-T02 stays BLOCKED, P1-T03 NOT_STARTED; verified 1404 remains the only usable baseline. See BOOTSTRAP_CHANGELOG §41 for fresh commands/tests.
+
 ## 2. Document Acquisition and Archival
 
 ### 2.1 Bounded acquisition implementation contract — 2026-11-15

@@ -236,3 +236,27 @@ The Project Owner explicitly approved T-2 + F-1 with the presented conditions. A
 | **Blocked?** | No — engine work on the verified 1404 baseline is already permitted (PROJECT_STATUS §5). |
 
 **Resolution (2026-11-15, Project Owner).** All recommended options selected: **(b)** formal scope shrink ("کوچک‌سازی رسمی دامنه"), interface **"فقط تابع + API"**, **full v1 coverage** (all four calculation families, "مهم ترین چیزی که الان میخوام حقوقه"), **DEC-002a = posture-dependent** with **`conservative_inta` as the primary response posture**. [ADR-008](adr/ADR-008-product-scope-statutory-payroll-engine.md) records the accepted boundary; ADR_INDEX, DECISIONS_REGISTER (DEC-002a RESOLVED; DEC-007/008 REJECTED out of scope) and the WBS annotations are updated in the same change. Evidence: BOOTSTRAP_CHANGELOG §23.
+
+---
+
+## ADR-014 — market salary data and the estimation engine (2026-11-18)
+
+ADR-014 is delivered as **PROPOSED**. The implementation is complete and tested; the three
+questions below stay with the Project Owner and no code was written that depends on their
+answers.
+
+| ID | Question | Status | What it blocks |
+| :-- | :--- | :--- | :-- |
+| DEC-015 | Which market-salary sources may be collected, under which licence, and who signs off a source before it is marked `connected`? | **OPEN — BLOCKING (data volume)** | Every real estimate: with no connected source the engine refuses with `insufficient_data` |
+| DEC-016 | Is estimation history tenant-scoped (RLS + `tenant_id`) or a single-tenant audit log, and what is its retention? | **OPEN — BLOCKING (history)** | The history table and API only; estimation itself runs without it |
+| DEC-017 | Accept the cohort methodology (no monetary multiplier for city, experience, seniority, education or skill; published figure = cohort median, range = p25…p75) | **OPEN — NON-BLOCKING** | Moves ADR-014 from Proposed to Accepted |
+
+Also unresolved: **DEC-007** and **DEC-008** are recorded as `REJECTED — out of scope`
+(market-data ingestion and the data flywheel, ADR-008) while ADR-013 makes market data the
+product's basis. DEC-015 is the reconciliation entry; until the owner answers it, no source
+is connected, no real figure is published, and every production estimate returns
+`insufficient_data` with its counts and reasons. That is the intended fail-closed
+behaviour, not a defect.
+
+No request in this workstream authorises production data collection, scraping behind a
+paywall, or any change to RLS, `tenant_id` or encryption.

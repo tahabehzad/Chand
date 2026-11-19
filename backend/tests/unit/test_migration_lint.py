@@ -45,6 +45,16 @@ def test_actual_baseline_declarations() -> None:
     assert lint_migration(migration.read_text(encoding="utf-8")) == []
 
 
+def test_all_migrations_pass_storage_lint() -> None:
+    """Every shipped migration declares safe, explicit storage (P0-T04/P0-T09)."""
+    versions = Path(__file__).resolve().parents[2] / "alembic/versions"
+    for path in sorted(versions.glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        violations = lint_migration(path.read_text(encoding="utf-8"))
+        assert violations == [], f"{path.name}: {violations}"
+
+
 @pytest.mark.parametrize("url", ["", "postgresql+asyncpg://synthetic-private-marker@[invalid"])
 def test_alembic_failure_does_not_disclose_url(url: str) -> None:
     backend = Path(__file__).resolve().parents[2]

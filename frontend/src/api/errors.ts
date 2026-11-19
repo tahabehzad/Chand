@@ -32,6 +32,11 @@ export type ErrorCode =
   | 'RULE_SET_NOT_VERIFIED'
   | 'PAYROLL_REQUEST_INVALID'
   | 'PAYROLL_INPUT_INVALID'
+  | 'ESTIMATION_INSUFFICIENT_DATA'
+  | 'ESTIMATION_DATASTORE_UNAVAILABLE'
+  | 'ESTIMATION_GEMINI_UNAVAILABLE'
+  | 'ESTIMATION_ENGINE_ERROR'
+  | 'ESTIMATION_INPUT_INVALID'
   | 'VALUATION_BAND_REQUIRED'
   | 'VALUATION_BAND_INVALID'
   | 'VALUATION_EXPERIENCE_INVALID'
@@ -95,6 +100,26 @@ const CATALOGUE: Record<ErrorCode, CatalogueEntry> = {
   },
   RULE_SET_NOT_VERIFIED: {
     messageFa: 'نسخه قوانین مورد استفاده در وضعیت تأیید‌شده نیست.',
+    sessionExpiry: false,
+  },
+  ESTIMATION_INSUFFICIENT_DATA: {
+    messageFa: 'دادهٔ معتبر بازار برای این ترکیب شغل، شهر و سطح تخصص کافی نیست.',
+    sessionExpiry: false,
+  },
+  ESTIMATION_DATASTORE_UNAVAILABLE: {
+    messageFa: 'خواندن داده‌های بازار ممکن نشد؛ هیچ عددی بدون داده ارائه نمی‌شود.',
+    sessionExpiry: false,
+  },
+  ESTIMATION_GEMINI_UNAVAILABLE: {
+    messageFa: 'سرویس هوش مصنوعی جمینای در دسترس نیست یا کلید نامعتبر است.',
+    sessionExpiry: false,
+  },
+  ESTIMATION_ENGINE_ERROR: {
+    messageFa: 'خطای داخلی در محاسبهٔ برآورد رخ داد؛ عددی منتشر نشد.',
+    sessionExpiry: false,
+  },
+  ESTIMATION_INPUT_INVALID: {
+    messageFa: 'ورودی برآورد معتبر نیست؛ فیلدها را بررسی کنید.',
     sessionExpiry: false,
   },
   SERVER_ERROR: { messageFa: 'خطای داخلی سامانه رخ داد. لطفاً بعداً تلاش کنید.', sessionExpiry: false },

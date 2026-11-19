@@ -13,8 +13,8 @@ afterEach(() => {
   useUiStore.setState({ mobileNavOpen: false, preferredUnit: 'rial' });
 });
 
-function renderMvp() {
-  render(<MemoryRouter><Routes><Route element={<AppShell />}><Route index element={<OverviewPage />} /><Route path="settings" element={<SettingsPage />} /><Route path="transactions" element={<TransactionsPage />} /></Route></Routes></MemoryRouter>);
+function renderMvp(initialEntry = '/') {
+  render(<MemoryRouter initialEntries={[initialEntry]}><Routes><Route element={<AppShell />}><Route index element={<OverviewPage />} /><Route path="settings" element={<SettingsPage />} /><Route path="transactions" element={<TransactionsPage />} /></Route></Routes></MemoryRouter>);
 }
 
 describe('MVP demo', () => {
@@ -30,22 +30,17 @@ describe('MVP demo', () => {
     expect(screen.getByRole('table', { name: /تراکنش‌های ساختگی/ }).querySelectorAll('tbody tr')).toHaveLength(5);
   });
 
-  it('navigates to settings and changes the display unit across pages', async () => {
+  it('shows toman amounts on dashboard when unit preference is toman', () => {
+    useUiStore.setState({ preferredUnit: 'toman' });
     renderMvp();
-    const nav = screen.getByRole('navigation', { name: 'ناوبری اصلی' });
-    await userEvent.click(within(nav).getByRole('link', { name: 'تنظیمات' }));
-    expect(screen.getByRole('heading', { level: 1, name: 'تنظیمات' })).toBeInTheDocument();
-    const main = screen.getByRole('main');
-    await userEvent.click(within(main).getByRole('button', { name: 'تومان' }));
-    await userEvent.click(within(nav).getByRole('link', { name: 'تراکنش‌ها' }));
-    expect(screen.getByRole('heading', { name: 'تراکنش‌های نمونه' })).toBeInTheDocument();
-    expect(screen.getByText('۳۰٬۰۰۰٬۰۰۰ تومان')).toBeInTheDocument();
-    await userEvent.click(within(nav).getByRole('link', { name: 'داشبورد' }));
-    expect(within(screen.getByRole('region', { name: 'خلاصه مالی نمونه' })).getByText('۴۸٬۰۰۰٬۰۰۰ تومان')).toBeInTheDocument();
+    const summary = screen.getByRole('region', { name: 'خلاصه مالی نمونه' });
+    expect(within(summary).getByText('۴۸٬۰۰۰٬۰۰۰ تومان')).toBeInTheDocument();
+    expect(within(summary).getByText('۱۸٬۵۰۰٬۰۰۰ تومان')).toBeInTheDocument();
+    expect(within(summary).getByText('۲۹٬۵۰۰٬۰۰۰ تومان')).toBeInTheDocument();
   });
 
   it('closes the mobile navigation after choosing a page and on Escape', async () => {
-    renderMvp();
+    renderMvp('/settings');
     await userEvent.click(screen.getByRole('button', { name: 'باز کردن منو' }));
     await userEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'تراکنش‌ها' }));
     expect(screen.getByRole('button', { name: 'باز کردن منو' })).toHaveAttribute('aria-expanded', 'false');

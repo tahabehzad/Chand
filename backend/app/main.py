@@ -21,6 +21,8 @@ must report on.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -33,14 +35,58 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.responses import Response
 
+from app.api.deps import NotAuthenticatedError
+from app.api.v1.auth import router as auth_router
+from app.api.v1.estimation import router as estimation_router
+from app.api.v1.estimation.ctc import router as ctc_router
+from app.api.v1.estimation.document_analysis import router as document_analysis_router
+from app.api.v1.manager import router as manager_router
 from app.api.v1.payroll import router as payroll_router
+from app.api.v1.regulatory import router as regulatory_router
 from app.api.v1.valuation import router as valuation_router
+from app.api.v1.work_profile import router as work_profile_router
 from app.core.config import Settings, get_settings
 from app.core.logging import (
     configure_logging,
     get_logger,
     reset_correlation_id,
     set_correlation_id,
+)
+from app.core.security.upload_limit import WorkUploadLimit
+from app.engines.errors import CodedDomainError
+from app.services.regulatory import get_regulatory_sync_service
+
+
+async def _periodic_regulatory_sync_worker() -> None:
+    """Weekly/monthly periodic statutory check from verified Iranian portals."""
+    sync_interval_seconds = 7 * 86400
+    try:
+        await asyncio.sleep(5)
+        while True:
+            try:
+                sync_svc = get_regulatory_sync_service()
+                await sync_svc.sync()
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                get_logger("app.main").warning(
+                    "periodic_regulatory_sync_failed", extra={"detail": str(exc)}
+                )
+            await asyncio.sleep(sync_interval_seconds)
+    except asyncio.CancelledError:
+        pass
+
+
+_ALL_ROUTERS = (
+    payroll_router,
+    estimation_router,
+    ctc_router,
+    document_analysis_router,
+    valuation_router,
+    auth_router,
+    manager_router,
+    work_profile_router,
+    regulatory_router,
 )
 
 
@@ -60,8 +106,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "application_starting",
             extra={"app_env": resolved.app_env, "app_debug": resolved.app_debug},
         )
-        yield
-        logger.info("application_stopping")
+        sync_task = asyncio.create_task(_periodic_regulatory_sync_worker())
+        try:
+            yield
+        finally:
+            sync_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await sync_task
+            logger.info("application_stopping")
 
     application = FastAPI(
         title="Pish Hesabdari (پیش‌حسابداری)",
@@ -77,8 +129,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         CORSMiddleware,
         allow_origins=resolved.allowed_origin_list,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type", "X-Request-Id"],
+        allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+        allow_headers=["Content-Type", "X-Request-Id", "Authorization"],
         expose_headers=["X-Request-Id"],
     )
 
@@ -117,8 +169,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # written; resetting it afterwards would log "-".
             reset_correlation_id(token)
 
-    application.include_router(payroll_router)
-    application.include_router(valuation_router)
+    # The resolved settings travel with the app so a per-application configuration
+    # (tests, local sample mode) is honoured instead of the process-wide cache.
+    application.state.settings = resolved
+
+    for r in _ALL_ROUTERS:
+        application.include_router(r)
+    application.add_middleware(WorkUploadLimit)
 
     @application.exception_handler(RequestValidationError)
     async def request_validation_error_handler(
@@ -144,6 +201,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "detail": "; ".join(problems) or "the request is not valid",
                 }
             },
+        )
+
+    @application.exception_handler(NotAuthenticatedError)
+    async def not_authenticated_error_handler(
+        _request: Request, _exc: NotAuthenticatedError
+    ) -> JSONResponse:
+        """One stable 401 for every unauthenticated or expired session."""
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": {
+                    "code": NotAuthenticatedError.code,
+                    "detail": "نشست معتبر وجود ندارد؛ دوباره وارد شوید.",
+                }
+            },
+        )
+
+    @application.exception_handler(CodedDomainError)
+    async def coded_domain_error_handler(_request: Request, exc: CodedDomainError) -> JSONResponse:
+        """Domain refusals not caught inside a route keep the one error shape."""
+        status = 404 if "NOT_FOUND" in exc.code else (409 if "ALREADY" in exc.code else 422)
+        return JSONResponse(
+            status_code=status,
+            content={"error": {"code": exc.code, "detail": str(exc)}},
         )
 
     @application.get("/health/live", tags=["health"], summary="Liveness probe")
