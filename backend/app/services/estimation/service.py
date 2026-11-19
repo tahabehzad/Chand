@@ -25,7 +25,6 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
-import os
 from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -512,19 +511,20 @@ async def _compute_fallback_outcome(
         repository = repository_factory()
         observations = await repository.observations_for(family_key)
         aggregates = await repository.aggregates_for(family_key)
-    except (DataStoreUnavailableError, SQLAlchemyError, OSError, RuntimeError) as exc:
+    except DataStoreUnavailableError as err:
+        if gemini_error is not None:
+            raise gemini_error from err
+        if gemini_insufficient is not None:
+            raise gemini_insufficient from err
+        raise
+    except (SQLAlchemyError, OSError, RuntimeError) as exc:
         if gemini_error is not None:
             raise gemini_error from exc
         if gemini_insufficient is not None:
             raise gemini_insufficient from exc
-        return _build_baseline_market_outcome(
-            profile=profile,
-            match=match,
-            as_of=as_of,
-            settings=settings,
-            gemini_error=gemini_error,
-            gemini_insufficient=gemini_insufficient,
-        )
+        raise DataStoreUnavailableError(
+            "خطا در برقراری ارتباط با پایگاه داده داده‌های بازار."
+        ) from exc
 
     try:
         outcome = estimate_market_salary(
@@ -639,8 +639,7 @@ async def compute_estimate(
 
     gemini_key_to_use = (
         request.gemini_api_key
-        or getattr(resolved_settings, "gemini_api_key", "")
-        or os.environ.get("GEMINI_API_KEY", "")
+        or getattr(resolved_settings, "gemini_api_key", None)
     )
 
     if gemini_key_to_use:

@@ -91,8 +91,6 @@ const SENIORITY_OPTIONS = [
 const EMPLOYMENT_TYPE_OPTIONS = [
   { value: 'full_time', label: 'تمام‌وقت' },
   { value: 'part_time', label: 'نیمه‌وقت' },
-  { value: 'contract', label: 'قراردادی' },
-  { value: 'freelance', label: 'آزاد' },
 ] as const;
 
 const WORK_CONDITION_OPTIONS = [

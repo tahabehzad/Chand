@@ -1313,7 +1313,7 @@ html.light-theme select option:hover {
                 <span class="text-zinc-300 font-medium">سابقه کاری تخصصی</span>
                 <span id="lExpText" class="font-black text-gold-300 tabular-nums text-sm">۵ سال</span>
               </div>
-              <input id="lExpRange" type="range" min="1" max="12" value="5" step="0.05" oninput="onLandingExpInput(this.value)" class="w-full cursor-pointer" />
+              <input id="lExpRange" type="range" min="0" max="12" value="5" step="0.05" oninput="onLandingExpInput(this.value)" class="w-full cursor-pointer" />
               <div class="flex justify-between text-[10px] text-zinc-500 mt-1">
                 <span>۱ سال</span>
                 <span>۵ سال</span>
@@ -1610,7 +1610,7 @@ html.light-theme select option:hover {
               <span class="text-zinc-300 font-semibold">سابقه کاری (سال)</span>
               <span id="dashExpLabel" class="font-black text-gold-300 tabular-nums">۵ سال</span>
             </div>
-            <input id="dashExpRange" type="range" min="1" max="15" value="5" step="0.05" oninput="onDashExpInput(this.value)" class="w-full cursor-pointer" />
+            <input id="dashExpRange" type="range" min="0" max="15" value="5" step="0.05" oninput="onDashExpInput(this.value)" class="w-full cursor-pointer" />
           </div>
 
           <!-- سطح تخصص، نوع استخدام و شرایط کاری -->
@@ -1629,7 +1629,6 @@ html.light-theme select option:hover {
               <select id="dashContract" onchange="recalcDashboard()" class="w-full px-2.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-white focus:border-gold-400 focus:outline-none">
                 <option value="full" selected>تمام‌وقت</option>
                 <option value="part">پاره‌وقت</option>
-                <option value="project">پروژه‌ای</option>
               </select>
             </div>
             <div class="space-y-1.5">
@@ -1962,7 +1961,7 @@ html.light-theme select option:hover {
               <div class="flex flex-col items-center gap-2 group h-full justify-end">
                 <span id="barVal0" class="text-xs font-bold text-zinc-400 tabular-nums">۲۱.۷</span>
                 <div id="barCol0" class="exp-bar-col w-full rounded-t-xl bg-zinc-800/90 border border-zinc-700/60 group-hover:bg-zinc-700/80" style="height: 42%;"></div>
-                <span id="barLabel0" class="text-[11px] text-zinc-400">۱ تا ۲ سال</span>
+                <span id="barLabel0" class="text-[11px] text-zinc-400">۰ تا ۲ سال</span>
               </div>
               <div class="flex flex-col items-center gap-2 group h-full justify-end">
                 <span id="barVal1" class="text-xs font-bold text-zinc-300 tabular-nums">۲۹.۶</span>
@@ -3110,7 +3109,9 @@ html.light-theme select option:hover {
 
     // منحنی آماری پیوسته و روان ضریب تجربه سال کار در بازار کار ایران (پیوسته و بدون پرش پله‌ای)
     function getExperienceMultiplier(expYears) {
-      const exp = Math.max(1, Math.min(15, parseFloat(expYears || 5)));
+      const parsed = parseFloat(expYears);
+      const exp = Math.max(0, Math.min(15, isNaN(parsed) ? 5 : parsed));
+      if (exp <= 1) return 0.70 + exp * 0.08; // 0 سال = 0.70 (پایه ورودی بازار / بدون سابقه)، 1 سال = 0.78
       if (exp <= 2) return 0.78 + (exp - 1) * 0.06;
       if (exp <= 5) return 0.84 + (exp - 2) * 0.0533;
       if (exp <= 8) return 1.00 + (exp - 5) * 0.05;
@@ -3124,7 +3125,7 @@ html.light-theme select option:hover {
       const rounded = Math.round(num * 2) / 2;
       const expLabel = document.getElementById('dashExpLabel');
       if (expLabel) {
-        const text = rounded % 1 === 0 ? `${toFaDigits(rounded.toFixed(0))} سال` : `${toFaDigits(rounded.toFixed(1))} سال`;
+        const text = rounded === 0 ? 'بدون سابقه (۰ سال)' : (rounded % 1 === 0 ? `${toFaDigits(rounded.toFixed(0))} سال` : `${toFaDigits(rounded.toFixed(1))} سال`);
         expLabel.textContent = text;
         expLabel.style.transform = 'scale(1.08)';
         clearTimeout(expLabel._scaleTimer);
@@ -3141,7 +3142,7 @@ html.light-theme select option:hover {
       const rounded = Math.round(num * 2) / 2;
       const expText = document.getElementById('lExpText');
       if (expText) {
-        const text = rounded % 1 === 0 ? `${toFaDigits(rounded.toFixed(0))} سال` : `${toFaDigits(rounded.toFixed(1))} سال`;
+        const text = rounded === 0 ? 'بدون سابقه (۰ سال)' : (rounded % 1 === 0 ? `${toFaDigits(rounded.toFixed(0))} سال` : `${toFaDigits(rounded.toFixed(1))} سال`);
         expText.textContent = text;
         expText.style.transform = 'scale(1.08)';
         clearTimeout(expText._scaleTimer);
@@ -3257,14 +3258,18 @@ html.light-theme select option:hover {
 
     function recalcDashboard(notify = false) {
       const jobTitle = document.getElementById('dashJobInput')?.value.trim() || 'توسعه‌دهنده ارشد فرانت‌اند';
-      const exp = parseInt(document.getElementById('dashExpRange')?.value || '5', 10);
+      const expRaw = document.getElementById('dashExpRange')?.value;
+      const exp = expRaw !== undefined && expRaw !== null && expRaw !== '' ? parseFloat(expRaw) : 5;
+      const roundedExp = Math.round(exp * 2) / 2;
       const seniority = document.getElementById('dashSeniority')?.value || 'senior';
       const contract = document.getElementById('dashContract')?.value || 'full';
       const workMode = document.getElementById('dashWorkMode')?.value || 'onsite';
       const cityKey = document.getElementById('dashCity')?.value || 'tehran';
 
       const expLabel = document.getElementById('dashExpLabel');
-      if (expLabel) expLabel.textContent = `${toFaDigits(exp)} سال`;
+      if (expLabel) {
+        expLabel.textContent = roundedExp === 0 ? 'بدون سابقه (۰ سال)' : (roundedExp % 1 === 0 ? `${toFaDigits(roundedExp.toFixed(0))} سال` : `${toFaDigits(roundedExp.toFixed(1))} سال`);
+      }
 
       let preset = ROLES_DATA[currentDashPreset] || ROLES_DATA.frontend;
       if (typeof CHAND_JOBS !== 'undefined') {
@@ -3294,7 +3299,7 @@ html.light-theme select option:hover {
       }
 
       const senMult = { junior: 0.72, mid: 0.88, senior: 1.0, lead: 1.24 }[seniority] || 1.0;
-      const contractMult = { full: 1.0, part: 0.58, project: 1.12 }[contract] || 1.0;
+      const contractMult = { full: 1.0, part: 0.58 }[contract] || 1.0;
       const modeMult = { onsite: 1.0, hybrid: 0.98, remote: 0.95 }[workMode] || 1.0;
       const modeLabel = { onsite: 'حضوری', hybrid: 'هیبرید', remote: 'دورکاری' }[workMode] || 'حضوری';
       const cityObj = CITY_MULT[cityKey] || CITY_MULT.tehran;
@@ -3334,7 +3339,8 @@ html.light-theme select option:hover {
       const totalCost = gross + employerShare;
 
       document.getElementById('dashMedianValue').textContent = formatCurrency(median, dashCurrency);
-      document.getElementById('dashProfileSubtitle').textContent = `${jobTitle} • ${toFaDigits(exp)} سال سابقه • ${cityObj.label} • ${modeLabel}`;
+      const expSubText = roundedExp === 0 ? 'بدون سابقه' : `${toFaDigits(roundedExp)} سال سابقه`;
+      document.getElementById('dashProfileSubtitle').textContent = `${jobTitle} • ${expSubText} • ${cityObj.label} • ${modeLabel}`;
       document.getElementById('dashP25Value').textContent = formatCurrency(p25, dashCurrency);
       document.getElementById('dashP50Value').textContent = formatCurrency(median, dashCurrency);
       document.getElementById('dashP75Value').textContent = formatCurrency(p75, dashCurrency);
@@ -3549,7 +3555,9 @@ html.light-theme select option:hover {
       }
 
       const jobTitle = document.getElementById('dashJobInput')?.value.trim() || 'توسعه‌دهنده ارشد فرانت‌اند';
-      const exp = parseInt(document.getElementById('dashExpRange')?.value || '5', 10);
+      const expRawMkt = document.getElementById('dashExpRange')?.value;
+      const exp = expRawMkt !== undefined && expRawMkt !== null && expRawMkt !== '' ? parseFloat(expRawMkt) : 5;
+      const roundedExp = Math.round(exp * 2) / 2;
       const seniority = document.getElementById('dashSeniority')?.value || 'senior';
       const contract = document.getElementById('dashContract')?.value || 'full';
       const workMode = document.getElementById('dashWorkMode')?.value || 'onsite';
@@ -3562,11 +3570,12 @@ html.light-theme select option:hover {
       const modeLabel = { onsite: 'حضوری', hybrid: 'هیبرید', remote: 'دورکاری' }[workMode] || 'حضوری';
       const subtitleEl = document.getElementById('dashProfileSubtitle');
       if (subtitleEl) {
-        subtitleEl.textContent = `${jobTitle} • ${toFaDigits(exp)} سال سابقه • ${cityObj.label} • ${modeLabel}`;
+        const expSubMkt = roundedExp === 0 ? 'بدون سابقه' : `${toFaDigits(roundedExp)} سال سابقه`;
+        subtitleEl.textContent = `${jobTitle} • ${expSubMkt} • ${cityObj.label} • ${modeLabel}`;
       }
 
       const geminiKey = localStorage.getItem('pish_gemini_api_key') || '';
-      const employmentTypeMap = { full: 'full_time', part: 'part_time', project: 'contract' };
+      const employmentTypeMap = { full: 'full_time', part: 'part_time' };
       const workConditionMap = { onsite: 'on_site', hybrid: 'hybrid', remote: 'remote' };
 
       const payload = {

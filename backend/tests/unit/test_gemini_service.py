@@ -637,7 +637,7 @@ class TestGeminiEndpointResponses:
             ("مدیر مارکتینگ", "تهران", 6, "senior"),
             ("کارشناس تولید محتوا", "اصفهان", 2, "junior"),
             ("مهندس عمران", "تبریز", 5, "mid"),
-            ("کارشناس فروش تلفنی", "مشهد", 1, "junior"),
+            ("کارشناس اداری", "مشهد", 1, "junior"),
         ],
     )
     def test_arbitrary_custom_roles_baseline_fallback_returns_200_realistic_range(
@@ -667,7 +667,7 @@ class TestGeminiEndpointResponses:
         assert data["primary_estimate_rial"] >= 200_000_000  # >= 20M Toman
         assert data["min_salary_rial"] < data["primary_estimate_rial"]
         assert data["max_salary_rial"] > data["primary_estimate_rial"]
-        assert data["match"]["family_key"] in ("custom_role", "sales_representative")
+        assert data["match"]["family_key"] == "custom_role"
         assert data["methodology"]["cohort_scope"] == "national"
 
 
