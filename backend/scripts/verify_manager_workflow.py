@@ -38,7 +38,7 @@ def check(condition: bool, label: str) -> None:
     print(f"  ok  {label}")
 
 
-def main() -> int:  # noqa: PLR0915 - one linear script is easier to audit here
+def main() -> int:
     client = httpx.Client(base_url=BASE_URL, timeout=20.0)
 
     print("[1] login and rules")

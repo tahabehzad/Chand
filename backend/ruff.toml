@@ -52,7 +52,7 @@ ignore = [
 
 [lint.per-file-ignores]
 # scripts are operator CLI tools: print statements, naive script flow and CLI args are standard.
-"scripts/**" = ["T20", "ANN", "S", "PLC0415", "PTH", "UP", "DTZ", "I", "F541", "RUF001", "I002", "F401"]
+"scripts/**" = ["T20", "ANN", "S", "PLC0415", "PTH", "UP", "DTZ", "I", "F541", "RUF001", "I002", "F401", "PLR0912", "PLR0915", "B007", "F841", "ARG"]
 # tests scope imports inside test functions on purpose: each test pulls only
 # the app surface it exercises, keeping test modules independent of app-wide
 # import order (PLC0415).

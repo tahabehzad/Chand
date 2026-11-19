@@ -381,7 +381,7 @@ export function SalaryEstimationForm({
               {isAutofillOpen && filteredJobs.length > 0 && (
                 <div
                   role='listbox'
-                  className='chand-autofill absolute top-full right-0 left-0 w-full z-50 shadow-2xl max-h-64 overflow-y-auto'
+                  className='chand-autofill absolute top-full inset-x-0 w-full z-50 shadow-2xl max-h-64 overflow-y-auto'
                   style={{ display: 'block' }}
                 >
                   {filteredJobs.map((job, idx) => {

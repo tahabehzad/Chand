@@ -1682,12 +1682,17 @@ html.light-theme select option:hover {
 
           <!-- مهارت‌ها -->
           <div class="space-y-2 pt-1">
-            <span class="text-[11px] text-zinc-400 block">مهارت‌ها:</span>
-            <div id="dashSkillsWrap" class="flex flex-wrap gap-1.5">
-              <span class="px-2.5 py-1 rounded-lg bg-gold-400/15 border border-gold-400/35 text-[11px] font-bold text-gold-200">React</span>
-              <span class="px-2.5 py-1 rounded-lg bg-gold-400/15 border border-gold-400/35 text-[11px] font-bold text-gold-200">TypeScript</span>
-              <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300">Next.js</span>
-              <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300">Tailwind CSS</span>
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="text-zinc-400">مهارت‌های تخصصی (کلیک برای انتخاب):</span>
+              <span id="dashSkillsImpactBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white/5 text-zinc-400 border border-white/10 transition-all">
+                تأثیر مهارت‌ها: ۰٪ (مبنا)
+              </span>
+            </div>
+            <div id="dashSkillsWrap" class="flex flex-wrap gap-1.5 min-h-[32px] items-center">
+              <button type="button" onclick="toggleDashSkillIndex(0)" class="px-2.5 py-1 rounded-lg bg-gold-400/20 border border-gold-400/70 text-[11px] font-bold text-gold-200 transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:bg-gold-400/30 flex items-center gap-1.5 active:scale-95 cursor-pointer ring-1 ring-gold-400/30" title="کلیک برای لغو انتخاب مهارت React"><span class="w-1.5 h-1.5 rounded-full bg-gold-400 shadow-[0_0_6px_rgba(212,175,55,0.9)]"></span><span>React</span></button>
+              <button type="button" onclick="toggleDashSkillIndex(1)" class="px-2.5 py-1 rounded-lg bg-gold-400/20 border border-gold-400/70 text-[11px] font-bold text-gold-200 transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:bg-gold-400/30 flex items-center gap-1.5 active:scale-95 cursor-pointer ring-1 ring-gold-400/30" title="کلیک برای لغو انتخاب مهارت TypeScript"><span class="w-1.5 h-1.5 rounded-full bg-gold-400 shadow-[0_0_6px_rgba(212,175,55,0.9)]"></span><span>TypeScript</span></button>
+              <button type="button" onclick="toggleDashSkillIndex(2)" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-400 hover:text-zinc-200 hover:border-white/25 hover:bg-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5" title="کلیک برای انتخاب مهارت Next.js"><span class="text-zinc-500 font-mono text-[10px]">+</span><span>Next.js</span></button>
+              <button type="button" onclick="toggleDashSkillIndex(3)" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-400 hover:text-zinc-200 hover:border-white/25 hover:bg-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5" title="کلیک برای انتخاب مهارت Tailwind CSS"><span class="text-zinc-500 font-mono text-[10px]">+</span><span>Tailwind CSS</span></button>
             </div>
           </div>
 
@@ -3172,6 +3177,47 @@ html.light-theme select option:hover {
       recalcDashboard();
     }
 
+    
+    // آرایه مهارت‌های فعال و انتخاب‌شده داوطلب در داشبورد
+    let currentAvailableSkills = ['React', 'TypeScript', 'Next.js', 'Tailwind CSS'];
+    let selectedSkillsSet = new Set(['React', 'TypeScript']);
+
+    function toggleDashSkillIndex(idx) {
+      if (idx < 0 || idx >= currentAvailableSkills.length) return;
+      const skill = currentAvailableSkills[idx];
+      if (selectedSkillsSet.has(skill)) {
+        selectedSkillsSet.delete(skill);
+      } else {
+        selectedSkillsSet.add(skill);
+      }
+      renderDashSkills();
+      recalcDashboard(false);
+    }
+
+    function renderDashSkills() {
+      const skillsWrap = document.getElementById('dashSkillsWrap');
+      if (!skillsWrap) return;
+
+      skillsWrap.innerHTML = currentAvailableSkills.map((s, idx) => {
+        const isSelected = selectedSkillsSet.has(s);
+        if (isSelected) {
+          return `<button type="button" onclick="toggleDashSkillIndex(${idx})"
+            class="px-2.5 py-1 rounded-lg bg-gold-400/20 border border-gold-400/70 text-[11px] font-bold text-gold-200 transition-all shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:bg-gold-400/30 flex items-center gap-1.5 active:scale-95 cursor-pointer ring-1 ring-gold-400/30"
+            title="کلیک برای لغو انتخاب مهارت ${s}">
+            <span class="w-1.5 h-1.5 rounded-full bg-gold-400 shadow-[0_0_6px_rgba(212,175,55,0.9)]"></span>
+            <span>${s}</span>
+          </button>`;
+        } else {
+          return `<button type="button" onclick="toggleDashSkillIndex(${idx})"
+            class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-400 hover:text-zinc-200 hover:border-white/25 hover:bg-white/10 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+            title="کلیک برای انتخاب مهارت ${s}">
+            <span class="text-zinc-500 font-mono text-[10px]">+</span>
+            <span>${s}</span>
+          </button>`;
+        }
+      }).join('');
+    }
+
     function loadDashPreset(key) {
       currentDashPreset = key;
       const preset = ROLES_DATA[key];
@@ -3191,12 +3237,10 @@ html.light-theme select option:hover {
 
       if (jobInput) jobInput.value = preset.title;
       if (senSelect) senSelect.value = preset.seniority;
-      if (skillsWrap) {
-        skillsWrap.innerHTML = preset.skills.map((s, idx) =>
-          idx < 2
-            ? `<span class="px-2.5 py-1 rounded-lg bg-gold-400/15 border border-gold-400/35 text-[11px] font-bold text-gold-200">${s}</span>`
-            : `<span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300">${s}</span>`
-        ).join('');
+      if (preset && preset.skills) {
+        currentAvailableSkills = [...preset.skills];
+        selectedSkillsSet = new Set(preset.skills.slice(0, 2));
+        renderDashSkills();
       }
 
       recalcDashboard();
@@ -3234,13 +3278,17 @@ html.light-theme select option:hover {
             conf: matched.conf || preset.conf,
             skills: matched.skills || preset.skills
           };
-          const skillsWrap = document.getElementById('dashSkillsWrap');
-          if (skillsWrap && matched.skills) {
-            skillsWrap.innerHTML = matched.skills.map((s, idx) =>
-              idx < 2
-                ? `<span class="px-2.5 py-1 rounded-lg bg-gold-400/15 border border-gold-400/35 text-[11px] font-bold text-gold-200">${s}</span>`
-                : `<span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300">${s}</span>`
-            ).join('');
+          if (matched.skills && matched.skills.length > 0) {
+            const isSameList = currentAvailableSkills.length === matched.skills.length &&
+              currentAvailableSkills.every((val, index) => val === matched.skills[index]);
+            if (!isSameList) {
+              currentAvailableSkills = [...matched.skills];
+              const hasCommon = currentAvailableSkills.some(s => selectedSkillsSet.has(s));
+              if (!hasCommon) {
+                selectedSkillsSet = new Set(currentAvailableSkills.slice(0, 2));
+              }
+              renderDashSkills();
+            }
           }
         }
       }
@@ -3251,9 +3299,29 @@ html.light-theme select option:hover {
       const modeLabel = { onsite: 'حضوری', hybrid: 'هیبرید', remote: 'دورکاری' }[workMode] || 'حضوری';
       const cityObj = CITY_MULT[cityKey] || CITY_MULT.tehran;
 
-      // ثبات حقوق هنگام تغییر سال سابقه (حذف ضربدر سال برای تثبیت حقوق طبق درخواست)
+      // محاسبه ضریب مهارت‌ها (هر مهارت بالاتر یا پایین‌تر از ۲ مهارت مبنا = ۵٪ اثرگذاری مستقیم در بازار)
+      const selectedSkillCount = selectedSkillsSet.size;
+      const skillDelta = selectedSkillCount - 2;
+      const skillPercent = skillDelta * 5; // e.g. -10%, -5%, 0%, +5%, +10%, +15%
+      const skillMult = Math.max(0.85, Math.min(1.25, 1.0 + (skillPercent / 100)));
+
+      const impactBadge = document.getElementById('dashSkillsImpactBadge');
+      if (impactBadge) {
+        if (skillPercent > 0) {
+          impactBadge.textContent = `تأثیر مهارت‌ها: +${toFaDigits(skillPercent)}٪`;
+          impactBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 transition-all shadow-[0_0_8px_rgba(16,185,129,0.2)]';
+        } else if (skillPercent < 0) {
+          impactBadge.textContent = `تأثیر مهارت‌ها: ${toFaDigits(skillPercent)}٪`;
+          impactBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 transition-all';
+        } else {
+          impactBadge.textContent = 'تأثیر مهارت‌ها: ۰٪ (مبنا)';
+          impactBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-white/5 text-zinc-400 border border-white/10 transition-all';
+        }
+      }
+
+      // ثبات حقوق هنگام تغییر سال سابقه + اعمال ضریب مهارت‌های تخصصی
       const expMult = getExperienceMultiplier(exp);
-      const rawMedian = preset.base * expMult * senMult * contractMult * modeMult * cityObj.mult;
+      const rawMedian = preset.base * expMult * senMult * contractMult * modeMult * cityObj.mult * skillMult;
       const median = Math.round(rawMedian / 10000) * 10000;
       const p25 = Math.round((median * 0.816) / 10000) * 10000;
       const p75 = Math.round((median * 1.24) / 10000) * 10000;
@@ -3375,6 +3443,7 @@ html.light-theme select option:hover {
     }
 
     // مقداردهی اولیه ماشین‌حساب‌ها
+    renderDashSkills();
     updateLandingSim();
     recalcDashboard();
 
