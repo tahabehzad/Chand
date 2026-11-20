@@ -4,6 +4,15 @@
   <img src="frontend/public/chand-logo.jpg" alt="لوگوی چند؟" width="120" style="border-radius: 24px; box-shadow: 0 8px 32px rgba(212,175,55,0.3);" />
   <h3>پلتفرم تخصصی تحلیل رزومه، برآورد حقوق منصفانه و تصمیم‌یاری استخدام در بازار کار ایران</h3>
   <p><strong>به‌روزرسانی: پاییز ۱۴۰۵ (آبان ۱۴۰۵) • مجهز به هوش مصنوعی Google Gemini Vision 2.0</strong></p>
+  <p>
+    <a href="https://github.com/tahabehzad/Chand/actions/workflows/ci.yml"><img src="https://github.com/tahabehzad/Chand/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+    <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12" />
+    <img src="https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white" alt="Node.js 22" />
+    <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
+    <img src="https://img.shields.io/badge/Tests-1000%2B%20PASS-success?logo=pytest&logoColor=white" alt="Tests 1000+ PASS" />
+    <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker Ready" />
+  </p>
 </div>
 
 ---
@@ -105,33 +114,51 @@ Chand/
 ## راهنمای راه‌اندازی و اجرا (Getting Started)
 
 ### پیش‌نیازها
-- Python 3.12 یا بالاتر
+- Python 3.12 یا بالاتر و ابزار **uv** (`pip install uv` یا نصب رسمی)
 - Node.js 20 یا بالاتر
-- pnpm یا npm
+- pnpm
 
-### ۱. اجرای فرانت‌اند
+### روش سریع: اجرای یکپارچه با Docker Compose
+برای بالا آوردن کل پشته (پایگاه داده PostgreSQL 16، سرور FastAPI و کلاینت فرانت‌اند) با یک دستور:
+
+```bash
+docker compose up --build
+```
+سپس داشبورد در آدرس `http://localhost:5273/chand.html` و مستندات API در `http://localhost:8000/docs` در دسترس خواهند بود.
+
+---
+
+### روش توسعه محلی (Local Development)
+
+#### ۱. اجرای فرانت‌اند
 ```bash
 cd frontend
 pnpm install
 pnpm dev
 ```
 سپس داشبورد در آدرس زیر در دسترس خواهد بود:
-`http://localhost:5173/chand.html`
+`http://localhost:5273/chand.html`
 
 ### ۲. اجرای سرور بک‌اند
+پروژه از پکیج منیجر مدرن **uv** برای قفل قطعی وابستگی‌ها استفاده می‌کند:
+
 ```bash
 cd backend
-python -m venv .venv
-# فعال‌سازی محیط مجازی (ویندوز)
-.venv\Scripts\activate
-# فعال‌سازی محیط مجازی (لینوکس/مک)
-# source .venv/bin/activate
+# نصب سریع وابستگی‌ها و ایجاد محیط مجازی:
+uv sync
 
-pip install -r requirements.txt  # یا uv sync
-uvicorn app.main:create_app --factory --port 8000 --reload
+# اجرای سرور در حالت توسعه لوکال (استفاده از داده‌های نمونه بازار بدون نیاز به پایگاه داده):
+# در لینوکس و مک:
+export APP_ESTIMATION_ALLOW_SAMPLE_DATA=true
+uv run uvicorn app.main:create_app --factory --port 8000 --reload
+
+# در ویندوز (PowerShell):
+$env:APP_ESTIMATION_ALLOW_SAMPLE_DATA="true"
+uv run uvicorn app.main:create_app --factory --port 8000 --reload
 ```
-سند مستندات تعاملی Swagger API در آدرس زیر باز خواهد شد:
-`http://127.0.0.1:8000/docs`
+
+> **نکته برای محیط تولید یا اتصال به PostgreSQL:**
+> در صورت راه‌اندازی پایگاه داده، کافی است متغیر `DATABASE_URL` را در فایل `backend/.env` وارد کرده و دستور `uv run alembic upgrade head` را اجرا نمایید.
 
 ---
 
@@ -140,14 +167,14 @@ uvicorn app.main:create_app --factory --port 8000 --reload
 ### تست‌های فرانت‌اند (Vitest)
 ```bash
 cd frontend
-pnpm test -- --run
+pnpm test
 ```
 *(تمامی ۱۷۰ تست فرانت‌اند PASS می‌شوند)*
 
 ### تست‌های بک‌اند (Pytest)
 ```bash
 cd backend
-pytest tests/domain/salary_estimation tests/unit
+uv run pytest -q tests/domain/salary_estimation tests/unit
 ```
 *(تمامی تست‌های اعتبارسنجی ارزی، قوانین قانونی و آماری PASS می‌شوند)*
 

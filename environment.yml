@@ -1,7 +1,5 @@
-# Notebooks in this folder share one conda environment.
-# The environment is built in .conda/ the first time a notebook starts.
+name: chand
 channels:
   - defaults
 dependencies:
   - ipykernel
-prefix: "C:\\project\\New project\\.conda"
