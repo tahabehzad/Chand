@@ -70,3 +70,9 @@
 *.db      binary
 *.model   binary
 *.onnx    binary
+
+# --- GitHub Linguist language statistics overrides ---------------------------
+# Treat standalone HTML demo/showcase pages as vendored to accurately reflect
+# the core technology stack: Python (FastAPI/AI) + TypeScript (React 19).
+frontend/public/*.html linguist-vendored
+frontend/public/**/*.html linguist-vendored
