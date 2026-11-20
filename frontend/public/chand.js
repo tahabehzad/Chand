@@ -468,6 +468,9 @@
     function finishIntro() {
       if (introDone) return;
       introDone = true;
+      try {
+        sessionStorage.setItem('chand_intro_seen', '1');
+      } catch (e) {}
       clearTimeout(slideTimer);
       clearSimTimers();
 
@@ -478,10 +481,8 @@
       }
 
       const overlay = document.getElementById('introStageOverlay');
-      setTimeout(() => {
-        if (overlay) overlay.classList.add('stage-closed');
-        document.body.style.overflow = '';
-      }, 280);
+      if (overlay) overlay.classList.add('stage-closed');
+      document.body.style.overflow = '';
     }
 
     function replayIntro() {
@@ -496,9 +497,21 @@
       showIntroSlide(0);
     }
 
-    // قفل اسکرول در بدو ورود و شروع خودکار اینترو
-    document.body.style.overflow = 'hidden';
-    showIntroSlide(0);
+    // کنترل هوشمند اجرای اینترو: در صورت مشاهده قبلی در نشست، ورود مستقیم و بدون قفل اسکرول انجام می‌شود
+    let hasSeenIntro = false;
+    try {
+      hasSeenIntro = sessionStorage.getItem('chand_intro_seen') === '1';
+    } catch (e) {}
+
+    if (hasSeenIntro) {
+      finishIntro();
+    } else {
+      try {
+        sessionStorage.setItem('chand_intro_seen', '1');
+      } catch (e) {}
+      document.body.style.overflow = 'hidden';
+      showIntroSlide(0);
+    }
 
     // =====================================================================
     // جابه‌جایی بین ۳ صفحه اصلی (صفحه فرود / ورود مدیران / داشبورد)
@@ -2171,8 +2184,18 @@
         document.addEventListener("click", e => {
           if (e.target !== input && !box.contains(e.target)) box.style.display = "none";
         });
-        window.addEventListener("resize", () => { if (box.style.display !== "none") position(); });
-        window.addEventListener("scroll", () => { if (box.style.display !== "none") position(); }, true);
+        let isRepositioning = false;
+        const throttledPosition = () => {
+          if (!isRepositioning && box.style.display !== "none") {
+            isRepositioning = true;
+            requestAnimationFrame(() => {
+              position();
+              isRepositioning = false;
+            });
+          }
+        };
+        window.addEventListener("resize", throttledPosition, { passive: true });
+        window.addEventListener("scroll", throttledPosition, { passive: true });
       });
     }
 
