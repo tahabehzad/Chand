@@ -1,0 +1,742 @@
+    :root {
+      --bg-main: #060608;
+      --text-main: #F4F4F6;
+      --card-bg: linear-gradient(155deg, rgba(20, 20, 28, 0.94) 0%, rgba(10, 10, 14, 0.97) 100%);
+      --card-border: rgba(212, 175, 55, 0.22);
+      --card-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.92), 0 0 35px -14px rgba(212, 175, 55, 0.14);
+      --gold-grad: linear-gradient(135deg, #FFFDF5 0%, #F3E5AB 45%, #D4AF37 100%);
+      --grid-line: rgba(212, 175, 55, 0.22);
+    }
+
+    html.light-theme {
+      --bg-main: #FAF8F3;
+      --text-main: #141417;
+      --card-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.96) 0%, rgba(252, 249, 242, 0.95) 100%);
+      --card-border: rgba(196, 150, 30, 0.32);
+      --card-shadow: 0 24px 55px -15px rgba(92, 72, 24, 0.12), 0 0 32px -10px rgba(212, 175, 55, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      --gold-grad: linear-gradient(135deg, #4A3504 0%, #9E7410 38%, #D4AF37 70%, #785506 100%);
+      --grid-line: rgba(196, 150, 30, 0.18);
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Vazirmatn', sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* کارت‌های شیشه‌ای لوکس مشکی-طلایی و مرواریدی-طلایی */
+    .luxe-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(20px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease, background 0.3s ease;
+    }
+    .luxe-card:hover {
+      border-color: rgba(212, 175, 55, 0.65);
+      box-shadow: 0 28px 65px -15px rgba(92, 72, 24, 0.16), 0 0 40px -8px rgba(212, 175, 55, 0.25);
+    }
+
+    /* تطبیق دقیق عمق سه‌بعدی، نورپردازی طلایی و کنتراست در نسخه لایت (آینه نسخه دارک) */
+    html.light-theme .bg-obsidian-950,
+    html.light-theme .bg-obsidian-950\/95,
+    html.light-theme .bg-obsidian-950\/90 {
+      background-color: #FAF8F3 !important;
+    }
+    /* باکس‌های توکار داخل کارت‌های سفید برای ایجاد عمق سه‌بعدی مشابه دارک‌مود */
+    html.light-theme .luxe-card .bg-obsidian-950,
+    html.light-theme .luxe-card .bg-obsidian-950\/95,
+    html.light-theme .luxe-card .bg-obsidian-950\/90 {
+      background-color: #F4EFE3 !important;
+    }
+    html.light-theme .bg-obsidian-900,
+    html.light-theme .bg-obsidian-900\/90 {
+      background-color: rgba(255, 255, 255, 0.94) !important;
+    }
+    /* ستون نمایش برند در صفحه ورود مدیران با گرادینت شامپاینی-مرواریدی لوکس */
+    html.light-theme #view-login .lg\:col-span-7.bg-obsidian-900 {
+      background: linear-gradient(145deg, #F7F1E3 0%, #EFE6D1 100%) !important;
+    }
+    html.light-theme #view-login .lg\:col-span-5.bg-obsidian-950 {
+      background-color: #FFFFFF !important;
+    }
+    html.light-theme .from-obsidian-800 {
+      --tw-gradient-from: #FFFFFF !important;
+    }
+    html.light-theme .via-obsidian-950 {
+      --tw-gradient-via: #FAF6EC !important;
+    }
+    html.light-theme .to-obsidian-900,
+    html.light-theme .to-obsidian-950 {
+      --tw-gradient-to: #F2EBDC !important;
+    }
+    html.light-theme .from-gold-400\/20 {
+      --tw-gradient-from: rgba(212, 175, 55, 0.28) !important;
+    }
+    /* تقویت هاله‌های نور طلایی سه‌بعدی در پس‌زمینه روشن */
+    html.light-theme .bg-gold-400\/\[0\.11\],
+    html.light-theme .bg-gold-400\/\[0\.08\],
+    html.light-theme .bg-gold-400\/\[0\.07\],
+    html.light-theme .bg-gold-400\/\[0\.06\] {
+      background-color: rgba(212, 175, 55, 0.22) !important;
+    }
+    html.light-theme .bg-gold-300\/\[0\.07\],
+    html.light-theme .bg-amber-500\/\[0\.07\],
+    html.light-theme .bg-amber-500\/\[0\.06\] {
+      background-color: rgba(230, 184, 58, 0.18) !important;
+    }
+    html.light-theme .text-white {
+      color: #141417 !important;
+    }
+    html.light-theme .text-zinc-100,
+    html.light-theme .text-zinc-200 {
+      color: #1F2026 !important;
+    }
+    html.light-theme .text-zinc-300 {
+      color: #3F414D !important;
+    }
+    html.light-theme .text-zinc-400,
+    html.light-theme .text-zinc-500 {
+      color: #5C5F6E !important;
+    }
+    html.light-theme .text-gold-100,
+    html.light-theme .text-gold-200 {
+      color: #6B4D05 !important;
+    }
+    html.light-theme .text-gold-300,
+    html.light-theme .text-gold-400 {
+      color: #8A640B !important;
+    }
+    html.light-theme .border-white\/10,
+    html.light-theme .border-white\/15,
+    html.light-theme .border-white\/\[0\.08\] {
+      border-color: rgba(158, 116, 16, 0.22) !important;
+    }
+    html.light-theme .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+      border-color: rgba(158, 116, 16, 0.16) !important;
+    }
+    html.light-theme .bg-white\/5,
+    html.light-theme .bg-white\/10 {
+      background-color: rgba(158, 116, 16, 0.08) !important;
+    }
+    html.light-theme input:not([type="range"]),
+    html.light-theme select {
+      background-color: #FFFFFF !important;
+      color: #141417 !important;
+      border-color: rgba(158, 116, 16, 0.32) !important;
+    }
+    /* حفظ رنگ مشکی روی دکمه‌های طلایی فعال در هر دو تم */
+    html.light-theme .btn-gold,
+    html.light-theme .btn-gold span,
+    html.light-theme .text-obsidian-950,
+    html.light-theme .active-gold-pill {
+      color: #09090B !important;
+    }
+
+    /* نشان لوگوی کشیده و هماهنگ با تم دارک و تم لایت */
+    .brand-logo-pill {
+      background: linear-gradient(135deg, #1E190C 0%, #110F0A 52%, #08080B 100%);
+      border: 1px solid rgba(212, 175, 55, 0.62);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.85), 0 0 22px -4px rgba(212, 175, 55, 0.34), inset 0 1px 0 rgba(255, 248, 220, 0.25);
+      transition: all 0.3s ease;
+    }
+    .brand-logo-pill:hover {
+      border-color: rgba(243, 229, 171, 0.9);
+      box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.9), 0 0 28px -2px rgba(212, 175, 55, 0.48), inset 0 1px 0 rgba(255, 248, 220, 0.4);
+    }
+    .brand-logo-icon {
+      color: #F3E5AB;
+    }
+    .brand-logo-divider {
+      background-color: rgba(212, 175, 55, 0.32);
+    }
+    .brand-logo-text {
+      background: linear-gradient(135deg, #FFFDF5 0%, #F3E5AB 48%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding-top: 0.14em;
+      padding-bottom: 0.14em;
+    }
+
+    /* تطبیق نشان لوگوی کشیده در تم لایت */
+    html.light-theme .brand-logo-pill {
+      background: linear-gradient(135deg, #FFFDF7 0%, #F9F0D9 52%, #EFE0BA 100%);
+      border: 1px solid rgba(184, 134, 11, 0.55);
+      box-shadow: 0 8px 22px -6px rgba(138, 101, 14, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+    html.light-theme .brand-logo-icon {
+      color: #785506;
+    }
+    html.light-theme .brand-logo-divider {
+      background-color: rgba(158, 116, 16, 0.28);
+    }
+    html.light-theme .brand-logo-text {
+      background: linear-gradient(135deg, #3A2903 0%, #8A640B 48%, #B8860B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    html.light-theme .gold-shockwave {
+      border-color: #9E7410;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.45) 0%, transparent 70%);
+    }
+    html.light-theme .gold-scanner-line {
+      background: linear-gradient(90deg, transparent, #FFFDF5, #9E7410, transparent);
+    }
+    html.light-theme #simVirtualCursor svg {
+      color: #141417 !important;
+      filter: drop-shadow(0 4px 10px rgba(212, 175, 55, 0.65));
+    }
+
+    /* دکمه طلایی درخشان */
+    .btn-gold {
+      background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 52%, #B59024 100%);
+      color: #060608;
+      font-weight: 800;
+      box-shadow: 0 10px 28px -6px rgba(212, 175, 55, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transition: all 0.25s ease;
+    }
+    .btn-gold:hover {
+      filter: brightness(1.07);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px -6px rgba(212, 175, 55, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    /* تایپوگرافی طلایی با ارتفاع خط استاندارد برای جلوگیری از بریدگی نقطه‌های فارسی */
+    .text-gold-gradient {
+      background: var(--gold-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding-top: 0.16em;
+      padding-bottom: 0.16em;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ===================================================================== */
+    /* صحنه اینترو سینمایی با منحنی سرعت: ورود سریع از چپ -> مکث مرکز -> خروج پرشتاب به راست */
+    /* ===================================================================== */
+    #introStageOverlay {
+      perspective: 1400px;
+      transition: opacity 0.65s ease, visibility 0.65s ease;
+    }
+    #introStageOverlay.stage-closed {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .kinetic-slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      opacity: 0;
+      visibility: hidden;
+      /* حالت آماده در سمت چپ با مقیاس کمی کشیده برای حس سرعت */
+      transform: translate3d(-110vw, 0, 0) scaleX(1.04);
+      filter: blur(8px);
+      pointer-events: none;
+      will-change: transform, opacity, filter;
+    }
+
+    /* ورود سریع از چپ و ترمز نرم در مرکز */
+    .kinetic-slide.slide-enter {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0) scaleX(1);
+      filter: blur(0px);
+      pointer-events: auto;
+      transition:
+        transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.45s ease-out,
+        filter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* شتاب مجدد و خروج پرسرعت به سمت راست */
+    .kinetic-slide.slide-exit {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(110vw, 0, 0) scaleX(1.05);
+      filter: blur(10px);
+      pointer-events: none;
+      transition:
+        transform 0.68s cubic-bezier(0.7, 0, 0.84, 0),
+        opacity 0.55s cubic-bezier(0.7, 0, 0.84, 0),
+        filter 0.55s ease-in;
+    }
+
+    /* نشانگر تایپ زنده */
+    @keyframes blinkCaret {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .typing-caret::after {
+      content: '|';
+      color: #D4AF37;
+      margin-right: 2px;
+      animation: blinkCaret 0.75s infinite;
+    }
+
+    /* افکت کلیک دکمه مجازی */
+    .sim-btn-pressed {
+      transform: scale(0.94) !important;
+      box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.35), 0 0 35px rgba(212, 175, 55, 0.85) !important;
+    }
+
+    /* انیمیشن موج انفجاری طلایی هنگام کلیک دکمه */
+    @keyframes rippleWave {
+      0% {
+        transform: translate(-50%, -50%) scale(0.1);
+        opacity: 0.95;
+        border-width: 4px;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(4.8);
+        opacity: 0;
+        border-width: 1px;
+      }
+    }
+    .gold-shockwave {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 9999px;
+      border: 3px solid #F3E5AB;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, transparent 70%);
+      pointer-events: none;
+      animation: rippleWave 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 40;
+    }
+
+    /* حرکت شناور و تنفس سه‌بعدی کارت‌ها هنگام مکث در مرکز */
+    @keyframes cardFloatBreathe {
+      0%, 100% {
+        transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+      }
+      33% {
+        transform: translateY(-7px) rotateX(1.2deg) rotateY(-1.2deg);
+      }
+      66% {
+        transform: translateY(4px) rotateX(-1deg) rotateY(1.2deg);
+      }
+    }
+    .slide-enter .live-stage-card {
+      animation: cardFloatBreathe 4.2s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+
+    /* خط اسکنر طلایی متحرک روی لوگو */
+    @keyframes scannerBeam {
+      0% { top: -15%; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 115%; opacity: 0; }
+    }
+    .gold-scanner-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #FFFDF5, #D4AF37, transparent);
+      box-shadow: 0 0 12px #D4AF37;
+      animation: scannerBeam 2.6s ease-in-out infinite;
+    }
+
+    /* درخشش متحرک روی نوار حقوق */
+    @keyframes barShimmer {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .bar-shimmer-effect::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+      animation: barShimmer 1.4s infinite;
+    }
+
+    /* لرزش ظریف هنگام تایپ هر کاراکتر */
+    @keyframes keystrokeMicroShake {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+    .typing-bounce {
+      animation: keystrokeMicroShake 0.14s ease-out;
+    }
+
+    /* پالس عدد نتیجه پس از کلیک */
+    @keyframes resultPopPulse {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.07); }
+      100% { transform: scale(1); }
+    }
+    .result-pop-active {
+      animation: resultPopPulse 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50% { opacity: 0.78; transform: scale(1.05); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 4.5s ease-in-out infinite;
+    }
+
+    /* اسلایدر سفارشی طلایی و هماهنگ در هر دو تم */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: pointer;
+      padding: 0 !important;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.3);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.3);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    /* انیمیشن فوق‌العاده نرم اسلایدر سابقه کاری و میله‌های توزیع */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: pointer;
+      padding: 0 !important;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -7px;
+      background: linear-gradient(135deg, #FFFDF5, #F3E5AB 45%, #D4AF37 100%);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 2px solid #060608;
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.75);
+      cursor: grab;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    input[type="range"]:active::-webkit-slider-thumb {
+      cursor: grabbing;
+      transform: scale(1.3);
+      box-shadow: 0 0 24px rgba(212, 175, 55, 1);
+    }
+    input[type="range"]::-moz-range-thumb {
+      appearance: none;
+      background: linear-gradient(135deg, #FFFDF5, #F3E5AB 45%, #D4AF37 100%);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 2px solid #060608;
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.75);
+      cursor: grab;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    input[type="range"]:active::-moz-range-thumb {
+      cursor: grabbing;
+      transform: scale(1.3);
+      box-shadow: 0 0 24px rgba(212, 175, 55, 1);
+    }
+    #dashExpLabel, #lExpText {
+      display: inline-block;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      will-change: transform;
+    }
+    .exp-bar-col {
+      transition: height 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease, box-shadow 0.4s ease;
+      will-change: height;
+    }
+
+    /* خط اسلایدر واضح، پررنگ و شیک در تم لایت (روشن) */
+    html.light-theme input[type="range"] {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    html.light-theme input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #D4AF37 0%, #C4961E 40%, rgba(196, 150, 30, 0.4) 100%);
+      border: 1px solid rgba(180, 130, 20, 0.6);
+      box-shadow: inset 0 1px 2px rgba(92, 72, 24, 0.2), 0 1px 3px rgba(212, 175, 55, 0.25);
+    }
+    html.light-theme input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #D4AF37 0%, #C4961E 40%, rgba(196, 150, 30, 0.4) 100%);
+      border: 1px solid rgba(180, 130, 20, 0.6);
+      box-shadow: inset 0 1px 2px rgba(92, 72, 24, 0.2), 0 1px 3px rgba(212, 175, 55, 0.25);
+    }
+    html.light-theme input[type="range"]::-webkit-slider-thumb {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F5E6B3 30%, #D4AF37 70%, #9E7410 100%);
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 8px rgba(158, 116, 16, 0.5), 0 0 0 1.5px rgba(196, 150, 30, 0.7);
+    }
+    html.light-theme input[type="range"]::-moz-range-thumb {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F5E6B3 30%, #D4AF37 70%, #9E7410 100%);
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 8px rgba(158, 116, 16, 0.5), 0 0 0 1.5px rgba(196, 150, 30, 0.7);
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.35);
+      border-radius: 999px;
+    }
+
+    /* استایل‌های پرینت و خروجی رسمی PDF */
+    @media print {
+      body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+      }
+      header, #introStageOverlay, #minimalToast, #geminiModal, #exportShareModal, .preset-btn, #dashCalcBtn, .dash-action-row, .app-view:not(#view-dashboard) {
+        display: none !important;
+      }
+      #view-dashboard {
+        display: block !important;
+        padding-top: 0 !important;
+        background: #FFFFFF !important;
+      }
+      .luxe-card {
+        border: 1px solid #D4AF37 !important;
+        background: #FFFFFF !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
+      }
+      .text-white, .text-zinc-200, .text-zinc-300, .text-zinc-400 {
+        color: #000000 !important;
+      }
+      .text-gold-gradient {
+        background: none !important;
+        -webkit-text-fill-color: #9E7410 !important;
+        color: #9E7410 !important;
+      }
+    }
+
+    /* === اتوفیل هم‌تم چند؟ (تم تیره و روشن) === */
+    .chand-autofill {
+      position: absolute;
+      z-index: 9600;
+      background: linear-gradient(155deg, rgba(20, 20, 28, 0.98), rgba(10, 10, 14, 0.98));
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.92), 0 0 35px -14px rgba(212, 175, 55, 0.25);
+      overflow: hidden;
+      margin-top: 6px;
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+    }
+    html.light-theme .chand-autofill {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.98), rgba(250, 248, 243, 0.98));
+      border: 1px solid rgba(196, 150, 30, 0.35);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.15), 0 0 35px -14px rgba(212, 175, 55, 0.2);
+    }
+    .chand-autofill .opt {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #F4F4F6;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    html.light-theme .chand-autofill .opt {
+      color: #141417;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .chand-autofill .opt:last-child {
+      border-bottom: none;
+    }
+    .chand-autofill .opt small {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.75;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(212, 175, 55, 0.14);
+      color: #D4AF37;
+    }
+    html.light-theme .chand-autofill .opt small {
+      background: rgba(196, 150, 30, 0.15);
+      color: #9E7410;
+    }
+    .chand-autofill .opt:hover, .chand-autofill .opt.active {
+      background: linear-gradient(135deg, #FFFDF5 0%, #F3E5AB 45%, #D4AF37 100%);
+      color: #060608;
+    }
+    .chand-autofill .opt:hover small, .chand-autofill .opt.active small {
+      background: rgba(6, 6, 8, 0.18);
+      color: #060608;
+      opacity: 0.95;
+    }
+    .chand-autofill mark {
+      background: transparent;
+      color: inherit;
+      border-bottom: 2px solid #D4AF37;
+      padding: 0;
+    }
+    .chand-autofill .opt.active mark, .chand-autofill .opt:hover mark {
+      border-color: #060608;
+    }
+  
+
+/* === اتوفیل یکپارچه هم‌تم سایت چند؟ (مشکی + طلایی و تم روشن) === */
+.chand-autofill {
+  position: absolute;
+  z-index: 9600;
+  background: linear-gradient(155deg, rgba(20, 20, 28, 0.98), rgba(10, 10, 14, 0.98));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.92), 0 0 35px -14px rgba(212, 175, 55, 0.25);
+  overflow: hidden;
+  margin-top: 6px;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  max-height: 320px;
+  overflow-y: auto;
+}
+html.light-theme .chand-autofill {
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.98), rgba(250, 248, 243, 0.98));
+  border: 1px solid rgba(196, 150, 30, 0.35);
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.15), 0 0 35px -14px rgba(212, 175, 55, 0.2);
+}
+.chand-autofill .opt {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #F4F4F6;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+html.light-theme .chand-autofill .opt {
+  color: #141417;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.chand-autofill .opt:last-child {
+  border-bottom: none;
+}
+.chand-autofill .opt small {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.14);
+  color: #D4AF37;
+}
+html.light-theme .chand-autofill .opt small {
+  background: rgba(196, 150, 30, 0.15);
+  color: #9E7410;
+}
+.chand-autofill .opt:hover, .chand-autofill .opt.active {
+  background: linear-gradient(135deg, #FFFDF5 0%, #F3E5AB 45%, #D4AF37 100%) !important;
+  color: #060608 !important;
+}
+.chand-autofill .opt:hover small, .chand-autofill .opt.active small {
+  background: rgba(6, 6, 8, 0.18) !important;
+  color: #060608 !important;
+}
+.chand-autofill mark {
+  background: transparent;
+  color: inherit;
+  border-bottom: 2px solid #D4AF37;
+  padding: 0;
+}
+.chand-autofill .opt.active mark, .chand-autofill .opt:hover mark {
+  border-color: #060608;
+}
+
+/* یکسان‌سازی ظاهر اتوفیل بومی مرورگر با تم تاریک و طلایی سایت */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #0b0b0f inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #D4AF37 !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+html {
+  color-scheme: dark;
+}
+html.light-theme {
+  color-scheme: light;
+}
+
+html.light-theme input:-webkit-autofill,
+html.light-theme input:-webkit-autofill:hover, 
+html.light-theme input:-webkit-autofill:focus, 
+html.light-theme input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1a160d !important;
+  caret-color: #9E7410 !important;
+  border-color: rgba(196, 150, 30, 0.4) !important;
+}
+
+select {
+  color-scheme: dark !important;
+}
+html.light-theme select {
+  color-scheme: light !important;
+}
+
+select option {
+  background-color: #0d0d12 !important;
+  color: #f4f4f6 !important;
+  padding: 10px 14px !important;
+}
+select option:checked,
+select option:hover {
+  background-color: #241e12 !important;
+  color: #f6d878 !important;
+}
+html.light-theme select option {
+  background-color: #FAF6ED !important;
+  color: #1a160d !important;
+}
+html.light-theme select option:checked,
+html.light-theme select option:hover {
+  background-color: #ede2c9 !important;
+  color: #8c670a !important;
+}
+
