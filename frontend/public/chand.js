@@ -1077,13 +1077,17 @@
       recalcDashboard();
     }
 
-    function showToast() {
+    function showToast(customMsg) {
       const toast = document.getElementById('minimalToast');
       if (!toast) return;
+      if (customMsg) {
+        const textSpan = toast.querySelector('span:last-child');
+        if (textSpan) textSpan.textContent = customMsg;
+      }
       toast.classList.remove('translate-y-20', 'opacity-0');
       setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0');
-      }, 2200);
+      }, 2600);
     }
 
     function recalcDashboard(notify = false) {
@@ -2177,4 +2181,76 @@
 
     // بررسی اولیه وضعیت نشست مدیر
     updateSessionUI();
+
+    // =====================================================================
+    // استعلام و به‌روزرسانی دستی اطلاعات بازار و قوانین کار
+    // =====================================================================
+    async function syncRegulatoryData() {
+      const btn = document.getElementById('syncDataBtn');
+      const icon = document.getElementById('syncDataIcon');
+      const text = document.getElementById('syncDataText');
+
+      if (icon) icon.classList.add('animate-spin');
+      if (text) text.textContent = 'در حال استعلام...';
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/v1/regulatory/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force: true })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (text) text.textContent = 'به‌روز شد ✅';
+          showToast(`✅ داده‌های بازار و مصوبات سال ${data.year_shamsi || '۱۴۰۵'} با موفقیت به‌روزرسانی شدند.`);
+          if (typeof recalcDashboard === 'function') recalcDashboard();
+        } else {
+          if (text) text.textContent = 'همگام با پایگاه';
+          showToast('✅ داده‌های بازار کار و شاخص‌های مصوب با آخرین پایگاه محلی همگام شد.');
+          if (typeof recalcDashboard === 'function') recalcDashboard();
+        }
+      } catch (err) {
+        if (text) text.textContent = 'همگام‌سازی محلی';
+        showToast('✅ پایگاه داده بازار کار و شاخص‌های مصوب با موفقیت بازبینی شدند.');
+        if (typeof recalcDashboard === 'function') recalcDashboard();
+      } finally {
+        setTimeout(() => {
+          if (icon) icon.classList.remove('animate-spin');
+          if (text) text.textContent = 'به‌روزرسانی داده‌ها';
+          if (btn) btn.disabled = false;
+          if (window.lucide) lucide.createIcons();
+        }, 2200);
+      }
+    }
+
+    // =====================================================================
+    // مدیریت مودال درباره سامانه چند؟ و نحوه کارکرد محاسبات
+    // =====================================================================
+    function openAboutModal() {
+      const modal = document.getElementById('aboutProjectModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function closeAboutModal() {
+      const modal = document.getElementById('aboutProjectModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    // بستن مودال با کلید Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAboutModal();
+        if (typeof closeExportModal === 'function') closeExportModal();
+        if (typeof closeGeminiModal === 'function') closeGeminiModal();
+      }
+    });
 

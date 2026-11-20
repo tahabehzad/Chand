@@ -83,16 +83,28 @@
         </button>
       </div>
 
-      <!-- دکمه‌های تغییر تم (لایت / دارک) و پخش مجدد اینترو -->
+      <!-- دکمه‌های ابزار: استعلام داده‌ها، درباره سامانه، تم و اینترو -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="toggleThemeMode()" id="themeToggleBtn" class="px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-obsidian-950 hover:bg-gold-400/15 border border-gold-400/35 transition-all flex items-center gap-1.5" title="تغییر بین تم روشن و تیره">
+        <!-- دکمه استعلام و به‌روزرسانی زنده اطلاعات بازار و قوانین کار -->
+        <button onclick="syncRegulatoryData()" id="syncDataBtn" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-obsidian-950 hover:bg-gold-400/15 border border-gold-400/35 transition-all flex items-center gap-1.5 shadow-[0_0_10px_rgba(212,175,55,0.15)]" title="استعلام و به‌روزرسانی زنده داده‌های بازار و مصوبات قانونی">
+          <i id="syncDataIcon" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-gold-400 transition-transform"></i>
+          <span id="syncDataText">به‌روزرسانی داده‌ها</span>
+        </button>
+
+        <!-- دکمه درباره سامانه و راهنمای کارکرد الگوریتم‌ها -->
+        <button onclick="openAboutModal()" id="aboutModalBtn" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-gold-400/10 hover:bg-gold-400/20 border border-gold-400/35 transition-all flex items-center gap-1.5" title="معرفی پلتفرم و نحوه کارکرد محاسبات">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-gold-400"></i>
+          <span>درباره سامانه</span>
+        </button>
+
+        <button onclick="toggleThemeMode()" id="themeToggleBtn" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-obsidian-950 hover:bg-gold-400/15 border border-gold-400/35 transition-all flex items-center gap-1.5" title="تغییر بین تم روشن و تیره">
           <i id="themeToggleIcon" data-lucide="sun" class="w-3.5 h-3.5 text-gold-400"></i>
           <span id="themeToggleText">نسخه لایت</span>
         </button>
 
-        <button onclick="replayIntro()" class="px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-gold-400/10 hover:bg-gold-400/20 border border-gold-400/35 transition-all flex items-center gap-1.5">
+        <button onclick="replayIntro()" class="px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] font-bold text-gold-200 bg-gold-400/10 hover:bg-gold-400/20 border border-gold-400/35 transition-all flex items-center gap-1.5">
           <i data-lucide="play" class="w-3.5 h-3.5 text-gold-400"></i>
-          <span class="hidden sm:inline">پخش مجدد اینترو</span>
+          <span class="hidden md:inline">اینترو</span>
         </button>
       </div>
     </nav>
@@ -1419,6 +1431,112 @@
     <div class="bg-obsidian-900 border border-gold-400/50 px-4 py-2.5 rounded-xl text-xs font-bold text-gold-200 shadow-[0_10px_30px_rgba(0,0,0,0.85)] flex items-center gap-2">
       <span class="w-2 h-2 rounded-full bg-gold-400"></span>
       <span>محاسبات برآورد حقوق به‌روزرسانی شد</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- مودال جامع درباره سامانه چند؟ و نحوه کارکرد محاسبات (About Project)     -->
+  <!-- ===================================================================== -->
+  <div id="aboutProjectModal" onclick="if(event.target === this) closeAboutModal()" class="fixed inset-0 z-[9990] bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="luxe-card w-full max-w-2xl rounded-3xl p-6 sm:p-8 border-gold-400/50 space-y-6 relative shadow-[0_25px_60px_rgba(0,0,0,0.95)] max-h-[92vh] overflow-y-auto">
+      
+      <!-- سربرگ مودال -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gold-400/20 text-gold-400 flex items-center justify-center border border-gold-400/40 shadow-[0_0_12px_rgba(212,175,55,0.25)]">
+            <i data-lucide="info" class="w-5 h-5 text-gold-300"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-white flex items-center gap-2">
+              <span>سامانه هوشمند «چند؟»</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-gold-400/20 text-gold-300 border border-gold-400/30">نسخه پاییز ۱۴۰۵</span>
+            </h3>
+            <span class="text-xs text-gold-300/80">پلتفرم تخصصی برآورد حقوق منصفانه، تحلیل اسناد و تصمیم‌یاری استخدام در بازار کار ایران</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeAboutModal()" class="w-8 h-8 rounded-xl bg-obsidian-950 border border-white/10 text-zinc-400 hover:text-white flex items-center justify-center text-sm font-bold transition-all">✕</button>
+      </div>
+
+      <!-- محتوای بخش‌ها -->
+      <div class="space-y-4 text-xs leading-relaxed text-zinc-300">
+        
+        <!-- بخش ۱: هدف و فلسفه پروژه -->
+        <div class="p-4 rounded-2xl bg-obsidian-950/80 border border-white/10 space-y-2">
+          <h4 class="text-xs font-black text-gold-300 flex items-center gap-2">
+            <i data-lucide="target" class="w-4 h-4 text-gold-400"></i>
+            <span>هدف و مأموریت سامانه</span>
+          </h4>
+          <p class="text-zinc-300 leading-relaxed text-justify">
+            سامانه «چند؟» با هدف پایان دادن به عدم شفافیت حقوقی و سردرگمی در مذاکرات دستمزد طراحی شده است. این ابزار به مدیران عامل، مدیران منابع انسانی، کارفرمایان و کارجویان متخصص کمک می‌کند تا بر اساس داده‌های تجمیعی و پایش‌شدهٔ بیش از ۱۹۴ موقعیت شغلی بازار کار ایران، محدوده منصفانه دستمزد را به همراه تفکیک کامل هزینه‌ها و کسورات قانونی ارزیابی کنند.
+          </p>
+        </div>
+
+        <!-- بخش ۲: نحوه کارکرد موتور برآورد حقوق -->
+        <div class="p-4 rounded-2xl bg-obsidian-950/80 border border-white/10 space-y-2.5">
+          <h4 class="text-xs font-black text-gold-300 flex items-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4 text-gold-400"></i>
+            <span>نحوه محاسبه برآورد دستمزد (Market Cohorts)</span>
+          </h4>
+          <ul class="space-y-2 text-zinc-300">
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-gold-400 mt-1.5 shrink-0"></span>
+              <span><strong>صدک‌های بازار (P25 … P75):</strong> برآورد بر مبنای توزیع آماری چارک اول (حداقل متعارف)، میانه بازار (دستمزد مرجع) و چارک سوم (حداکثر سقف متعارف) انجام می‌پذیرد.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-gold-400 mt-1.5 shrink-0"></span>
+              <span><strong>ضرایب تعدیل چندبعدی:</strong> فرمول محاسبه هم‌زمان سابقه کار (از بدون سابقه تا ۱۵+ سال)، سطح تخصص (تازه‌کار تا لید)، شیوه همکاری (حضوری، دورکاری، هیبرید) و ضریب تقاضای جغرافیایی شهر/استان را لحاظ می‌کند.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-gold-400 mt-1.5 shrink-0"></span>
+              <span><strong>تأثیر زنده مهارت‌های فنی:</strong> هر مهارت تخصصی منتخب معادل ۵٪ اثر ارزش‌افزا بر دامنه دستمزد ایجاد می‌کند.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- بخش ۳: تفکیک هزینه کارفرما (CTC) و کسورات قانونی -->
+        <div class="p-4 rounded-2xl bg-obsidian-950/80 border border-white/10 space-y-2.5">
+          <h4 class="text-xs font-black text-gold-300 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-gold-400"></i>
+            <span>تفکیک هزینه کل کارفرما (Cost to Company - CTC)</span>
+          </h4>
+          <p class="text-zinc-300 text-justify">
+            سیستم طبق آخرین مصوبات شورای عالی کار و قوانین مالیاتی کشور، محاسبات را تفکیک می‌کند:
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <div class="p-2.5 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+              <span class="font-bold text-white block">سهم کارمند:</span>
+              <span class="text-zinc-400 block">• ۷٪ بیمه سهم کارمند (تأمین اجتماعی)</span>
+              <span class="text-zinc-400 block">• مالیات پلکانی بر درآمد (ماده ۸۴ ق.م.م)</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-obsidian-900 border border-white/5 space-y-1">
+              <span class="font-bold text-white block">سهم کارفرما:</span>
+              <span class="text-zinc-400 block">• ۲۳٪ بیمه کارفرما و بیمه بیکاری</span>
+              <span class="text-zinc-400 block">• ذخیره عیدی و پاداش سالانه و سنوات ماهانه</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- بخش ۴: بینایی هوش مصنوعی و امنیت داده‌ها -->
+        <div class="p-4 rounded-2xl bg-obsidian-950/80 border border-white/10 space-y-2">
+          <h4 class="text-xs font-black text-gold-300 flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-gold-400"></i>
+            <span>سنجش اصالت اسناد و تعهدات عدم توهم (AI Grounding)</span>
+          </h4>
+          <p class="text-zinc-300 text-justify">
+            موتور بینایی ماشین <strong>Google Gemini Vision 2.0</strong> به صورت اختصاصی اسناد اداری رسمی (سابقه بیمه، فیش حقوقی، حکم کارگزینی) را پردازش کرده و واقعیت سوابق را استخراج می‌کند. مطابق اصل بنیادین سامانه <em>(Refuse instead of Fabricate)</em>، هوش مصنوعی هرگز عدد حقوق جعل نمی‌کند، بلکه استخراج داده‌های موثق را به موتور ریاضیاتی دقیق با ۳۴ رقم اعشار (بانکی) می‌سپارد.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- دکمه بستن در انتهای مودال -->
+      <div class="flex items-center justify-between border-t border-white/10 pt-4">
+        <span class="text-[11px] text-zinc-500 font-medium">پلتفرم چند؟ — تمامی محاسبات بر مبنای قوانین و داده‌های رسمی بازار کار ایران تدوین شده است.</span>
+        <button type="button" onclick="closeAboutModal()" class="btn-gold px-5 py-2.5 rounded-xl text-xs font-black">
+          متوجه شدم
+        </button>
+      </div>
+
     </div>
   </div>
 
